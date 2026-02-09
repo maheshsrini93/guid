@@ -1,0 +1,127 @@
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { SaveProductButton } from "@/components/save-product-button";
+
+export default async function ProfilePage() {
+  const session = await auth();
+
+  if (!session) {
+    redirect("/login");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user!.id },
+    select: {
+      name: true,
+      email: true,
+      role: true,
+      createdAt: true,
+    },
+  });
+
+  const savedProducts = await prisma.savedProduct.findMany({
+    where: { userId: session.user!.id },
+    include: {
+      product: {
+        include: {
+          images: { take: 1, orderBy: { sort_order: "asc" } },
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return (
+    <main className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-6">Profile</h1>
+
+      <div className="grid gap-6 md:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Account</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            {user?.name && <p className="font-medium">{user.name}</p>}
+            <p className="text-muted-foreground">{user?.email}</p>
+            <Badge variant="secondary">{user?.role}</Badge>
+            <p className="text-xs text-muted-foreground">
+              Joined {user?.createdAt.toLocaleDateString()}
+            </p>
+          </CardContent>
+        </Card>
+
+        <div className="md:col-span-2">
+          <h2 className="text-xl font-semibold mb-4">
+            Saved Products ({savedProducts.length})
+          </h2>
+          {savedProducts.length === 0 ? (
+            <p className="text-muted-foreground text-sm">
+              No saved products yet. Browse{" "}
+              <Link href="/products" className="underline">
+                products
+              </Link>{" "}
+              to save your favorites.
+            </p>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {savedProducts.map(({ product, id }) => (
+                <div key={id} className="flex gap-3 rounded-lg border p-3">
+                  <Link
+                    href={`/products/${product.article_number}`}
+                    className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-gray-50"
+                  >
+                    {product.images[0] ? (
+                      <Image
+                        src={product.images[0].url}
+                        alt={product.product_name || "Product"}
+                        fill
+                        sizes="80px"
+                        className="object-contain"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-xs text-gray-400">
+                        No img
+                      </div>
+                    )}
+                  </Link>
+                  <div className="flex flex-1 flex-col justify-between min-w-0">
+                    <div>
+                      <Link
+                        href={`/products/${product.article_number}`}
+                        className="font-medium text-sm hover:underline line-clamp-1"
+                      >
+                        {product.product_name || "Unknown"}
+                      </Link>
+                      {product.product_type && (
+                        <p className="text-xs text-muted-foreground line-clamp-1">
+                          {product.product_type}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between mt-1">
+                      {product.price_current != null && (
+                        <span className="text-sm font-semibold">
+                          ${product.price_current.toFixed(2)}
+                        </span>
+                      )}
+                      <SaveProductButton
+                        productId={product.id}
+                        initialSaved={true}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </main>
+  );
+}
