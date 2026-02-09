@@ -8,7 +8,7 @@ export async function HeaderNav() {
     <header className="border-b">
       <div className="container mx-auto flex h-14 items-center px-4">
         <Link href="/" className="font-bold text-lg">
-          IKEA Assembly Guide
+          Guid
         </Link>
         <nav className="ml-auto flex items-center gap-4 text-sm">
           <Link href="/products" className="hover:underline">

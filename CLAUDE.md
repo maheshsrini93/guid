@@ -1,7 +1,7 @@
-# CLAUDE.md — IKEA Assembly Guide
+# CLAUDE.md — Guid (guid.how)
 
 ## Project Overview
-Next.js app for browsing IKEA products and assembly guides. Shares a **Supabase PostgreSQL** database with the IKEA scraper (`/Users/hashincloud/Ikea Scraper/`). The scraper populates the DB; this app reads from it.
+**Guid** — product guides for everything. Step-by-step assembly, setup, and troubleshooting guides for any product. Built with Next.js, currently seeded with IKEA product data via the scraper (`/Users/hashincloud/Ikea Scraper/`). Shares a **Supabase PostgreSQL** database with the scraper.
 
 ## Commands
 

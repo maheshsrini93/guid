@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "IKEA Assembly Guide",
-  description: "Browse IKEA products and assembly guides",
+  title: "Guid — Product guides for everything",
+  description: "Step-by-step assembly, setup, and troubleshooting guides for any product.",
 };
 
 export default function RootLayout({
