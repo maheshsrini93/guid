@@ -4,6 +4,68 @@ All notable changes to the project documentation (`docs/`) are logged here. Newe
 
 ---
 
+## 2026-02-11 — Sync #5: Monthly Catalog Sync (Frequency Change)
+
+### `docs/implementation-plan.md`
+- **Updated:** Catalog sync frequency from every 4-6 hours to **once per month** per retailer
+- **Rewritten:** Architecture diagram, scheduler section, and detection method for monthly full-catalog diff
+- **Updated:** SLA targets — detection ≥ 98% per cycle, guides within 72h of sync, coverage within 1 week
+- **Updated:** Dashboard metrics — now shows "last sync date," "new products this month," and "sync history" instead of hourly/daily metrics
+- **Updated:** `isNew` badge duration from 7 days to 30 days
+- **Updated:** Product metadata updates happen during monthly sync (was "real-time")
+- **Updated:** Infrastructure section — "monthly catalog sync" replaces "every 4-6 hours"
+
+### `docs/master-plan.md`
+- **Updated:** Priority 1 catalog sync scenarios — replaced "within hours" and "same-day" language with monthly cadence
+- **Updated:** Success metrics — "Catalog freshness (time-to-guide) < 24h" replaced with "Catalog sync coverage per monthly cycle ≥ 98%" and "New product guide rate within 1 week of sync ≥ 95%"
+
+### `docs/user-journeys.md`
+- **Rewritten:** Journey 2B renamed from "Continuous Catalog Sync" to "Monthly Catalog Sync"
+- **Updated:** Automated flow — monthly batch cycle replaces hourly scanning
+- **Updated:** Admin routine — post-sync review replaces daily monitoring
+- **Updated:** User experience — realistic edge case where product listed between syncs isn't yet on Guid (user clicks "Notify me")
+- **Added:** Edge case — "Request this product" for urgent needs between sync cycles
+
+### `docs/design-guidelines.md`
+- **Updated:** "New" badge duration from 7 days to 30 days
+- **Updated:** Time-to-guide color coding — green < 3 days, amber 3-7 days, red > 7 days (was hours-based)
+
+### `docs/tasks.md`
+- **Renamed:** Section 1.5 from "Continuous Catalog Sync" to "Monthly Catalog Sync & Auto-Generation"
+- **Updated:** All 14 tasks — monthly frequency, full catalog diff, 30-day badge, post-sync notifications, sync history
+- **Added:** New task — "manual single-product scrape" for handling user requests between sync cycles
+- **Renamed:** Studio route from `/studio/freshness` to `/studio/catalog-sync`
+
+---
+
+## 2026-02-11 — Sync #4: Continuous Catalog Sync & Auto-Generation Pipeline
+
+### `docs/implementation-plan.md`
+- **Added:** "Continuous Catalog Sync & Auto-Generation" section to Phase 1 — architecture diagram, scheduled scanner, new product detection & auto-queue, auto-publish confidence thresholds (≥90% auto, 70-89% badge, <70% review), freshness SLA targets, monitoring dashboard spec
+- **Added:** New database fields on Product (`guideStatus`, `firstDetectedAt`, `lastScrapedAt`, `isNew`) and AIGenerationJob (`priority`, `triggeredBy`)
+- **Added:** Handling for product updates, PDF changes, delistings, and new variants
+- **Updated:** Infrastructure section — added scheduled scraping to background jobs
+
+### `docs/master-plan.md`
+- **Updated:** Priority 1 description to include "catalog stays permanently fresh"
+- **Added:** 2 new key scenarios — "Always-fresh catalog" and "Zero-lag for new purchases"
+- **Added:** 2 new success metrics — "Catalog freshness (time-to-guide)" and "New product coverage"
+
+### `docs/design-guidelines.md`
+- **Added:** "Product Freshness & Status Badges" section — 4 user-facing badges (New, AI-Generated, Guide Coming Soon, Verified) with styles
+- **Added:** Studio-specific status indicators — guide status dots and time-to-guide color coding
+
+### `docs/user-journeys.md`
+- **Added:** Journey 2B: Continuous Catalog Sync — automated flow (scan → scrape → queue → generate → auto-publish), admin oversight (daily monitoring), user experience (same-day availability), edge cases
+- **Updated:** Journey 2 edge case for "no assembly PDF" to reference auto-sync
+
+### `docs/tasks.md`
+- **Added:** Section 1.5 — 14 new tasks for catalog scanner, incremental scraping, auto-detection, auto-publish rules, new DB fields, PDF update detection, product delisting, freshness dashboard, error handling, "New" badge, "Guide Coming Soon" state, admin digest
+- **Updated:** Section 1.6 (Database Changes) — added priority/triggeredBy to AIGenerationJob, autoPublishThresholds to AIGenerationConfig, new Product fields
+- **Renumbered:** 1.6 → 1.7 (New Studio Routes), added `/studio/freshness` route
+
+---
+
 ## 2026-02-11 — Sync #3: Design Guidelines + Nano Banana + Chat UI + Changelog
 
 ### `docs/design-guidelines.md`

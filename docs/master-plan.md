@@ -62,13 +62,15 @@ People regularly face confusing, missing, or poorly written product instructions
 ## Long-Term Vision (Roadmap)
 
 ### Priority 1: AI-Generated Guides
-Use AI to automatically generate step-by-step guides from manufacturer PDFs, images, and video. Scale from thousands to millions of products without manual authoring.
+Use AI to automatically generate step-by-step guides from manufacturer PDFs, images, and video. Scale from thousands to millions of products without manual authoring. **The catalog stays permanently fresh** — new products are detected, scraped, and processed through the AI pipeline automatically so guides are available the moment a customer needs them.
 
 **Key scenarios:**
 - Admin uploads a KALLAX assembly PDF → AI extracts 24 steps with tool lists, part references, and screw directions → generates isometric illustrations for each step → guide ready for review in minutes instead of hours
 - AI reads a visual-only IKEA diagram (no text) and correctly identifies: "Insert cam lock dowel into pre-drilled hole, turn clockwise 90 degrees"
 - Batch processing: 2,800 IKEA products with assembly PDFs are queued → AI generates guides overnight → admin reviews flagged low-confidence steps the next morning
 - AI detects that a PDF contains instructions for two product variants → automatically splits into two separate guides
+- **Monthly catalog sync:** On the 1st of each month, the system scans every retailer's catalog for new products → scrapes them → AI pipeline generates guides in batch → all new guides published within a week. Every product in the current catalog has a guide on Guid.
+- **New product coverage:** IKEA adds 15 new products to their catalog this month → next monthly sync detects all 15 → AI generates guides → admin reviews any flagged ones → all 15 are live before the end of the month
 
 ### Priority 2: Multi-Retailer Expansion
 Add scrapers and integrations for more retailers — Wayfair, Amazon, Home Depot, Target, etc. Become the universal destination regardless of where the product was purchased.
@@ -136,3 +138,5 @@ React Native (Expo) apps built after customer validation on the web platform. Th
 | **Return visits** | Users coming back for troubleshooting/maintenance (lifetime engagement) |
 | **App installs** | iOS + Android app downloads and active installs |
 | **Camera usage rate** | % of mobile sessions using barcode scan, photo OCR, or photo diagnosis |
+| **Catalog sync coverage** | % of new retailer products detected and ingested per monthly sync cycle (target: ≥ 98%) |
+| **New product guide rate** | % of new products with assembly PDFs that have a published guide within 1 week of sync (target: ≥ 95%) |

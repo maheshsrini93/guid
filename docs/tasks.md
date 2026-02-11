@@ -43,15 +43,34 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 - [ ] **Add auto-publish for high-confidence guides** — Guides above confidence threshold auto-publish; below threshold → review queue
 - [ ] **Build monitoring dashboard** — Real-time stats: jobs completed, average confidence, failure rate, estimated completion time
 
-### 1.5 Database Changes
-- [ ] **Add `AIGenerationJob` model** — id, productId, status, modelPrimary, modelSecondary, inputPdfUrl, rawOutput, confidenceScore, qualityFlags, reviewedBy, reviewNotes, timestamps
-- [ ] **Add `AIGenerationConfig` model** — id, name, version, promptTemplate, modelConfig, isActive
+### 1.5 Monthly Catalog Sync & Auto-Generation
+- [ ] **Build monthly catalog sync** — Vercel Cron or Inngest function that runs once per month (e.g., 1st of each month) per retailer. Performs a full catalog diff against the existing Product table to detect all new products. Also triggerable manually from Studio.
+- [ ] **Implement catalog diff logic** — Each retailer adapter implements `detectNewProducts()` that compares the retailer's current catalog against the DB and returns products not yet present. Uses sitemaps, RSS feeds, or full category scraping.
+- [ ] **Add new product auto-detection** — When sync inserts a new product, check for assembly PDF in ProductDocuments. If PDF exists, auto-create `AIGenerationJob` with `priority: high` and `triggeredBy: auto_sync`.
+- [ ] **Implement auto-publish rules** — After pilot quality baselines are set: guides ≥ 90% confidence auto-publish immediately; 70-89% auto-publish with "AI-Generated" badge and flagged for review; < 70% enter review queue only. Thresholds configurable in `AIGenerationConfig`.
+- [ ] **Add `guideStatus` field to Product** — Enum: none/queued/generating/in_review/published/no_source_material. Track pipeline state per product.
+- [ ] **Add `firstDetectedAt`, `lastScrapedAt`, `isNew` fields to Product** — Track when product was first found, last scraped, and whether it's new (< 30 days since detection).
+- [ ] **Add `priority` and `triggeredBy` fields to AIGenerationJob** — Priority: high/normal/low. TriggeredBy: manual/auto_sync/batch. New products from monthly sync get high priority.
+- [ ] **Handle assembly PDF updates** — During monthly sync, detect when a product's assembly PDF has changed (hash comparison). Auto-queue regeneration job. Version the old guide.
+- [ ] **Handle product delisting** — During monthly sync, detect products no longer in retailer catalog. Mark as `discontinued: true`. Keep guides live. Show "This product has been discontinued" notice on product page.
+- [ ] **Build catalog sync dashboard in Studio** — New dashboard section: last sync date per retailer, new products this month, pending generation, auto-published count, review queue depth, time-to-guide distribution, failed scrapes, sync history log.
+- [ ] **Add scraper error handling & retry** — Failed scrapes retry with exponential backoff within the sync run. Persistent failures send webhook alert (Slack/email). Individual product failures don't block the batch.
+- [ ] **Add "New" badge to product cards** — Show "New" pill badge on products where `isNew: true` (first 30 days after detection). Amber pill, subtle pulse on first view.
+- [ ] **Add "Guide Coming Soon" state** — Product detail page shows "Guide being generated — check back shortly" with progress indicator when `guideStatus` is queued/generating.
+- [ ] **Add post-sync admin notification** — After each monthly sync completes, send summary email/webhook: new products detected, guides queued, auto-published count, items in review queue, any scraper failures.
+- [ ] **Add manual single-product scrape** — Studio action: admin can trigger a scrape + AI generation for a specific product URL without waiting for the next monthly sync (handles "user needs this product now" requests).
+
+### 1.6 Database Changes
+- [ ] **Add `AIGenerationJob` model** — id, productId, status, modelPrimary, modelSecondary, inputPdfUrl, rawOutput, confidenceScore, qualityFlags, reviewedBy, reviewNotes, priority (high/normal/low), triggeredBy (manual/auto_sync/batch), timestamps
+- [ ] **Add `AIGenerationConfig` model** — id, name, version, promptTemplate, modelConfig, isActive, autoPublishThresholds (JSON: confidence cutoffs for auto/review/hold)
+- [ ] **Extend Product model** — Add guideStatus (enum), firstDetectedAt, lastScrapedAt, isNew (boolean), discontinued (boolean) fields
 - [ ] **Run migration** — `npx prisma db push` after schema changes
 
-### 1.6 New Studio Routes
+### 1.7 New Studio Routes
 - [ ] **`/studio/ai-generate`** — AI generation dashboard: start jobs, view queue, batch controls
 - [ ] **`/studio/ai-generate/[jobId]`** — Single job review: side-by-side PDF vs guide, edit, approve/reject
 - [ ] **`/studio/ai-config`** — Prompt template management, model configuration, version history
+- [ ] **`/studio/catalog-sync`** — Monthly catalog sync dashboard: last sync dates, new products per cycle, time-to-guide metrics, scraper health, sync history log, manual sync trigger
 
 ---
 

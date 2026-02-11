@@ -184,8 +184,110 @@
 | **PDF has multiple products** | AI detects page ranges per product, generates separate guides |
 | **AI can't determine step order** | Flag for manual review with "Low confidence: step ordering" |
 | **API rate limit hit** | Queue pauses, resumes automatically. Dashboard shows "Rate limited — resuming in 5m" |
-| **Product has no assembly PDF** | Skip in batch. Mark as "No source material" in dashboard. |
+| **Product has no assembly PDF** | Skip in batch. Mark as "No source material" in dashboard. Auto-sync also handles this — product page goes live without guide. |
 | **Illustration generation fails** | Guide still publishable with text-only steps. Flag illustration for retry. |
+
+---
+
+## Journey 2B: Monthly Catalog Sync (Automated System + Admin Oversight)
+
+**Persona:** Jordan (Studio Admin) + Automated System
+**Trigger:** It's the 1st of the month. The system runs its monthly catalog sync to detect new products from each retailer, generate guides, and make them available to users.
+
+### Automated Flow (No Human Intervention)
+
+```
+1. MONTHLY SYNC KICKS OFF
+   On the 1st of the month, the catalog sync runs automatically for each retailer.
+   → Compares each retailer's full product catalog against the Product table.
+   → Detects 12 new IKEA products added since the last sync.
+
+2. AUTO-SCRAPE
+   For each new product:
+   → Scrapes full product data (images, specs, documents, PDFs).
+   → Inserts into Product table with guideStatus: "queued".
+   → Flags as isNew: true (drives "New" badge for 30 days).
+   → firstDetectedAt timestamp recorded.
+
+3. AUTO-QUEUE AI GENERATION
+   For each new product WITH an assembly PDF:
+   → Creates an AIGenerationJob with priority: "high" and triggeredBy: "auto_sync".
+   → Job enters the generation queue ahead of backfill jobs.
+   → Products WITHOUT assembly PDFs get guideStatus: "no_source_material".
+   → Product page goes live immediately (images, specs, documents) even before guide is ready.
+
+4. AI PIPELINE BATCH RUNS
+   Queue worker processes all new jobs over the following days:
+   → PDF extraction → vision analysis → step extraction → illustration generation → quality scoring.
+   → Same pipeline as manual/batch generation — no separate path.
+   → All new product guides generated within ~72 hours of sync.
+
+5. AUTO-PUBLISH (HIGH CONFIDENCE)
+   Guide scores 92% confidence:
+   → Auto-published. guideStatus → "published".
+   → Product page now shows full assembly guide.
+   → No admin action required.
+
+6. REVIEW QUEUE (LOW CONFIDENCE)
+   Guide scores 78% confidence:
+   → Auto-published with "AI-Generated" badge.
+   → guideStatus → "in_review". Flagged for admin review within the week.
+   → Users can follow the guide immediately; badge signals it hasn't been human-verified yet.
+```
+
+### Admin Oversight (Jordan's Post-Sync Routine)
+
+```
+7. SYNC SUMMARY
+   Jordan gets a notification after the monthly sync completes.
+   → Opens Studio → Catalog Sync Dashboard.
+   → Sees: "12 new products detected, 10 guides auto-published, 2 in review queue."
+   → All products scraped successfully. No failures.
+
+8. REVIEW FLAGGED GUIDES
+   Jordan opens the review queue within the week.
+   → 2 guides at 70-89% confidence. Reviews each one.
+   → Side-by-side: original PDF vs AI-generated guide.
+   → Corrects a misread part orientation, approves both guides.
+   → "AI-Generated" badge removed, "Verified" badge added.
+
+9. MONITOR TRENDS
+   Jordan checks monthly trends:
+   → Average confidence trending up (prompt refinements working).
+   → 1 product had no assembly PDF — Jordan flags for manual upload.
+   → Sync completed in 6 hours, all guides generated within 3 days.
+```
+
+### The User Experience (Alex Buys a New Product)
+
+```
+10. GUIDE AVAILABLE
+    Alex buys a product that was added to the retailer catalog this month.
+    → Gets home, opens guid.how, searches for the product.
+    → Product page is there with images, specs, and assembly guide.
+    → "New" badge shows it was recently added.
+    → Alex follows the guide step by step.
+
+11. PRODUCT TOO NEW (edge case)
+    Alex buys a product that was JUST listed — after the latest monthly sync.
+    → Product is NOT yet on Guid.
+    → Alex searches → "We don't have that product yet."
+    → Clicks "Notify me when guide is available."
+    → Next monthly sync picks it up → guide generated → Alex gets notified.
+    → In the meantime, Alex can download the PDF from the manufacturer's site.
+```
+
+### Edge Cases
+
+| Scenario | Handling |
+|----------|----------|
+| **Retailer site down during sync** | Sync retries the next day. Dashboard shows "Sync incomplete" with reason. Admin can trigger manual re-sync. |
+| **Product has no assembly PDF** | Product page live with images/specs. Guide status: "No source material." Show "Notify me when guide is available" button. |
+| **Assembly PDF updated by retailer** | Detected during monthly sync via PDF hash change → auto-queue regeneration → new guide replaces old one, versioned. |
+| **Product delisted by retailer** | Mark as `discontinued: true`. Keep guide live (users still own the product). Show "This product has been discontinued" notice. |
+| **Scraper rate-limited by retailer** | Exponential backoff within the sync run. Monthly cadence means less pressure on retailer servers. Alert admin if persistent. |
+| **Large catalog refresh (many new products)** | Queue handles burst naturally. High-priority new products processed first. Dashboard shows estimated completion time. Guides published as they complete over several days. |
+| **User needs a product before next sync** | "Request this product" button → admin can trigger a manual single-product scrape + generation from Studio. |
 
 ---
 

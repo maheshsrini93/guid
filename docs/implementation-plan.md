@@ -121,6 +121,105 @@ AIGenerationConfig
 - **OpenAI API** — Vision analysis (primary or secondary depending on benchmark)
 - **PDF processing** — `pdf-lib` or `pdfjs-dist` for page extraction and image conversion
 
+### Continuous Catalog Sync & Auto-Generation
+
+The AI pipeline (above) handles guide generation for known products. This section covers keeping the product catalog **up to date** — a monthly sync checks each retailer's latest product catalog for new additions, scrapes them, runs them through the AI pipeline, and makes guides available to users before the next buying cycle.
+
+**Goal:** Every product in a retailer's current catalog has a guide on Guid. New products added to retailer catalogs are picked up in the next monthly sync and have guides published shortly after.
+
+#### Architecture
+
+```
+[Retailer Catalog]
+    → Monthly catalog sync (Vercel Cron or Inngest, runs once per month)
+    → Full catalog diff (compare retailer's current catalog against DB)
+    → New products detected → scrape and insert into Product table, flag as "new"
+    → Has assembly PDF? → auto-create AIGenerationJob (status: queued, priority: high)
+    → AI pipeline processes all new jobs in batch
+    → High-confidence guides → auto-publish
+    → Low-confidence guides → enter admin review queue
+    → All new product pages + guides live on Guid
+```
+
+#### Monthly Catalog Sync
+
+The sync runs **once per month** per retailer, performing a full catalog comparison to detect all new and updated products since the last sync.
+
+| Component | Detail |
+|-----------|--------|
+| **Trigger** | Vercel Cron job or Inngest scheduled function, once per month (e.g., 1st of each month). Can also be triggered manually from Studio. |
+| **Detection method** | Compare retailer's full product catalog against the existing Product table. Use sitemaps, RSS feeds, or API endpoints where available. Fall back to paginated category scraping. Identify all products present in the retailer catalog but absent from the DB. |
+| **Scope** | Each retailer adapter implements a `detectNewProducts()` method that returns a list of product URLs/IDs not yet in the database |
+| **Rate limiting** | Respectful scraping: honor robots.txt, randomized delays, rotating user agents, max concurrent requests per retailer. Monthly cadence means scraping volume is spread across a single run rather than many small runs. |
+| **Error handling** | Failed scrapes retry with exponential backoff. Persistent failures alert via webhook (Slack/email). Individual product failures don't block the batch. |
+
+#### New Product Detection & Auto-Queue
+
+When the scanner inserts a new product into the database:
+
+1. **Check for assembly PDF** — Does the product have a `ProductDocument` with `document_type = 'assembly'`?
+2. **Auto-create AI job** — If yes, create an `AIGenerationJob` with `status: queued` and `priority: high` (new products get priority over backfill)
+3. **No PDF?** — Mark product as `guide_status: no_source_material`. Product page is still live (with images, specs, documents) but shows "Guide coming soon" instead of an assembly guide.
+4. **Notification** — Notify admins after each monthly sync completes: summary of new products found, guides queued, and any issues encountered
+
+#### Auto-Publish Rules
+
+After the pilot phase establishes quality baselines, high-confidence guides skip the review queue:
+
+| Confidence Score | Action |
+|-----------------|--------|
+| **≥ 90%** | Auto-publish immediately. Guide is live on the product page. |
+| **70-89%** | Auto-publish with "AI-Generated" badge. Flag for admin review within 48 hours. |
+| **< 70%** | Do NOT auto-publish. Enter admin review queue. Product page shows "Guide in review." |
+
+These thresholds are configurable in `AIGenerationConfig`.
+
+#### Freshness SLA Targets
+
+| Metric | Target |
+|--------|--------|
+| **Sync cadence** | Once per month per retailer (configurable — can increase frequency later if needed) |
+| **Detection completeness** | ≥ 98% of new products in retailer catalog detected per sync cycle |
+| **AI generation time** | All new product guides generated within 72 hours of sync completing |
+| **End-to-end time-to-guide** | New product in retailer catalog → guide live on Guid within one monthly sync cycle + 72 hours |
+| **Coverage rate** | ≥ 95% of products with assembly PDFs have a published guide within 1 week of sync |
+
+#### Freshness Monitoring Dashboard (Studio)
+
+A new section in the Studio dashboard showing catalog health:
+
+- **Last sync date** — When each retailer was last synced, and when the next sync is scheduled
+- **New products this month** — Count of products detected and ingested in the latest sync
+- **Pending guide generation** — Products detected but guide not yet generated
+- **Auto-published this cycle** — Guides that passed confidence threshold and went live after the latest sync
+- **In review queue** — Low-confidence guides awaiting admin review
+- **Time-to-guide distribution** — Histogram showing how long it takes from sync detection → published guide
+- **Failed scrapes** — Products that couldn't be scraped, with error details and retry status
+- **Sync history** — Log of past sync runs with stats: products found, new products, failures, duration
+
+#### New Database Fields (on existing models)
+
+```
+Product (extend existing)
+  - guideStatus     Enum (none/queued/generating/in_review/published/no_source_material)
+  - firstDetectedAt DateTime  (when the scraper first found this product)
+  - lastScrapedAt   DateTime  (when this product was last successfully scraped)
+  - isNew           Boolean   (true for first 30 days after detection — drives "New" badge)
+
+AIGenerationJob (extend planned model)
+  - priority        Enum (high/normal/low)  — new products get "high"
+  - triggeredBy     Enum (manual/auto_sync/batch)  — tracks whether job was auto-created
+```
+
+#### Handling Product Updates (Not Just New Products)
+
+The sync system also handles changes to existing products:
+
+- **Updated assembly PDF** — If a product's assembly PDF changes (new version), auto-queue a regeneration job
+- **Price/availability changes** — Update product metadata during monthly sync
+- **Product delisted** — Mark as `discontinued: true` in the database. Keep the guide live (users still own the product and need the guide), but add a "This product has been discontinued" notice.
+- **Product variant added** — Detect when a product gets new color/size variants. Create separate product entries if they have different assembly instructions.
+
 ### Open Issues & Blockers
 
 > **BLOCKER: Instruction Writing Guidelines & Illustration Style Guide**
@@ -334,7 +433,8 @@ Build native apps **after Phase 5** — once the web app has real customer valid
 - **Hosting:** Vercel (serverless, edge network)
 - **Database:** Supabase PostgreSQL (existing)
 - **File storage:** Supabase Storage or Vercel Blob (for uploaded PDFs, generated illustrations)
-- **Background jobs:** Vercel Cron + Inngest or Trigger.dev (for AI batch processing)
+- **Background jobs:** Vercel Cron + Inngest or Trigger.dev (for AI batch processing AND monthly catalog sync)
+- **Monthly catalog sync:** Vercel Cron triggers catalog scanner once per month per retailer; Inngest handles the scrape-detect-queue workflow with retries and rate limiting
 - **AI APIs:** Gemini + OpenAI (rate-limited, queued)
 
 ### Environment Strategy

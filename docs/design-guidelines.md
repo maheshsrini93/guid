@@ -127,6 +127,24 @@ The guide viewer is the core UX — it must be exceptional:
 - **Navigation:** Large "Next Step" / "Previous Step" buttons. Keyboard shortcuts (arrow keys). Swipe on mobile.
 - **Progress bar:** Thin amber bar at top showing % complete.
 
+### Product Freshness & Status Badges
+
+Badges communicate product and guide status to users and admins:
+
+| Badge | Context | Style |
+|-------|---------|-------|
+| **"New"** | Product cards, product detail — product detected within last 30 days (since last monthly sync) | Small amber pill badge, bold text, subtle pulse animation on first view |
+| **"AI-Generated"** | Guide viewer — guide was auto-generated and auto-published (70-89% confidence, pending admin review) | Small blue outline pill badge, mono text |
+| **"Guide Coming Soon"** | Product detail — product exists but guide is still being generated or in review | Muted gray pill badge, italic text |
+| **"Verified"** | Guide viewer — guide has been reviewed and approved by an admin | Small green pill badge with checkmark icon |
+
+**Studio-specific status indicators:**
+
+| Indicator | Context | Style |
+|-----------|---------|-------|
+| **Guide status dot** | Product list in Studio — shows guide pipeline status at a glance | Colored dot: green (published), amber (in review), blue (generating), gray (no source), red (failed) |
+| **Time-to-guide** | Sync dashboard — time from product detection to guide published | Mono font, color-coded: green (< 3 days), amber (3-7 days), red (> 7 days) |
+
 ### Forms (Studio)
 
 - **Input fields:** Warm gray border, amber focus ring, generous padding
