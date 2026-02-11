@@ -184,3 +184,20 @@ npx tsx prisma/seed.ts      # Seed admin user
 ## Related Project
 - Scraper: `/Users/hashincloud/Ikea Scraper/` — populates the shared Supabase DB
 - Scraper GitHub: `maheshsrini93/ikea-scraper`
+
+## Project Docs
+
+Before starting any task, read all files in `docs/` for full project context:
+- docs/master-plan.md — vision, scope, and anti-goals
+- docs/implementation-plan.md — architecture and tech decisions
+- docs/design-guidelines.md — UI/design system constraints
+- docs/user-journeys.md — user flows and edge cases
+- docs/tasks.md — current task list and progress
+- docs/changelog.md — history of all changes
+
+### Task Workflow
+
+- Work through tasks in `docs/tasks.md` in milestone order
+- After completing any task, **immediately** mark it `[x]` in `docs/tasks.md` — do not batch updates
+- After marking a task done, append an entry to `docs/changelog.md` with the date, task name, and files changed
+- Never skip marking a task done — if the session ends unexpectedly, progress must already be saved

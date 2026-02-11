@@ -13,9 +13,9 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 ### 1.1 AI Infrastructure Setup
 - [ ] **Choose primary vision model** — Benchmark Gemini Pro Vision vs GPT-4o on 10 IKEA assembly PDF pages for fine-detail accuracy (screw direction, part orientation, hole alignment)
 - [ ] **Set up AI provider accounts** — Gemini API + OpenAI API keys, rate limit config, cost tracking
-- [ ] **Build PDF extraction pipeline** — Extract individual pages from assembly PDFs as images using `pdf-lib` or `pdfjs-dist`
-- [ ] **Create AI abstraction layer** — Provider-agnostic interface for vision analysis (swap primary/secondary models easily)
-- [ ] **Design structured output schema** — Define the JSON structure for AI-generated guide data (steps, tools, parts, warnings, confidence scores)
+- [x] **Build PDF extraction pipeline** — Extract individual pages from assembly PDFs as images using `pdf-lib` or `pdfjs-dist`
+- [x] **Create AI abstraction layer** — Provider-agnostic interface for vision analysis (swap primary/secondary models easily)
+- [x] **Design structured output schema** — Define the JSON structure for AI-generated guide data (steps, tools, parts, warnings, confidence scores)
 
 ### 1.2 AI Generation Pipeline
 - [ ] **Build single-product generation endpoint** — Server action: takes a product ID → fetches PDF → runs vision analysis → returns structured guide data
@@ -61,10 +61,10 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 - [ ] **Add manual single-product scrape** — Studio action: admin can trigger a scrape + AI generation for a specific product URL without waiting for the next monthly sync (handles "user needs this product now" requests).
 
 ### 1.6 Database Changes
-- [ ] **Add `AIGenerationJob` model** — id, productId, status, modelPrimary, modelSecondary, inputPdfUrl, rawOutput, confidenceScore, qualityFlags, reviewedBy, reviewNotes, priority (high/normal/low), triggeredBy (manual/auto_sync/batch), timestamps
-- [ ] **Add `AIGenerationConfig` model** — id, name, version, promptTemplate, modelConfig, isActive, autoPublishThresholds (JSON: confidence cutoffs for auto/review/hold)
-- [ ] **Extend Product model** — Add guideStatus (enum), firstDetectedAt, lastScrapedAt, isNew (boolean), discontinued (boolean) fields
-- [ ] **Run migration** — `npx prisma db push` after schema changes
+- [x] **Add `AIGenerationJob` model** — id, productId, status, modelPrimary, modelSecondary, inputPdfUrl, rawOutput, confidenceScore, qualityFlags, reviewedBy, reviewNotes, priority (high/normal/low), triggeredBy (manual/auto_sync/batch), timestamps
+- [x] **Add `AIGenerationConfig` model** — id, name, version, promptTemplate, modelConfig, isActive, autoPublishThresholds (JSON: confidence cutoffs for auto/review/hold)
+- [x] **Extend Product model** — Add guideStatus (enum), firstDetectedAt, lastScrapedAt, isNew (boolean), discontinued (boolean) fields
+- [x] **Run migration** — `npx prisma db push` after schema changes
 
 ### 1.7 New Studio Routes
 - [ ] **`/studio/ai-generate`** — AI generation dashboard: start jobs, view queue, batch controls

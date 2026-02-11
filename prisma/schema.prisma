@@ -8,6 +8,27 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+// ─── Enums (Phase 1: AI Generation) ───
+
+enum JobStatus {
+  queued
+  processing
+  review
+  approved
+  failed
+}
+
+enum JobPriority {
+  high
+  normal
+  low
+}
+
+enum JobTrigger {
+  manual
+  auto_sync
+  batch
+}
 
 // ─── Scraper tables (introspected from Supabase) ───
 
@@ -50,10 +71,19 @@ model Product {
   scrape_error            String?
   scraped_at              DateTime          @default(now()) @db.Timestamptz(6)
   updated_at              DateTime          @default(now()) @db.Timestamptz(6)
+
+  // Phase 1: AI Generation pipeline fields
+  guide_status            String            @default("none") // none/queued/generating/in_review/published/no_source_material
+  first_detected_at       DateTime?         @db.Timestamptz(6)
+  last_scraped_at         DateTime?         @db.Timestamptz(6)
+  is_new                  Boolean           @default(false)
+  discontinued            Boolean           @default(false)
+
   documents               ProductDocument[]
   images                  ProductImage[]
   savedBy                 SavedProduct[]
   assemblyGuide           AssemblyGuide?
+  aiGenerationJobs        AIGenerationJob[]
 
   @@index([article_number], map: "idx_products_article")
   @@index([source_retailer], map: "idx_products_retailer")
@@ -182,4 +212,44 @@ model AssemblyStep {
 
   @@unique([guideId, stepNumber])
   @@map("assembly_steps")
+}
+
+// ─── AI Generation (Phase 1) ───
+
+model AIGenerationJob {
+  id              String      @id @default(cuid())
+  productId       Int
+  status          JobStatus   @default(queued)
+  modelPrimary    String?
+  modelSecondary  String?
+  inputPdfUrl     String?
+  rawOutput       Json?
+  confidenceScore Float?      @db.Real
+  qualityFlags    Json?
+  reviewedBy      String?
+  reviewNotes     String?
+  priority        JobPriority @default(normal)
+  triggeredBy     JobTrigger  @default(manual)
+  createdAt       DateTime    @default(now())
+  completedAt     DateTime?
+  product         Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([status])
+  @@index([priority])
+  @@map("ai_generation_jobs")
+}
+
+model AIGenerationConfig {
+  id                    String   @id @default(cuid())
+  name                  String
+  version               Int      @default(1)
+  promptTemplate        String?
+  modelConfig           Json?
+  isActive              Boolean  @default(false)
+  autoPublishThresholds Json?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@map("ai_generation_configs")
 }

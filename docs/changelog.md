@@ -4,6 +4,71 @@ All notable changes to the project documentation (`docs/`) are logged here. Newe
 
 ---
 
+## 2026-02-12 — Phase 1.1: Create AI Abstraction Layer
+
+### `src/lib/ai/vision-provider.ts` (new)
+- **Created:** Provider-agnostic `VisionProvider` interface with `analyzeImage()` method
+- **Implemented:** `GeminiVisionProvider` — direct REST API calls to Gemini `generateContent` endpoint
+- **Implemented:** `OpenAIVisionProvider` — direct REST API calls to OpenAI chat completions with vision
+- **Created:** `createVisionProvider(config)` factory function for instantiating providers
+- **Created:** `createVisionProvidersFromEnv()` — reads primary/secondary provider config from env vars (AI_PRIMARY_PROVIDER, AI_PRIMARY_MODEL, AI_PRIMARY_API_KEY, etc.)
+
+### `src/lib/ai/index.ts` (new)
+- **Created:** Barrel export for the ai module (types, pdf-extractor, vision-provider)
+
+### `docs/tasks.md`
+- **Marked complete:** "Create AI abstraction layer" in section 1.1
+
+---
+
+## 2026-02-12 — Phase 1.1: Build PDF Extraction Pipeline
+
+### Dependencies
+- **Installed:** `pdfjs-dist` (v5.4.624) and `canvas` (node-canvas) for server-side PDF rendering
+
+### `src/lib/ai/pdf-extractor.ts` (new)
+- **Created:** PDF page extraction utility with three functions:
+  - `extractPdfPages(pdfUrl, scale)` — fetches a PDF from URL, renders all pages to PNG buffers at 2x scale
+  - `extractSinglePage(pdfUrl, pageNumber, scale)` — extracts a single page (for testing/incremental processing)
+  - `getPdfPageCount(pdfUrl)` — returns page count without rendering (for progress tracking)
+- **Implementation:** Uses `pdfjs-dist/legacy/build/pdf.mjs` with custom `NodeCanvasFactory` for server-side canvas rendering
+- **Output:** Returns `PdfExtractionResult` / `ExtractedPdfPage` types from the structured output schema
+
+### `docs/tasks.md`
+- **Marked complete:** "Build PDF extraction pipeline" in section 1.1
+
+---
+
+## 2026-02-12 — Phase 1.1: Design Structured Output Schema
+
+### `src/lib/ai/types.ts` (new)
+- **Created:** Complete TypeScript type system for the AI generation pipeline
+- **Types:** `GeneratedGuide`, `GeneratedStep`, `PartReference`, `ToolReference`, `StepCallout`, `QualityFlag`, `GenerationMetadata`
+- **PDF types:** `ExtractedPdfPage`, `PdfExtractionResult`
+- **AI provider types:** `VisionAnalysisRequest`, `VisionAnalysisResponse`, `AIProvider`, `AIProviderConfig`
+- **Enums:** `StepComplexity` (simple/complex for illustration routing), `RotationDirection`, `QualityFlagCode` (8 codes)
+
+### `docs/tasks.md`
+- **Marked complete:** "Design structured output schema" in section 1.1
+
+---
+
+## 2026-02-12 — Phase 1.6: Database Changes for AI Generation Pipeline
+
+### `prisma/schema.prisma`
+- **Added:** `JobStatus` enum (queued/processing/review/approved/failed)
+- **Added:** `JobPriority` enum (high/normal/low)
+- **Added:** `JobTrigger` enum (manual/auto_sync/batch)
+- **Added:** `AIGenerationJob` model — tracks AI guide generation jobs with status, confidence scoring, model references, priority, triggeredBy, and review fields. Maps to `ai_generation_jobs` table. Indexed on productId, status, and priority.
+- **Added:** `AIGenerationConfig` model — prompt templates, model configuration, auto-publish thresholds (JSON). Maps to `ai_generation_configs` table. Only one active config at a time via `isActive` flag.
+- **Extended:** `Product` model with 5 new fields: `guide_status` (String, default "none"), `first_detected_at` (DateTime?), `last_scraped_at` (DateTime?), `is_new` (Boolean), `discontinued` (Boolean). Added `aiGenerationJobs` relation.
+- **Pushed:** Schema changes to Supabase via `npx prisma db push`. Prisma client regenerated.
+
+### `docs/tasks.md`
+- **Marked complete:** All 4 tasks in section 1.6 (Database Changes)
+
+---
+
 ## 2026-02-11 — Sync #5: Monthly Catalog Sync (Frequency Change)
 
 ### `docs/implementation-plan.md`
