@@ -2,6 +2,52 @@
 
 All notable changes to the project documentation (`docs/`) are logged here. Newest entries first.
 
+## Overview
+
+| # | Date | Change | Phase | Docs Affected |
+|---|------|--------|-------|---------------|
+| 21 | 2026-02-12 | Restructure tasks.md with unique IDs, dependencies, and table format | — | tasks |
+| 20 | 2026-02-12 | Two-pass pipeline architecture for step continuity | 1.2 | implementation-plan, tasks |
+| 19 | 2026-02-12 | Single-product generation endpoint, step extraction, confidence scoring | 1.2 | ai/generate-guide.ts, actions/ai-generation.ts, tasks |
+| 18 | 2026-02-12 | 20-page Gemini 2.5 benchmark complete + env migration to all-Gemini | 1.1 | benchmark script, .env, vision-provider, implementation-plan, tasks |
+| 17 | 2026-02-12 | Vision model strategy overhaul: all-Gemini, Flash-first + Pro-on-fail | 1.1 | implementation-plan, tasks, CLAUDE.md |
+| 16 | 2026-02-12 | Choose primary vision model (Gemini 2.0 Flash vs GPT-4o benchmark) | 1.1 | .env, pdf-extractor, benchmark script, tasks |
+| 15 | 2026-02-12 | Set up AI provider accounts, rate limiter, cost tracker | 1.1 | .env, rate-limiter, cost-tracker, ai/index, tasks |
+| 14 | 2026-02-12 | Guide-first UX architecture: navigation paradigm shift | 2.0 | master-plan, implementation-plan, design-guidelines, user-journeys, tasks, CLAUDE.md |
+| 13 | 2026-02-12 | Add UI/UX Pro Max workflow to CLAUDE.md | — | CLAUDE.md, design-guidelines |
+| 12 | 2026-02-12 | Sync #7: Design guidelines rewrite, three-column guide viewer, font migration | 2.1–2.2 | design-guidelines, implementation-plan, user-journeys, tasks, CLAUDE.md |
+| 11 | 2026-02-12 | Sync #6: Community submissions, Phase 2 elaboration, YouTube creators, Phase 5 | 1.5, 4, 5 | implementation-plan, master-plan, design-guidelines, user-journeys, tasks, CLAUDE.md |
+| 10 | 2026-02-12 | Create AI abstraction layer (vision provider interface) | 1.1 | ai/vision-provider, ai/index, tasks |
+| 9 | 2026-02-12 | Build PDF extraction pipeline (pdfjs-dist + node-canvas) | 1.1 | ai/pdf-extractor, tasks |
+| 8 | 2026-02-12 | Design structured output schema (TypeScript types) | 1.1 | ai/types, tasks |
+| 7 | 2026-02-12 | Database changes for AI generation pipeline | 1.6 | prisma/schema, tasks |
+| 6 | 2026-02-11 | Sync #5: Monthly catalog sync (frequency change from hours to monthly) | 1.5 | implementation-plan, master-plan, user-journeys, design-guidelines, tasks |
+| 5 | 2026-02-11 | Sync #4: Continuous catalog sync & auto-generation pipeline | 1.5 | implementation-plan, master-plan, design-guidelines, user-journeys, tasks |
+| 4 | 2026-02-11 | Sync #3: Design guidelines + Nano Banana models + chat UI + changelog | — | design-guidelines, changelog |
+| 3 | 2026-02-11 | Sync #2: Nano Banana models + Phase 1 blockers + proactive chatbot + mobile apps | 1–6 | implementation-plan, master-plan, user-journeys, tasks |
+| 2 | 2026-02-11 | Sync #1: AI troubleshooting assistant + target users + key scenarios | 3 | master-plan, implementation-plan, user-journeys, tasks |
+| 1 | 2026-02-11 | Initial creation — all 5 project docs via guided Q&A | — | master-plan, implementation-plan, design-guidelines, user-journeys, tasks |
+
+---
+
+## 2026-02-12 — Restructure tasks.md with Unique IDs & Dependencies
+
+**Summary:** Migrated all ~160 tasks from checkbox list format to structured markdown tables with unique IDs (`P{phase}.{section}.{seq}`), explicit dependency tracking (`Depends`/`Blocks` columns), and status values (`done`/`todo`/`blocked`). This enables multiple agents to safely pick up parallel work by checking dependency readiness.
+
+### Format Change
+- **Before:** Checkbox lists (`- [ ] **Task name** — description`)
+- **After:** Markdown tables with 6 columns: ID, Status, Task, Description, Depends, Blocks
+
+### Key Details
+- All 228 tasks preserved with correct status (13 done, 2 blocked, 213 todo)
+- P1.5.5 (Add guideStatus field) marked as `done` since it was completed as part of P1.6.3
+- Dependencies mapped bidirectionally — every `Depends` entry has a matching `Blocks` entry
+- Added legend at top explaining the ID scheme, status values, and how to find available work
+- No tasks were added or removed — this is a pure format migration with dependency enrichment
+
+### `docs/tasks.md`
+- **Complete rewrite** — checkbox format to table format with IDs and dependencies
+
 ---
 
 ## 2026-02-12 — Step Continuity: Two-Pass Pipeline Architecture for Instruction Generation
