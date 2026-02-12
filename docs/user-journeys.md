@@ -38,31 +38,42 @@
 2. SEARCH
    Alex types "KALLAX" in the search bar.
    → Autocomplete suggests "KALLAX Shelf unit, white, 77x147 cm"
+   → Product card shows a green "Guide Available" badge.
    → Alex taps the suggestion.
 
-3. PRODUCT PAGE
-   Alex lands on the product detail page.
-   → Sees product images, specs, and a prominent "Start Assembly Guide" button.
-   → Guide shows: 45 min estimated time, Medium difficulty, Tools needed: Phillips screwdriver, hammer.
-   → Alex gathers the tools.
+3. GUIDE PAGE (Desktop)
+   Alex lands directly on the step-by-step work instructions — no product page in between.
+   → Three-column docs-style layout:
+     Left: TOC sidebar listing all 24 steps (scrollspy-tracked).
+     Center: All steps rendered on a single scrollable page. Overview section at top shows:
+       45 min estimated time, Medium difficulty, Tools needed: Phillips screwdriver, hammer.
+     Right: Sticky illustration panel showing the current step's diagram.
+       Below the illustration: compact Product Info Card with KALLAX thumbnail, price,
+       key specs, and a "View details →" link to the full product page.
+   → Progress bar at top shows 0% complete.
+   → Alex gathers the tools listed in the overview, then starts scrolling through the instructions.
 
-4. START GUIDE
-   Alex taps "Start Assembly Guide."
-   → Step 1 loads with an isometric illustration and clear instruction text.
-   → Progress bar shows 0% complete, step 1 of 24.
+3b. GUIDE PAGE (Mobile)
+   Alex taps the KALLAX result on their phone.
+   → Lands directly on step 1 as a full-screen card: illustration on top, instruction text below.
+   → Overview card shows tools, estimated time, and difficulty.
+   → Progress bar shows step 1 of 24.
+   → Alex swipes left to advance to the next step.
+   → Small info icon in the header links to the full product details page if needed.
 
 5. FOLLOW STEPS
    Alex works through each step:
-   → Reads the instruction text.
-   → Studies the illustration (pinch-to-zoom on mobile).
-   → Sees a tip: "Make sure the smooth side faces outward."
-   → Taps "Next Step" when done.
+   → Reads the instruction text (center column on desktop, card on mobile).
+   → Studies the illustration in the sticky right panel (desktop) or top of card (mobile).
+   → Pinch-to-zoom on illustration for fine detail. Click opens lightbox.
+   → Sees a tip callout: "Make sure the smooth side faces outward."
+   → On desktop: scrolls to next step (TOC auto-updates). On mobile: swipes left.
    → Progress bar fills incrementally.
 
 6. TRICKY STEP
    At step 14, Alex is confused about screw direction.
    → The illustration clearly shows an anti-clockwise arrow with "Turn left to loosen" label.
-   → A warning callout says: "Do NOT overtighten — cam lock should be snug, not forced."
+   → A warning callout (red, with AlertTriangle icon) says: "Do NOT overtighten — cam lock should be snug, not forced."
    → Alex proceeds confidently.
 
 7. COMPLETE
@@ -90,8 +101,9 @@
 
 | Scenario | Handling |
 |----------|----------|
-| **No guide exists** | Show product page with PDF download link. Prompt: "No guide yet — want to be notified when one is available?" |
-| **Guide is AI-generated, not yet reviewed** | Show with "AI-Generated" badge. Add disclaimer: "This guide was auto-generated and may contain errors." |
+| **No guide exists (has PDF)** | Route falls back to product detail page with "Guide being generated" status. PDF download available as fallback. |
+| **No guide exists (no PDF)** | Route falls back to product detail page with "Submit a New Guide" CTA — user can contribute text instructions, photos, video links, or external resources. No "Guide Coming Soon" — without source material, guides depend on community input. |
+| **Guide is AI-generated, not yet reviewed** | Route goes to guide viewer (guide-first) with "AI-Generated" badge. Add disclaimer: "This guide was auto-generated and may contain errors." Product Info Card in right column links to full product details. |
 | **User loses internet mid-guide** | (Premium) Offline cache via service worker. (Free) Show last loaded step with "Reconnect to continue" message. |
 | **User comes back later** | If signed in, resume from last completed step. If not, guide restarts (prompt to sign in to save progress). |
 | **Wrong product variant** | After landing on product page, show variant selector if the product has color/size variants. |
@@ -184,7 +196,7 @@
 | **PDF has multiple products** | AI detects page ranges per product, generates separate guides |
 | **AI can't determine step order** | Flag for manual review with "Low confidence: step ordering" |
 | **API rate limit hit** | Queue pauses, resumes automatically. Dashboard shows "Rate limited — resuming in 5m" |
-| **Product has no assembly PDF** | Skip in batch. Mark as "No source material" in dashboard. Auto-sync also handles this — product page goes live without guide. |
+| **Product has no assembly PDF** | Skip in batch. Mark as "No source material" in dashboard. Product page goes live without guide — shows "Submit a New Guide" CTA for community contributions. |
 | **Illustration generation fails** | Guide still publishable with text-only steps. Flag illustration for retry. |
 
 ---
@@ -282,7 +294,7 @@
 | Scenario | Handling |
 |----------|----------|
 | **Retailer site down during sync** | Sync retries the next day. Dashboard shows "Sync incomplete" with reason. Admin can trigger manual re-sync. |
-| **Product has no assembly PDF** | Product page live with images/specs. Guide status: "No source material." Show "Notify me when guide is available" button. |
+| **Product has no assembly PDF** | Product page live with images/specs. Guide status: "No source material." Show "Submit a New Guide" button — invite users to contribute assembly knowledge. |
 | **Assembly PDF updated by retailer** | Detected during monthly sync via PDF hash change → auto-queue regeneration → new guide replaces old one, versioned. |
 | **Product delisted by retailer** | Mark as `discontinued: true`. Keep guide live (users still own the product). Show "This product has been discontinued" notice. |
 | **Scraper rate-limited by retailer** | Exponential backoff within the sync run. Monthly cadence means less pressure on retailer servers. Alert admin if persistent. |
@@ -302,12 +314,17 @@
 1. QUICK SEARCH
    Sam opens guid.how on their phone.
    → Taps the search bar, types "MALM 6 drawer" or scans the article number barcode.
-   → Product appears instantly.
+   → Product appears instantly (card shows green "Guide Available" badge).
 
-2. JUMP TO STEP
-   Sam taps "Assembly Guide" → sees step list overview.
-   → Skims step titles: "Step 12: Install drawer slides."
-   → Taps step 12 directly (doesn't need to go through steps 1-11).
+2. JUMP TO STEP (Desktop)
+   Sam clicks the MALM result → lands directly on the guide (three-column layout).
+   → The TOC sidebar on the left lists all steps. Sam spots "Step 12: Install drawer slides."
+   → Clicks step 12 in the TOC → the page smooth-scrolls to step 12. Illustration panel swaps to the step 12 diagram.
+
+2b. JUMP TO STEP (Mobile)
+   Sam taps the MALM result → lands directly on the guide → taps the floating TOC button (bottom-right).
+   → Bottom sheet opens listing all steps.
+   → Sam taps "Step 12: Install drawer slides" → jumps directly to that step card.
 
 3. CONFIRM & GO
    Sam checks the illustration for drawer slide orientation.
@@ -333,14 +350,16 @@
 ### Happy Path
 
 ```
-1. LAND ON PRODUCT PAGE (via SEO)
-   Alex lands directly on the KALLAX product page from Google.
-   → Sees the product with images, specs, and "Start Assembly Guide" button.
+1. LAND ON GUIDE (via SEO)
+   Alex lands directly on the KALLAX guide from Google.
+   → Sees the step-by-step work instructions immediately — no product page in between.
+   → Product Info Card in the right column shows product thumbnail, price, and key specs
+     with a "View details →" link to the full product page.
    → No sign-up wall — the guide is freely accessible.
 
 2. VALUE REALIZATION
-   Alex starts the guide and immediately sees the difference vs. the paper manual:
-   → Clear text instructions alongside illustrations.
+   Alex is already in the guide and immediately sees the difference vs. the paper manual:
+   → Clear text instructions alongside illustrations — visible from the moment of landing.
    → Tips and warnings that aren't in the original manual.
    → Progress tracking.
 
@@ -364,10 +383,75 @@
 
 | Entry Point | What Alex Sees |
 |-------------|----------------|
-| Google: "KALLAX assembly" | Product page with guide, structured data shows in search results |
-| Google: "IKEA article 702.758.14" | Direct product page match |
-| Google: "how to assemble IKEA bookshelf" | Category page or guide page with related products |
-| Direct: guid.how | Homepage with search bar, popular guides, category browsing |
+| Google: "KALLAX assembly" | Guide page directly — work instructions visible immediately (if guide exists) |
+| Google: "IKEA article 702.758.14" | Guide page (if guide exists) or product detail page (fallback) |
+| Google: "how to assemble IKEA bookshelf" | Category page with guide-available products highlighted, or guide page |
+| Direct: guid.how | Homepage: "Find step-by-step instructions for any product" — search bar, popular guides, category browsing |
+
+---
+
+## Journey 4B: Submit a New Guide (Community Contribution)
+
+**Persona:** Alex (DIY Assembler) or Sam (Pro Installer)
+**Trigger:** Alex assembled a product that doesn't have a guide on Guid (no manufacturer PDF exists). He wants to help others by sharing what he learned.
+
+### Happy Path
+
+```
+1. DISCOVER THE GAP
+   Alex finishes assembling a product. Searches for it on Guid.
+   → Product page exists (images, specs) but no assembly guide.
+   → Instead of "Guide Coming Soon", Alex sees:
+     "No guide yet for this product. Know how to assemble this?"
+   → Prominent "Submit a New Guide" button.
+
+2. START SUBMISSION
+   Alex clicks "Submit a New Guide."
+   → If not signed in, prompted to log in or register first.
+   → Submission form opens with the product pre-filled.
+
+3. PROVIDE CONTENT
+   Alex fills out the form:
+   → Writes step-by-step text instructions from memory (freeform text box).
+   → Uploads 8 photos he took during assembly (drag-and-drop or camera on mobile).
+   → Pastes a YouTube link to a video he found helpful.
+   → Adds tool list: "Phillips screwdriver, Allen key (included), hammer."
+   → Sets difficulty: "Medium" and estimated time: "45 minutes."
+   → All fields optional except at least one content type.
+
+4. SUBMIT FOR REVIEW
+   Alex clicks "Submit."
+   → Success message: "Thanks for contributing! Your submission is being reviewed."
+   → Alex receives an email confirmation.
+   → Submission enters the admin review queue.
+
+5. ADMIN REVIEW (Jordan)
+   Jordan opens Studio → Submissions queue.
+   → Sees Alex's submission with product name, content preview, and timestamp.
+   → Reviews the text instructions and photos for quality and accuracy.
+   → Decision: Approve → submission becomes source material for guide creation.
+
+6. AI-ENHANCED GUIDE CREATION
+   Jordan triggers "Generate from submission" on the approved submission.
+   → AI pipeline takes Alex's text and photos → structures into proper steps.
+   → AI adds formatting, part references, and generates illustrations.
+   → Jordan reviews the AI-structured guide, makes edits, and publishes.
+
+7. GUIDE LIVE
+   Guide appears on the product page with "Community Contributed" badge.
+   → Alex gets notified: "Your guide submission for [Product] is now live!"
+   → Alex's profile shows the contribution (future: contributor reputation).
+```
+
+### Edge Cases
+
+| Scenario | Handling |
+|----------|----------|
+| **Submission is too vague** | Admin sends "Request more info" with specific questions → Alex gets notified and can update |
+| **Submission is wrong product** | Admin rejects with note: "This appears to be for a different product" |
+| **Multiple submissions for same product** | Admin can merge the best parts from multiple submissions |
+| **Spam submission** | Admin rejects. Repeat spam → user flagged for review |
+| **Pro installer bulk contributions** | Sam (pro) submits guides for 10 products in a week → qualifies for "Top Contributor" badge (future) |
 
 ---
 
@@ -475,8 +559,8 @@
 
 ```
 1. HIT FREE TIER LIMIT
-   Alex tries to access a video guide → "Premium feature" modal.
-   → Shows what's included: video guides, offline access, AR overlay, ad-free.
+   Alex tries to access a YouTube creator video guide → "Premium feature" modal.
+   → Shows what's included: creator video guides, offline access, AR overlay, ad-free.
    → "Upgrade for $X/month" button.
 
 2. PRICING PAGE
@@ -524,7 +608,8 @@
 
 | Error | User Message | Recovery |
 |-------|-------------|----------|
-| Product not found | "We don't have that product yet. Try a different search." | Show similar products or "Request this product" form |
-| Guide not available | "No guide yet for this product." | Show PDF download if available + "Notify me" button |
+| Product not found | "We don't have that product yet. Try a different search." | Show similar products, "Request this product" form, or "Submit a New Guide" if they know the product |
+| Guide generating | "Guide is being generated — check back shortly." | Show progress indicator + PDF download as fallback |
+| No guide (no source) | "No guide yet for this product." | Show "Submit a New Guide" button — user can contribute text, photos, or video links |
 | Server error | "Something went wrong. We're on it." | Retry button + cached content if available |
 | Network offline | "You're offline." | Show cached guides (premium) or "Reconnect" message |

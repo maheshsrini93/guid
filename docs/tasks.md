@@ -56,7 +56,14 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 - [ ] **Build catalog sync dashboard in Studio** — New dashboard section: last sync date per retailer, new products this month, pending generation, auto-published count, review queue depth, time-to-guide distribution, failed scrapes, sync history log.
 - [ ] **Add scraper error handling & retry** — Failed scrapes retry with exponential backoff within the sync run. Persistent failures send webhook alert (Slack/email). Individual product failures don't block the batch.
 - [ ] **Add "New" badge to product cards** — Show "New" pill badge on products where `isNew: true` (first 30 days after detection). Amber pill, subtle pulse on first view.
-- [ ] **Add "Guide Coming Soon" state** — Product detail page shows "Guide being generated — check back shortly" with progress indicator when `guideStatus` is queued/generating.
+- [ ] **Add "Guide in Progress" state** — Product detail page shows "Guide being generated — check back shortly" with progress indicator when `guideStatus` is queued/generating.
+- [ ] **Build "Submit a New Guide" CTA** — For products with `guideStatus: no_source_material`, show a prominent CTA card on the product detail page inviting users to contribute assembly knowledge. Do NOT show "Guide Coming Soon" — without source material, guides depend on community input.
+- [ ] **Build guide submission form** — `/products/[articleNumber]/submit-guide` page: text instructions input, photo upload (drag-and-drop + camera on mobile, stored in Supabase Storage), video link fields, external resource link fields, optional tool list, estimated time, and difficulty rating. At least one content type required.
+- [ ] **Add `GuideSubmission` model** — id, productId, userId, status (pending/approved/rejected/needs_info/processing), textContent, photos (JSON), videoLinks (JSON), externalLinks (JSON), toolsList, estimatedTime, difficulty, reviewedBy, reviewNotes, reviewedAt, timestamps. Run `npx prisma db push`.
+- [ ] **Build submission review queue in Studio** — `/studio/submissions` page: list all pending submissions with product name, submitter, content preview, timestamp. Admin can approve, reject, or request more info. Approved submissions become source material for AI-enhanced guide generation.
+- [ ] **Build "Generate from submission" action** — Server action that takes an approved GuideSubmission, feeds user text/photos into the AI pipeline to structure into a proper guide with formatted steps. Admin can edit before publishing.
+- [ ] **Add "Community Contributed" badge** — Purple outline pill badge shown on guides created from user submissions. Include attribution to the original submitter.
+- [ ] **Add `submission_received` to guideStatus enum** — Update Product guideStatus to include `submission_received` for products where a user has submitted guide content.
 - [ ] **Add post-sync admin notification** — After each monthly sync completes, send summary email/webhook: new products detected, guides queued, auto-published count, items in review queue, any scraper failures.
 - [ ] **Add manual single-product scrape** — Studio action: admin can trigger a scrape + AI generation for a specific product URL without waiting for the next monthly sync (handles "user needs this product now" requests).
 
@@ -76,45 +83,83 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 
 ## Phase 2: Polish Current Experience
 
-### 2.1 Design System Update
-- [ ] **Update color palette** — Replace default neutral theme with amber/orange brand colors per design-guidelines.md
-- [ ] **Update CSS variables** — Set new oklch values for primary, secondary, accent, muted in globals.css (light + dark)
-- [ ] **Audit typography** — Ensure all pages follow the type scale (H1-H4, Body, Caption, Mono)
-- [ ] **Update button styles** — Amber primary, warm gray secondary, per design guidelines
-- [ ] **Add dark mode toggle** — Implement theme switcher with warm dark palette
+### 2.0 Guide-First UX Architecture
+- [ ] **Implement guide-first routing on `/products/[articleNumber]`** — When a product has a published guide (`guideStatus: published`), render the guide viewer as the primary view instead of the product detail page. When no published guide exists (queued, generating, in_review, no_source_material, none), fall back to the current product detail page. Use the Product model's `guideStatus` field for routing decisions.
+- [ ] **Create `/products/[articleNumber]/details` route** — Move the current product detail page (images, specs, ratings, documents, metadata, assembly PDF download) to this sub-route. This page is always accessible regardless of guide status. Linked from the guide viewer's Product Info Card.
+- [ ] **Build Product Info Card for guide viewer right column** — Compact card below the sticky illustration panel in the guide viewer's right column. Shows: product thumbnail (48px), product name, article number (JetBrains Mono), price, one key dimension, and a "View details →" link to `/products/[articleNumber]/details`. Entire card clickable. On mobile, replaced by a small info icon in the guide header.
+- [ ] **Add guide availability status badges to product cards** — Product cards in search results and browse grid show guide status: green `Check` badge ("Guide Available") for published guides, amber `Loader2` badge ("Guide In Progress") for queued/generating, no badge for products without guides. Badge positioned top-right of card image area.
+- [ ] **Update homepage hero to guide-centric messaging** — Change homepage hero text to "Find step-by-step instructions for any product" or similar guide-centric copy. Emphasize finding guides and work instructions over browsing a product catalog. Keep "Browse Products" as the navigation label.
+- [ ] **Update SEO meta tags for guide-first landing** — When a guide exists, `/products/[articleNumber]` meta tags should be optimized for guide content: title "How to Assemble [Product] — Step-by-Step Guide | Guid", description focusing on the guide's step count, tools, and difficulty. When no guide exists, keep current product-focused meta tags.
+- [ ] **Update internal navigation links** — Audit all internal links that point to `/products/[articleNumber]` to ensure they work correctly with the new guide-first routing. Update breadcrumbs on the guide view and details page.
 
-### 2.2 Guide Viewer UX
-- [ ] **Redesign step indicators** — Vertical progress bar with numbered circles (amber current, green complete, gray upcoming)
-- [ ] **Add step-by-step navigation** — Large Next/Previous buttons, keyboard arrow key support
-- [ ] **Add swipe navigation** — Touch swipe left/right on mobile for step navigation
-- [ ] **Add progress bar** — Thin amber bar at page top showing % complete
-- [ ] **Add step jump** — Tap any step number in the progress bar to jump directly to it (for pro users)
-- [ ] **Add tip/warning callouts** — Styled callout boxes: amber for tips, red for warnings
-- [ ] **Add zoom on illustrations** — Pinch-to-zoom on mobile, click-to-zoom on desktop
-- [ ] **Add completion screen** — Celebration on final step with time taken, rating prompt, sign-up CTA
+### 2.1 Design System Update
+- [ ] **Migrate fonts to IBM Plex Sans + JetBrains Mono** — Replace Geist Sans/Mono with IBM Plex Sans (primary) and JetBrains Mono (technical) via `next/font/google`. Update Tailwind fontFamily config. Update all components that reference font-family.
+- [ ] **Update color palette** — Replace default neutral theme with amber/orange brand colors per design-guidelines.md. Add all tokens including `--background`, `--foreground`, `--card`, `--card-foreground`, `--border`, `--input`, `--ring`. Include hex fallbacks for older browsers.
+- [ ] **Update CSS variables for light + dark mode** — Set full oklch token mapping in globals.css for both `:root` and `.dark` classes. All 17 tokens must have both light and dark values per design-guidelines.md.
+- [ ] **Audit typography** — Ensure all pages follow the type scale (H1-H4, Body, Caption, Mono). Guide instructions use Body size with 1.7 line-height, max-width 72ch. Part numbers and measurements use JetBrains Mono. Apply fluid type scale with `clamp()` for headings.
+- [ ] **Update button styles** — Amber primary, warm gray secondary, per design guidelines. Add all interactive states (hover, active, focus-visible, disabled, loading). Add button sizes (sm, default, lg). Ensure 44px minimum touch targets.
+- [ ] **Add dark mode toggle** — Implement theme switcher with full warm dark palette per design-guidelines.md. Deep warm charcoal background, amber remains vibrant.
+- [ ] **Add z-index, shadow, and border-radius scales** — Define CSS custom properties for the z-index scale (base through chat), shadow scale (sm through xl), and border-radius scale per design-guidelines.md.
+- [ ] **Add accessibility foundations** — Add skip links ("Skip to main content"), visible focus rings on all interactive elements, `prefers-reduced-motion` CSS override, `aria-label` on all icon-only buttons. Verify all color token pairings meet WCAG AA 4.5:1 contrast minimum.
+
+### 2.2 Guide Viewer UX — Three-Column Docs Layout
+- [ ] **Build three-column desktop layout** — Implement the three-column guide viewer for ≥ 1024px: TOC sidebar (220px, sticky), work instructions (flex-grow, all steps on one scrollable page), illustration panel (380px, sticky). Max container width 1440px. Each step is a `<section>` with `aria-labelledby`.
+- [ ] **Implement scrollspy for TOC** — Use Intersection Observer to track which step the user is currently viewing. Highlight the corresponding TOC item with amber left border, `--primary` text, font-weight 600. Completed steps show muted text + checkmark. Upcoming steps show normal weight.
+- [ ] **Build sticky illustration panel** — Right panel fixed to viewport (`position: sticky`, `top: header-height + 1rem`). Displays illustration for the current step (via scrollspy). Crossfade transition (200ms ease-out) when swapping. If current step has no illustration, persist previous step's illustration.
+- [ ] **Add click-to-zoom lightbox** — Clicking an illustration opens a full-screen lightbox overlay (`z-modal`). Pinch-to-zoom on touch, scroll-wheel zoom on desktop. Close with Escape key or click-outside.
+- [ ] **Build step instruction rendering** — Render all steps on a single page with step headers (number in JetBrains Mono amber circle + title in H3), Body text at 1.7 line-height, max-width 72ch, `gap-12` between steps, `scroll-margin-top` for correct scrollspy landing.
+- [ ] **Add tip/warning/info callouts** — Styled callout boxes: Tip (yellow bg, Lightbulb icon), Warning (red bg, AlertTriangle icon), Info (blue bg, Info icon). Left border 3px colored, `rounded-lg`, `p-4`.
+- [ ] **Add progress bar** — Thin amber bar at top of guide page showing % of steps scrolled past. Smooth width animation (300ms ease-out). Amber fill, muted track.
+- [ ] **Build tablet two-column layout** — For 640-1024px: instructions (~60% width) + sticky illustration (~40%). TOC accessible via floating button that opens a Sheet (slide-in from left).
+- [ ] **Build mobile step-by-step cards** — For < 640px: one step per screen as a full-width card. Layout: progress bar (top), illustration (full-width 4:3), step header, instruction text, callouts, navigation buttons ("Previous" outline + "Next Step" primary, 48px height).
+- [ ] **Add mobile swipe navigation** — Swipe left for next step, swipe right for previous. 200ms slide transition with fade. Haptic feedback via `navigator.vibrate` if supported.
+- [ ] **Add mobile TOC bottom sheet** — Floating button (bottom-right, `List` icon) opens bottom sheet listing all steps with completion states. Tap any step to jump directly.
+- [ ] **Add completion screen** — At end of guide: "Guide Complete" heading, total steps, rating prompt (5-star, 48px touch targets), social share buttons (ghost style), sign-up CTA for anonymous users. Subtle checkmark animation (respects `prefers-reduced-motion`).
+- [ ] **Add progress saving** — For signed-in users, auto-save current scroll position / step number. On return: banner with "Welcome back! Continue from Step 14?" with "Resume" (primary) and "Start Over" (ghost) buttons.
+- [ ] **Add step bookmarking** — Save specific steps across different guides for quick reference. Useful for pro installers who bookmark tricky steps across products.
+- [ ] **Add keyboard navigation** — Arrow keys (← →) for step navigation on desktop. Home/End jump to first/last step. Proper focus management and `aria-current="step"` on active TOC item.
 
 ### 2.3 Search & Discovery
-- [ ] **Add search autocomplete** — Suggest products as user types (debounced, top 5 results)
-- [ ] **Add article number detection** — If search input is numbers-only, prioritize exact article_number match
-- [ ] **Add URL paste detection** — If search input contains "http", extract article number from URL, redirect to product
-- [ ] **Add barcode/QR scanner** — Camera button in search bar, scan barcode → extract article number → search
+- [ ] **Add search autocomplete** — As user types (debounced 300ms), show top 5 matching products below search bar with thumbnail, name, article number. Click to navigate directly.
+- [ ] **Add article number detection** — If search input is numbers-only (e.g., "702.758.14"), prioritize exact `article_number` match as top result.
+- [ ] **Add URL paste detection** — If search input contains "http" or "ikea.com", extract article number from URL, redirect to product page. Show toast: "Detected IKEA product link — redirecting..."
+- [ ] **Add recent searches** — Show user's last 5 searches when search input is focused. localStorage for anonymous users, database for signed-in users.
+- [ ] **Add zero-result handling** — When no products match: "No products found for '[query]'" with suggestions: similar products (fuzzy match), category browsing links, "Request this product" link.
+- [ ] **Add barcode/QR scanner** — Camera button in search bar, scan barcode → extract article number → search (mobile only, requires camera permission)
 - [ ] **Add photo-to-text (OCR)** — Camera button: photograph product label → OCR extracts name/number → search
-- [ ] **Add "No guide" handling** — Product without guide: show PDF download link + "Notify me when guide is available" button
+- [ ] **Add search analytics** — Track popular queries, zero-result queries, click-through rates. Identify content gaps for catalog expansion.
 
-### 2.4 Performance & SEO
-- [ ] **Add JSON-LD structured data** — Product schema + HowTo schema on guide pages
-- [ ] **Generate dynamic sitemap** — `sitemap.xml` with all product pages and guide pages
-- [ ] **Add Open Graph meta tags** — Per-page OG title, description, image for social sharing
-- [ ] **Implement ISR** — Incremental Static Regeneration for popular product pages
-- [ ] **Optimize database queries** — Review slow queries, add missing indexes, optimize filter builder
-- [ ] **Add image lazy loading** — Ensure all product images and illustrations use lazy loading
-- [ ] **Add skeleton loading states** — Skeleton screens on product grid, product detail, and guide viewer
+### 2.4 Product Detail Layout (`/products/[articleNumber]/details`)
+- [ ] **Add tabbed sections** — Reorganize the product detail page (now at `/products/[articleNumber]/details`) into tabs: Overview (images, specs) | Documents (PDFs, manuals) | Related Products. The "Assembly Guide" tab is no longer needed here since the guide is the primary view at `/products/[articleNumber]`. Sticky tab bar on scroll.
+- [ ] **Add image gallery lightbox** — Click any product image to open full-screen lightbox with zoom (scroll wheel desktop, pinch mobile) and swipe between images.
+- [ ] **Add spec table** — Clean key-value table for product specifications: dimensions, weight, materials, color, article number. Mono font for measurements.
+- [ ] **Add related products carousel** — Horizontal scrollable row of related products at bottom (same category, similar price range).
 
-### 2.5 Mobile Optimization
-- [ ] **Responsive audit** — Test all pages at 375px, 640px, 768px, 1024px, 1280px
-- [ ] **Mobile guide viewer** — Full-screen step view with swipe navigation, illustration above text
-- [ ] **Mobile search** — Full-screen search overlay with recent searches
-- [ ] **Touch targets** — Ensure all buttons/links meet 44px minimum touch target
+### 2.5 Performance
+- [ ] **Optimize image loading** — Configure `next/image` with responsive `sizes` prop, serve 320w/640w/960w/1280w srcset. Blur-up placeholders for perceived performance.
+- [ ] **Add lazy loading** — All below-the-fold images use `loading="lazy"`. Only first 4 product cards and primary product image load eagerly.
+- [ ] **Profile and optimize database queries** — Enable Prisma query logging, identify slow queries (target: all product list queries under 200ms). Add composite indexes for `(category, current_price)`, `(category, average_rating)`, `(product_type, guide_status)`.
+- [ ] **Optimize filter query builder** — Review `product-filters.ts` for N+1 queries, unnecessary JOINs, suboptimal WHERE clause ordering. Ensure most selective filter applied first.
+- [ ] **Implement ISR** — Incremental Static Regeneration for product detail pages (`revalidate: 86400`). Pre-generate top 100 most-viewed product pages at build time.
+- [ ] **Add edge caching** — Cache product list API responses (`s-maxage=3600, stale-while-revalidate=86400`). Cache completed assembly guide data aggressively.
+- [ ] **Add skeleton loading states** — Skeleton screens with shimmer animation on product grid (card-shaped placeholders), product detail (image + text blocks), guide viewer (progress bar + instruction), and search results.
+
+### 2.6 SEO
+- [ ] **Add JSON-LD structured data** — Product schema on product detail pages (name, image, brand, sku, offers). HowTo schema on guide pages (steps, tools, totalTime). BreadcrumbList on all pages. Organization schema on homepage.
+- [ ] **Generate dynamic sitemap** — Auto-generated `sitemap.xml` with all product and guide pages. Split into category-based sitemaps with sitemap index for 12,000+ URLs. Reference in `robots.txt`.
+- [ ] **Add Open Graph meta tags** — Per-page `og:title`, `og:description`, `og:image` (product's primary image), `og:url`. Enables rich previews on Facebook, LinkedIn.
+- [ ] **Add Twitter Card meta tags** — `twitter:card` (summary_large_image), `twitter:title`, `twitter:description`, `twitter:image`.
+- [ ] **Add canonical URLs** — Every page declares canonical URL to prevent duplicate content (especially with filter/sort URL params).
+- [ ] **Audit heading hierarchy** — Every page has exactly one H1, proper H1→H2→H3 hierarchy, no skipped levels.
+- [ ] **Write unique meta per page** — Unique `<title>` and `<meta description>` for every page. Products: "[Product] — Assembly Guide | Guid". Guides: "How to Assemble [Product] — Step-by-Step | Guid".
+
+### 2.7 Mobile Optimization
+- [ ] **Full responsive audit** — Test all pages at 375px (iPhone SE), 390px (iPhone 14/15), 768px (iPad), 1024px, 1280px. Fix all layout breakage.
+- [ ] **Mobile guide viewer audit** — Verify mobile step-by-step card layout (built in 2.2) works at 375px and 390px. Illustration above text, 48px navigation buttons, swipe working. Bottom sheet TOC accessible.
+- [ ] **Mobile search overlay** — Full-screen search experience with recent searches, trending products, keyboard-optimized input.
+- [ ] **Touch targets audit** — All interactive elements meet 44px minimum. Increase padding on buttons, links, filter chips.
+- [ ] **Bottom sheet patterns** — Use slide-up bottom sheets on mobile for filter menus, sort options, step jump instead of dropdown menus.
+- [ ] **Pull-to-refresh** — On product list and guide pages for native-app feel.
 
 ---
 
@@ -166,13 +211,22 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 - [ ] **Add subscription field to User** — `subscriptionTier` (free/premium), `stripeCustomerId`, `subscriptionEndsAt`
 - [ ] **Build middleware** — Check subscription status for premium-gated features
 
-### 4.2 Premium Features
+### 4.2 YouTube Creator Video Integration
+- [ ] **Add `CreatorProfile` model** — id, userId, youtubeChannelUrl, youtubeChannelId, channelName, subscriberCount (cached), isVerified, totalVideos, totalHelpfulVotes, timestamps. Run migration.
+- [ ] **Add `VideoSubmission` model** — id, productId, creatorId, youtubeUrl, youtubeVideoId, title, description, language, stepsCovered (JSON), status (pending/approved/rejected), helpfulVotes, unhelpfulVotes, reviewedBy, reviewNotes, timestamps. Run migration.
+- [ ] **Build creator registration flow** — `/creators/register` page: sign up as creator, link YouTube channel (URL input + manual verification or OAuth), create CreatorProfile.
+- [ ] **Build video submission form** — `/creators/submit` page: select product (search), paste YouTube URL (auto-extract video ID and thumbnail), add title, description, language. One product can have multiple videos.
+- [ ] **Build video review queue in Studio** — `/studio/videos` page: list pending video submissions with product name, creator info, YouTube thumbnail preview. Admin approve/reject with notes.
+- [ ] **Build video display on product detail** — Embedded YouTube player on product page (in "Video Guides" tab). Creator attribution strip: channel name, subscriber count, "Was this helpful?" thumbs up/down.
+- [ ] **Build creator profile page** — `/creators/[id]` page: channel info, subscriber count, all submitted and approved videos, total helpfulness score.
+- [ ] **Add helpfulness voting** — Thumbs up/down on video cards. Sort videos by helpfulness rating. Track votes per user to prevent abuse.
+
+### 4.3 Other Premium Features
 - [ ] **Offline guide access** — Service worker caching for saved guides (PWA)
-- [ ] **Video guides** — Video player component on guide steps (when video content exists)
 - [ ] **Ad-free experience** — Conditional ad rendering based on subscription
 - [ ] **Priority AI guides** — "Request a guide" button: premium users' requests are prioritized in the AI queue
 
-### 4.3 Premium UI
+### 4.4 Premium UI
 - [ ] **Build pricing page** — `/pricing` with plan comparison table
 - [ ] **Build upgrade flow** — "Upgrade" button → Stripe Checkout → success redirect
 - [ ] **Build billing management** — `/account/billing` with Stripe Customer Portal link
@@ -183,19 +237,46 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 
 ## Phase 5: Multi-Retailer Expansion
 
-### 5.1 Scraper Framework
-- [ ] **Abstract scraper architecture** — Create a retailer adapter interface in the scraper project
-- [ ] **Build Wayfair adapter** — Scraper adapter for Wayfair product pages
-- [ ] **Build Amazon adapter** — Scraper adapter for Amazon product pages (assembly-required products)
-- [ ] **Build Home Depot adapter** — Scraper adapter for Home Depot product pages
-- [ ] **Product deduplication** — Detect when the same product exists across retailers
+### 5.1 Retailer Adapter Framework
+- [ ] **Design adapter interface** — Create a `RetailerAdapter` interface with standard methods: `detectNewProducts()`, `scrapeProduct()`, `scrapeCategory()`, `extractDocuments()`, `extractImages()`, `getRateLimitConfig()`, `getRobotsRules()`. Document the interface contract.
+- [ ] **Refactor IKEA scraper into adapter** — Extract the existing IKEA scraper logic into an `IkeaAdapter` class that implements `RetailerAdapter`. Validate that monthly sync still works with the adapter pattern.
+- [ ] **Add `Retailer` model** — id, name, slug, logoUrl, baseUrl, adapterType, isActive, lastSyncAt, nextSyncAt, affiliateConfig (JSON), rateLimitConfig (JSON), timestamps. Run migration.
+- [ ] **Build adapter registry** — Central registry that maps retailer slugs to adapter implementations. Used by monthly sync to iterate all active retailers.
+- [ ] **Build Wayfair adapter** — Implement `RetailerAdapter` for Wayfair. Handle: product APIs, variant explosion (normalize to single product per unique assembly), brand extraction from multi-seller listings.
+- [ ] **Build Home Depot adapter** — Implement `RetailerAdapter` for Home Depot. Handle: multi-tab product pages (main → specifications → documents), nested spec extraction via Playwright.
+- [ ] **Build Amazon adapter** — Implement `RetailerAdapter` using Amazon Product Advertising API (PA-API 5.0) instead of scraping. Handle: ASIN extraction, rate limits (1 req/sec), limited assembly PDF availability.
+- [ ] **Build Target adapter** — Implement `RetailerAdapter` for Target. Handle: SPA rendering via Playwright, DPCI extraction, embedded JSON-LD data extraction.
+- [ ] **Adapter validation pipeline** — For each new adapter: scrape 100 test products → verify data quality (images load, prices parsed, categories mapped) → full catalog scrape → integrate into monthly sync.
 
-### 5.2 Platform Changes
-- [ ] **Add retailer filter** — Filter products by retailer on `/products`
-- [ ] **Add retailer branding** — Show retailer logo/badge on product cards and detail pages
-- [ ] **Extend image config** — Add `remotePatterns` for new retailer CDNs in `next.config.ts`
-- [ ] **Normalize product schema** — Ensure all retailer data maps to the same Prisma fields
-- [ ] **URL detection per retailer** — Detect retailer from pasted URLs (amazon.com, wayfair.com, etc.)
+### 5.2 Product Deduplication & Matching
+- [ ] **Add cross-retailer fields to Product** — `manufacturerSku` (String?), `upcEan` (String?), `matchGroupId` (String?), `matchConfidence` (Float?). Run migration.
+- [ ] **Build exact matching** — Match products across retailers by manufacturer SKU, UPC/EAN barcode, or article number. Highest confidence level.
+- [ ] **Build fuzzy matching** — Match by product name + brand + key dimensions similarity scoring. Threshold: ≥ 0.85 similarity score. Flag low-confidence matches (< 0.7) for admin review.
+- [ ] **Build admin match management** — Studio page: view auto-detected matches, confirm/reject fuzzy matches, manually link products across retailers.
+- [ ] **Build unified product page** — When a product is matched across retailers: single product page with aggregated images, "Available at" section with each retailer's price and buy link, shared assembly guide.
+
+### 5.3 Data Normalization
+- [ ] **Build normalization layer** — Each adapter's `scrapeProduct()` returns raw retailer data → normalization layer maps to Prisma Product fields using retailer-specific rules (field name mapping, currency conversion, category mapping).
+- [ ] **Currency normalization** — All prices stored in USD. Convert at scrape time using cached exchange rate (refresh daily). Store original price and currency for reference.
+- [ ] **Category mapping** — Map each retailer's category taxonomy to Guid's unified categories. Maintain a mapping table per retailer, editable in Studio.
+
+### 5.4 URL Detection & Routing
+- [ ] **Build URL detection engine** — When user pastes a URL in search: detect retailer from domain, extract product ID using retailer-specific regex patterns (IKEA article number, Amazon ASIN, Wayfair SKU, Home Depot product ID, Target DPCI).
+- [ ] **URL-to-product routing** — Detected retailer + product ID → look up in DB → if found, redirect to Guid product page → if not found, offer to queue a scrape.
+
+### 5.5 Platform Changes
+- [ ] **Add retailer filter** — Filter products by retailer on `/products`. Show retailer logo pills for quick filtering.
+- [ ] **Add retailer branding** — Small retailer logo badge on product cards and detail pages. Non-intrusive, builds user trust.
+- [ ] **Extend image config** — Add `remotePatterns` in `next.config.ts` for each new retailer's image CDN domains (Wayfair, Amazon, Home Depot, Target).
+- [ ] **Build retailer landing pages** — `/retailers/wayfair`, `/retailers/amazon`, etc. Browse all products from a specific retailer. SEO value for "[Retailer] assembly guides" searches.
+- [ ] **Build retailer management in Studio** — Admin page: manage retailer adapters, enable/disable, configure scrape frequency, view health metrics per retailer, trigger manual sync.
+- [ ] **Add price comparison section** — On unified product pages with multiple retailers: side-by-side price comparison with direct buy links.
+
+### 5.6 Affiliate Revenue Setup
+- [ ] **Integrate Amazon Associates** — Add affiliate tracking parameters to Amazon buy links. Track clicks and conversions.
+- [ ] **Integrate Wayfair affiliate** — Same for Wayfair affiliate program.
+- [ ] **Add affiliate disclosure** — FTC-compliant disclosure on product pages: "As an Amazon Associate, Guid earns from qualifying purchases."
+- [ ] **Build affiliate analytics** — Track clicks, conversions, and revenue per retailer, per product, per user source. Dashboard in Studio.
 
 ---
 

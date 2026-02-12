@@ -33,6 +33,59 @@
 
 ---
 
+## Guide-First Navigation Architecture
+
+Guid's UX is **guide-centric**: clicking a product takes the user directly to the step-by-step work instructions, not a product detail page. Product metadata is secondary, accessible from within the guide viewer via a compact Product Info Card.
+
+### Routing Logic
+
+**`/products/[articleNumber]`** — Primary route. Behavior depends on guide availability:
+
+| Guide Status | What the User Sees |
+|---|---|
+| **Published** | Guide viewer (three-column layout with work instructions as the primary view). Product Info Card in the right column links to full details. |
+| **Queued / Generating / In Review** | Product detail page (fallback) with "Guide being generated" status indicator. |
+| **No Source Material** | Product detail page (fallback) with "Submit a New Guide" CTA. |
+| **Submission Received** | Product detail page (fallback) with submission status. |
+| **No guide of any kind** | Product detail page (fallback). |
+
+**`/products/[articleNumber]/details`** — Full product detail page. Always available. Shows all product metadata: images, specs, ratings, documents, assembly PDF download, product description. Linked from the guide viewer's Product Info Card.
+
+### Product Info Card (Guide Viewer — Right Column)
+
+When the guide viewer is shown, a compact Product Info Card sits in the right column below the sticky illustration panel:
+
+- Product thumbnail image (48px, rounded)
+- Product name and article number (JetBrains Mono)
+- Key specs (2-3 lines: dimensions, price, category)
+- Small icon/button: "View all details →" linking to `/products/[articleNumber]/details`
+
+The card gives users just enough product context without leaving the guide. For full details (all images, ratings, documents, metadata), users click through to the details page.
+
+### Product Cards (Search/Browse Results)
+
+Product cards in the search results and browse grid include a **guide availability status indicator**:
+
+| Indicator | Meaning |
+|---|---|
+| **Green badge ("Guide Available")** | Published guide exists — clicking leads directly to guide |
+| **Amber badge ("Guide In Progress")** | Guide being generated — clicking leads to product page (fallback) |
+| **No indicator** | No guide — clicking leads to product page |
+
+Clicking any product card navigates to `/products/[articleNumber]`, which routes based on guide availability (see table above).
+
+### Homepage & Navigation
+
+- Homepage hero messaging: **"Find step-by-step instructions for any product"** (guide-centric, not catalog-centric)
+- Navigation label: **"Browse Products"** (kept as-is — products are the organizing unit, guides are the primary content)
+- Overall app language emphasizes finding guides and work instructions over browsing a product catalog
+
+### SEO Landing
+
+When users arrive via search engines (e.g., "KALLAX assembly instructions"), they land on `/products/[articleNumber]` and see the guide viewer directly (if a guide exists). This is the primary SEO landing experience — no extra click needed to start following instructions.
+
+---
+
 ## Phase 1: AI Guide Generation (Next)
 
 ### Approach: Pilot-First with Quality Gates
@@ -111,6 +164,7 @@ AIGenerationConfig
 
 | Route | Purpose |
 |-------|---------|
+| `/products/[articleNumber]/details` | Full product detail page (moved from `/products/[articleNumber]` — see Guide-First Navigation Architecture) |
 | `/studio/ai-generate` | AI generation dashboard — start jobs, view queue |
 | `/studio/ai-generate/[jobId]` | Review a single AI-generated guide vs. original PDF |
 | `/studio/ai-config` | Manage prompt templates and model configuration |
@@ -159,7 +213,7 @@ When the scanner inserts a new product into the database:
 
 1. **Check for assembly PDF** — Does the product have a `ProductDocument` with `document_type = 'assembly'`?
 2. **Auto-create AI job** — If yes, create an `AIGenerationJob` with `status: queued` and `priority: high` (new products get priority over backfill)
-3. **No PDF?** — Mark product as `guide_status: no_source_material`. Product page is still live (with images, specs, documents) but shows "Guide coming soon" instead of an assembly guide.
+3. **No PDF?** — Mark product as `guide_status: no_source_material`. Product page is still live (with images, specs, documents). Do **not** show "Guide Coming Soon" — without source material, we cannot create a guide ourselves. Instead, show a **"Submit a New Guide"** button that invites users to contribute their own assembly knowledge. See [Community Guide Submissions](#community-guide-submissions) below.
 4. **Notification** — Notify admins after each monthly sync completes: summary of new products found, guides queued, and any issues encountered
 
 #### Auto-Publish Rules
@@ -201,7 +255,7 @@ A new section in the Studio dashboard showing catalog health:
 
 ```
 Product (extend existing)
-  - guideStatus     Enum (none/queued/generating/in_review/published/no_source_material)
+  - guideStatus     Enum (none/queued/generating/in_review/published/no_source_material/submission_received)
   - firstDetectedAt DateTime  (when the scraper first found this product)
   - lastScrapedAt   DateTime  (when this product was last successfully scraped)
   - isNew           Boolean   (true for first 30 days after detection — drives "New" badge)
@@ -219,6 +273,75 @@ The sync system also handles changes to existing products:
 - **Price/availability changes** — Update product metadata during monthly sync
 - **Product delisted** — Mark as `discontinued: true` in the database. Keep the guide live (users still own the product and need the guide), but add a "This product has been discontinued" notice.
 - **Product variant added** — Detect when a product gets new color/size variants. Create separate product entries if they have different assembly instructions.
+
+### Community Guide Submissions
+
+For products **without an assembly PDF** (either existing products in the database or newly synced products with `guide_status: no_source_material`), users can contribute their own assembly knowledge through a **"Submit a New Guide"** feature. This replaces the previous "Guide Coming Soon" concept — if there's no manufacturer manual, we rely on community input as the seed material.
+
+#### User Submission Flow
+
+```
+[Product page without guide]
+    → User clicks "Submit a New Guide"
+    → Submission form opens (text instructions, photo uploads, video links, external resources)
+    → User fills out and submits
+    → Submission enters admin review queue (status: pending)
+    → Admin reviews for quality and relevance
+    → If approved: use submission as source material for AI-enhanced guide generation
+    → AI pipeline structures user content into a proper guide (with admin editing)
+    → Guide published with "Community Contributed" attribution
+```
+
+#### What Users Can Submit
+
+Users can provide **any combination** of the following:
+
+- **Text instructions** — Step-by-step written instructions or freeform assembly notes
+- **Photo uploads** — Step photos, part close-ups, diagrams, annotated images (stored in Supabase Storage)
+- **Video links** — YouTube URLs or other video platform links showing the assembly process
+- **External resource links** — Blog posts, forum threads, or other online guides they've found helpful
+- **Metadata** — Tool list, estimated assembly time, difficulty rating
+
+All fields are optional except at least one content type (text, photo, or link) must be provided.
+
+#### Admin Review Pipeline
+
+1. **Submission arrives** — Admin gets notified; submission appears in Studio review queue
+2. **Quality check** — Admin reviews for:
+   - Relevance: does this match the product?
+   - Completeness: enough content to create a usable guide?
+   - Accuracy: are the instructions correct? (cross-reference with product specs)
+3. **Decision:**
+   - **Approve** → Submission becomes source material for AI generation. The AI pipeline takes the user's text/photos and structures them into a formatted guide with proper steps, illustrations, and tool lists. Admin can edit before publishing.
+   - **Request more info** → Admin sends feedback to the submitter asking for clarification or additional content.
+   - **Reject** → Submission doesn't meet quality bar. Admin provides reason.
+4. **Publication** — Guide publishes with "Community Contributed" badge and attribution to the original submitter.
+
+#### New Database Model
+
+```
+GuideSubmission
+  - id, productId, userId
+  - status (pending/approved/rejected/needs_info/processing)
+  - textContent (freeform text instructions)
+  - photos (JSON array of uploaded image URLs)
+  - videoLinks (JSON array of video URLs)
+  - externalLinks (JSON array of resource URLs)
+  - toolsList (optional), estimatedTime (optional), difficulty (optional)
+  - reviewedBy, reviewNotes, reviewedAt
+  - createdAt, updatedAt
+```
+
+#### New Route
+
+| Route | Purpose |
+|-------|---------|
+| `/products/[articleNumber]/submit-guide` | Guide submission form — user provides assembly knowledge |
+| `/studio/submissions` | Admin review queue for community guide submissions |
+
+#### Applying to Existing Products
+
+This feature also applies to the **~10,000+ existing products** already in the database that don't have assembly PDFs. These product pages will show the "Submit a New Guide" button, enabling the community to fill gaps in guide coverage over time.
 
 ### Open Issues & Blockers
 
@@ -238,24 +361,102 @@ The sync system also handles changes to existing products:
 
 ## Phase 2: Polish Current Experience
 
+Phase 2 transforms the functional MVP into a polished, performant product. Every area gets attention — the goal is that a user's first visit feels professional, fast, and delightful.
+
 ### UX Improvements
-- Responsive design audit and mobile optimization
-- Loading states and skeleton screens across all pages
-- Improved search with autocomplete/suggestions
-- Better product detail layout with tabbed sections
-- Guide viewer UX: progress saving, step bookmarking, dark mode
+
+#### Responsive Design & Mobile Optimization
+- **Full responsive audit** — Test all pages at 375px (iPhone SE), 390px (iPhone 14/15), 768px (iPad), 1024px (laptop), 1280px (desktop). Fix layout breakage at each breakpoint.
+- **Mobile guide viewer** — Card-based step-by-step experience: one step per screen, illustration above instruction text, large touch targets (48px), swipe left/right between steps, floating TOC button opens bottom sheet.
+- **Mobile search overlay** — Full-screen search experience on mobile with recent searches, trending products, and keyboard-optimized input.
+- **Touch targets** — Audit all interactive elements for 44px minimum touch target. Increase padding on buttons, links, and filter chips that don't meet the threshold.
+- **Bottom sheet patterns** — Use bottom sheets (slide-up panels) on mobile for filter menus, sort options, and step jump navigation instead of dropdown menus that don't work well on small screens.
+- **Pull-to-refresh** — On product list and guide pages for a native-app feel.
+
+#### Loading States & Skeleton Screens
+- **Product grid skeleton** — Card-shaped placeholders with shimmer animation matching the exact layout of real product cards (image area + 3 text lines + price).
+- **Product detail skeleton** — Image gallery placeholder, text block placeholders for title/description/specs, button placeholders.
+- **Guide viewer skeleton** — Step indicator placeholder (vertical bar with circles), instruction text placeholder, illustration frame placeholder.
+- **Search results skeleton** — Show immediately on search input, replace with real results as they load.
+- **Progressive image loading** — Blur-up placeholder technique: show a tiny (20px) blurred version of the image while the full image loads, then crossfade.
+
+#### Search & Discovery
+- **Search autocomplete** — As the user types (debounced 300ms), show top 5 matching products below the search bar with product thumbnail, name, and article number. Click to navigate directly.
+- **Article number detection** — If the search input is numbers-only (e.g., "702.758.14"), prioritize exact `article_number` match and show it as the top result.
+- **URL paste detection** — If search input contains "http" or "ikea.com", extract the article number from the URL, redirect to the product page. Show a toast: "Detected IKEA product link — redirecting..."
+- **Recent searches** — Show the user's last 5 searches when the search input is focused (stored in localStorage for anonymous users, in the database for signed-in users).
+- **Zero-result handling** — When no products match: "No products found for '[query]'" with suggestions: similar products (fuzzy match), category browsing links, and a "Request this product" link.
+- **Search analytics** — Track popular queries, zero-result queries, and click-through rates to identify content gaps and inform catalog expansion.
+
+#### Product Detail Layout (`/products/[articleNumber]/details`)
+
+With the guide-first navigation, the product detail page moves to `/products/[articleNumber]/details` and no longer needs an "Assembly Guide" tab (the guide is the primary view at the parent route).
+
+- **Tabbed sections** — Organize the product detail page into tabs: Overview (images, specs, key facts) | Documents (PDFs, manuals) | Related Products.
+- **Sticky tab bar** — Tab bar sticks to the top of the viewport on scroll so users can switch sections without scrolling back up.
+- **Image gallery lightbox** — Click any product image to open a full-screen lightbox with zoom (scroll wheel on desktop, pinch on mobile) and swipe navigation between images.
+- **Spec table** — Clean key-value table for product specifications: dimensions, weight, materials, color, article number. Mono font for measurements.
+- **Related products carousel** — Horizontal scrollable row of related products at the bottom of the page (same category, similar price range).
+
+#### Guide Viewer UX — Three-Column Docs Layout
+
+The guide viewer is completely redesigned as a **three-column documentation-style layout** (inspired by sites like Ark UI). Instead of paginated step-by-step cards, all work instructions are on a single scrollable page with synchronized navigation and illustrations.
+
+**Desktop (≥ 1024px):** Three columns — TOC sidebar (left, sticky, scrollspy), work instructions (center, scrollable, all steps), illustration panel (right, sticky, swaps with scroll).
+**Tablet (640–1024px):** Two columns — instructions + sticky illustration. TOC accessible via floating button/sheet.
+**Mobile (< 640px):** Step-by-step cards — one step per screen with swipe navigation. TOC via bottom sheet.
+
+Key features:
+- **Scrollspy TOC** — Left sidebar tracks user's scroll position via Intersection Observer. Current step highlighted, completed steps grayed with checkmark, upcoming steps normal weight.
+- **Sticky illustration panel** — Right panel fixed to viewport, illustration crossfades to match the current step. If a step has no illustration, the previous step's illustration persists.
+- **Inline callouts** — Tip (yellow/lightbulb), Warning (red/alert), Info (blue/info) callout boxes within instructions.
+- **Click-to-zoom** — Illustrations open in a lightbox overlay. Pinch-to-zoom on touch.
+- **Completion experience** — At end of guide: rating prompt, social sharing, sign-up CTA. No confetti (subtle checkmark animation, respects `prefers-reduced-motion`).
+- **Progress saving** — For signed-in users, automatically save current scroll position / step number. On return: "Welcome back! Continue from Step 14?"
+- **Step bookmarking** — Save specific steps across different guides for quick reference (pro installer use case).
+- **Dark mode** — Full dark mode support. Illustrations maintain white background with border in dark mode. See design-guidelines.md for full dark mode token mapping.
+- **Keyboard navigation** — Arrow keys navigate steps. Home/End jump to first/last. Focus management for accessibility.
 
 ### Performance
-- Image optimization and lazy loading
-- Database query optimization (add missing indexes, optimize filter queries)
-- Static generation for popular product pages (ISR)
-- Edge caching for product data
+
+#### Image Optimization
+- **next/image optimization** — All product images served via `next/image` with automatic format negotiation (WebP on supported browsers, AVIF where available). Configured `sizes` prop for responsive image loading.
+- **Lazy loading** — All below-the-fold images use native lazy loading via `loading="lazy"`. Only the first 4 product cards and the primary product image load eagerly.
+- **Blur-up placeholders** — Generate tiny (20px wide) blurred placeholder images for all product photos. Display during load, crossfade to full image.
+- **Responsive srcset** — Serve images at 320w, 640w, 960w, 1280w based on device viewport. Don't send 1280px images to mobile phones.
+
+#### Database Query Optimization
+- **Query profiling** — Enable Prisma query logging in development to identify slow queries. Target: all product list queries under 200ms.
+- **Composite indexes** — Add indexes for common filter combinations: `(category, current_price)`, `(category, average_rating)`, `(product_type, guide_status)`. These cover 80%+ of filtered product browsing.
+- **Filter query builder optimization** — Review `product-filters.ts` for N+1 queries, unnecessary JOINs, and suboptimal WHERE clause ordering. Ensure the most selective filter is applied first.
+- **Connection pool tuning** — Review pgbouncer configuration for optimal pool size. Monitor connection usage under load.
+
+#### Static Generation & Caching
+- **ISR for product pages** — Incremental Static Regeneration for product detail pages. `revalidate: 86400` (24 hours) for stable products. Products with active guide generation revalidate more frequently.
+- **Edge caching for product lists** — Cache product list API responses at the edge using `Cache-Control: s-maxage=3600, stale-while-revalidate=86400`. Product data changes infrequently.
+- **Assembly guide caching** — Cache completed assembly guide data aggressively (guides change rarely once published). Use `stale-while-revalidate` for seamless background updates.
+- **Static generation for popular products** — Pre-generate the top 100 most-viewed product pages at build time for fastest possible load times.
 
 ### SEO
-- Structured data (JSON-LD) for products and how-to guides
-- Dynamic sitemap generation
-- Open Graph and Twitter Card meta tags
-- Canonical URLs and proper heading hierarchy
+
+#### Structured Data (JSON-LD)
+- **Product schema** — On product detail pages: `name`, `image`, `description`, `brand`, `sku`, `offers` (price, availability, priceCurrency). Enables rich product results in Google.
+- **HowTo schema** — On assembly guide pages: `name`, `step` (array with text and image), `tool`, `supply`, `totalTime`, `estimatedCost`. Enables rich how-to results and Google's step-by-step carousel.
+- **BreadcrumbList schema** — On all pages with breadcrumbs. Improves search result display.
+- **Organization schema** — On homepage: brand name, logo, URL, social profiles.
+
+#### Sitemap & Indexing
+- **Dynamic sitemap.xml** — Auto-generated sitemap with all product pages (`/products/[articleNumber]`) and guide pages. Updated on each build or via ISR.
+- **Sitemap index** — For large catalogs (12,000+ products), split into category-based sitemaps with a sitemap index file. Keeps individual sitemap files under the 50,000 URL / 50MB limit.
+- **robots.txt** — Allow all product and guide pages. Block admin/studio routes. Reference sitemap location.
+- **Google Search Console** — Submit sitemap, monitor indexing status, track search performance.
+
+#### Meta Tags & Social Sharing
+- **Unique meta per page** — Every page gets a unique `<title>` and `<meta name="description">`. Product pages: "[Product Name] — Assembly Guide & Instructions | Guid". Guide pages: "How to Assemble [Product Name] — Step-by-Step Guide | Guid".
+- **Open Graph tags** — `og:title`, `og:description`, `og:image` (product's primary image), `og:url`, `og:type` (product or article). Enables rich previews when shared on Facebook, LinkedIn, etc.
+- **Twitter Card tags** — `twitter:card` (summary_large_image), `twitter:title`, `twitter:description`, `twitter:image`. Rich previews on Twitter/X.
+- **Canonical URLs** — Every page declares its canonical URL to prevent duplicate content issues (especially important with filter/sort URL parameters).
+- **Heading hierarchy** — Audit all pages for proper H1 → H2 → H3 hierarchy. Every page has exactly one H1. No skipped heading levels.
 
 ---
 
@@ -345,14 +546,73 @@ ChatMessage
 - `subscription` field on User model (free/premium/pro)
 
 ### Premium Features
-- Video guides (embedded or generated)
+- YouTube creator video guides (see below)
 - Offline guide access (PWA with service worker caching)
 - AR overlay for assembly guidance (future — explore WebXR)
 - Ad-free experience
 - Priority AI-generated guides for user-requested products
 - Advanced search and filtering
 
-### New Routes
+### YouTube Creator Video Integration
+
+Rather than generating AI videos (assembly instructions are too complex for current AI video generation), Guid leverages the existing ecosystem of **DIY creators on YouTube** who already produce assembly, setup, and troubleshooting videos.
+
+#### Creator Self-Submission Portal
+
+Creators can register on Guid, link their YouTube channel, and submit their videos for specific products:
+
+1. **Creator registration** — Separate registration flow for creators. Link YouTube channel (verify ownership via OAuth or manual review). Creator profile page shows their channel, subscriber count, and all submitted videos.
+2. **Video submission** — Creator selects a product → submits YouTube video URL → provides: title, description, which steps are covered (optional), language. One product can have multiple videos from different creators.
+3. **Admin review** — All submissions go through admin review for quality and relevance before appearing on product pages. Review criteria: video matches the product, reasonable quality, no spam/self-promotion beyond the guide itself.
+4. **Publication** — Approved videos appear on the product detail page in a "Video Guides" tab alongside the text/illustration guide.
+
+#### Video Display on Product Pages
+
+- **Embedded YouTube player** — Responsive YouTube embed on the product detail page (within the "Video Guides" tab or section).
+- **Creator attribution** — Each video shows: creator name, channel thumbnail, subscriber count, video title, upload date.
+- **Multiple videos per product** — Different creators may cover the same product with different approaches. Show all approved videos, sorted by user helpfulness ratings.
+- **User ratings** — "Was this video helpful?" thumbs up/down per video. Surfaces the most helpful videos first.
+
+#### Monetization Strategy
+
+- **Creators drive traffic to Guid** — Their audience discovers the platform through video descriptions and links.
+- **Guid drives traffic to creators** — Users browsing Guid discover creator videos they wouldn't have found otherwise.
+- **Future revenue share** — Once Guid has advertising or premium subscriptions, share revenue with creators whose content drives engagement. Creators opt in to the revenue share program.
+- **Premium gating (optional, future)** — Video guides could be a premium-only feature, with creators earning a share of subscription revenue based on views.
+
+#### New Database Model
+
+```
+VideoSubmission
+  - id, productId, creatorId (User with creator role)
+  - youtubeUrl, youtubeVideoId
+  - title, description, language
+  - stepsConvered (optional JSON — which guide steps the video covers)
+  - status (pending/approved/rejected)
+  - helpfulVotes, unhelpfulVotes
+  - reviewedBy, reviewNotes, reviewedAt
+  - createdAt, updatedAt
+
+CreatorProfile
+  - id, userId
+  - youtubeChannelUrl, youtubeChannelId
+  - channelName, subscriberCount (cached, refreshed periodically)
+  - isVerified (channel ownership confirmed)
+  - totalVideos, totalHelpfulVotes
+  - createdAt, updatedAt
+```
+
+#### New Routes
+
+| Route | Purpose |
+|-------|---------|
+| `/creators/register` | Creator registration and YouTube channel linking |
+| `/creators/[id]` | Creator profile page — channel info, all submitted videos |
+| `/creators/submit` | Video submission form — select product, submit YouTube link |
+| `/studio/videos` | Admin review queue for video submissions |
+
+### Other Premium Features Routes
+
 | Route | Purpose |
 |-------|---------|
 | `/pricing` | Pricing page with plan comparison |
@@ -363,17 +623,149 @@ ChatMessage
 
 ## Phase 5: Multi-Retailer Expansion
 
-### Scraper Extensions
-- Abstract scraper into a multi-retailer framework
-- Add retailer adapters: Wayfair, Amazon, Home Depot, Target
-- Unified product schema that normalizes across retailer formats
-- `source_retailer` field already exists in Product model
+Guid starts with IKEA but the vision is **universal product coverage**. Phase 5 builds the infrastructure to ingest products from any retailer, normalize them into a unified schema, and serve guides regardless of where the product was purchased.
+
+### Retailer Adapter Architecture
+
+The scraper framework is abstracted into a **multi-retailer adapter system**. Each retailer gets its own adapter that implements a standard interface, handling the differences in website structure, product schema, and data availability.
+
+#### Adapter Interface
+
+Each retailer adapter implements:
+
+```
+RetailerAdapter
+  - retailerId: string (e.g., "ikea", "wayfair", "amazon")
+  - retailerName: string (display name)
+  - baseUrl: string
+
+  // Catalog operations
+  - detectNewProducts(): Promise<NewProduct[]>    // Full catalog diff against DB
+  - scrapeProduct(url: string): Promise<ProductData>  // Single product scrape
+  - scrapeCategory(categoryUrl: string): Promise<ProductUrl[]>  // Category page listing
+
+  // Document operations
+  - extractDocuments(productPage: HTML): Promise<ProductDocument[]>  // PDFs, manuals
+  - extractImages(productPage: HTML): Promise<ProductImage[]>  // Product images
+
+  // Configuration
+  - getRateLimitConfig(): RateLimitConfig  // Delays, max concurrent, etc.
+  - getRobotsRules(): RobotsConfig  // Respect robots.txt
+```
+
+The monthly catalog sync (Phase 1) already supports the adapter pattern — Phase 5 adds concrete adapters beyond IKEA.
+
+#### Retailer Priority & Rollout Order
+
+| Priority | Retailer | Rationale | Data Availability | Est. Products |
+|----------|----------|-----------|-------------------|---------------|
+| 1 | **IKEA** | Already built, baseline adapter | Excellent — full catalog, assembly PDFs, structured data | ~13,000 |
+| 2 | **Wayfair** | Largest online furniture retailer, high assembly-required rate | Good — product APIs available, PDFs vary by brand | ~100,000+ |
+| 3 | **Home Depot** | Strong in outdoor structures, tools, home improvement kits | Good — well-structured product pages, assembly docs common | ~500,000+ |
+| 4 | **Amazon** | Massive catalog, covers all product categories | Variable — product data via PA-API, assembly PDFs rare, images good | Millions |
+| 5 | **Target** | Growing furniture line, general consumer products | Moderate — good product pages, assembly docs sometimes embedded in listing | ~100,000+ |
+
+**Rollout strategy:** Add one retailer at a time. Each adapter goes through a validation cycle: build adapter → scrape 100 test products → verify data quality → full catalog scrape → integrate into monthly sync.
+
+#### Retailer-Specific Challenges
+
+| Retailer | Challenge | Approach |
+|----------|-----------|----------|
+| **IKEA** | CDN image URLs with token expiry, Swedish-origin part numbers | Already solved in current scraper |
+| **Wayfair** | Multiple sellers per product, massive variant explosion (same item in 50 colors) | Normalize to single product entry per unique assembly instruction set. Group color variants. |
+| **Amazon** | Aggressive anti-scraping, product data behind authentication | Use Amazon Product Advertising API (PA-API 5.0) instead of scraping. Rate limit: 1 request/sec. |
+| **Home Depot** | Product specs split across multiple tabs, nested specification pages | Multi-step scraper: main page → specifications tab → documents tab. Use Playwright for dynamic content. |
+| **Target** | SPA-based product pages, client-side rendering, data in JavaScript bundles | Headless browser rendering via Playwright. Extract product data from embedded JSON-LD or `__NEXT_DATA__`. |
+
+### Product Deduplication & Matching
+
+When the same product is sold across multiple retailers, Guid shows **one unified product page** instead of duplicates.
+
+#### Matching Strategy
+
+1. **Exact match (highest confidence)** — Manufacturer SKU, UPC/EAN barcode, or article number matches across retailers. Example: IKEA KALLAX has the same article number everywhere.
+2. **Fuzzy match (medium confidence)** — Product name + brand + key dimensions similarity scoring. Threshold: ≥ 0.85 similarity score. Example: "KALLAX Shelf unit 77x147cm" on IKEA matches "IKEA KALLAX 77x147" on Wayfair.
+3. **Manual match (admin override)** — Admin can manually link products across retailers in Studio when automatic matching fails or is incorrect.
+4. **Match confidence scoring** — Each cross-retailer link stores a confidence score. Low-confidence matches (< 0.7) are flagged for admin review before merging.
+
+#### Unified Product Page
+
+When a product is matched across retailers:
+
+- **Single product page** with all images aggregated (deduplicated by visual similarity)
+- **"Available at" section** — Shows each retailer with current price, availability status, and direct link to buy
+- **Price comparison** — Side-by-side pricing across retailers (future monetization via affiliate links)
+- **Shared assembly guide** — Same product = same assembly = one guide shared across retailer entries
+- **Retailer-specific notes** — If packaging or included hardware differs by retailer, show retailer-specific warnings
+
+### Unified Product Schema
+
+All retailer data maps to the same Prisma models. Each adapter normalizes retailer-specific formats to common fields.
+
+#### Normalization Rules
+
+| Field | IKEA | Wayfair | Amazon | Home Depot | Target |
+|-------|------|---------|--------|------------|--------|
+| **Name** | `product_name` | `productName` | `title` | `productLabel` | `product.title` |
+| **Price** | `current_price` (SEK→USD) | `price.current` | `price.amount` | `pricing.value` | `price.currentRetail` |
+| **Brand** | "IKEA" (always) | `brand.name` | `brand` | `brandName` | `brand.name` |
+| **SKU** | `article_number` | `sku` | `asin` | `modelNumber` | `tcin` |
+| **Category** | `product_type` | `category.name` | `productGroup` | `taxonomy` | `category.name` |
+| **Images** | `ProductImage` URLs | `images[]` | `images.variants[]` | `mediaList[]` | `images.primaryUri` |
+| **Documents** | `ProductDocument` | `documents[]` | Rarely available | `documents[]` | Rarely available |
+
+**Currency normalization:** All prices stored in USD. Convert at scrape time using a cached exchange rate. Display in user's locale where possible.
+
+### URL Detection & Routing
+
+When a user pastes a retailer URL into the search bar, Guid automatically detects the retailer and extracts the product identifier.
+
+| Retailer | URL Pattern | Extraction |
+|----------|-------------|------------|
+| **IKEA** | `ikea.com/.../p/{name}-s{articleNumber}` | Regex: extract article number from `-s` suffix |
+| **Wayfair** | `wayfair.com/.../pdp/{slug}-{sku}.html` | Extract SKU from last slug segment |
+| **Amazon** | `amazon.com/dp/{ASIN}` or `/gp/product/{ASIN}` | Extract 10-character ASIN |
+| **Home Depot** | `homedepot.com/p/.../123456789` | Last numeric path segment = product ID |
+| **Target** | `target.com/p/.../A-12345678` | Extract DPCI code after `A-` prefix |
+
+**Flow:** User pastes URL → detect retailer from domain → extract product ID → look up in DB → if found, redirect to Guid product page → if not found, offer to queue a scrape.
+
+### Affiliate Revenue (Phase 5+)
+
+Multi-retailer enables **affiliate revenue** as a monetization layer:
+
+- **Amazon Associates** — 4-8% commission on furniture purchased through Guid's links
+- **Wayfair affiliate program** — Commission on referred purchases
+- **"Buy at" links** — Product pages show "Available at [retailer]" links with embedded affiliate tracking parameters
+- **Revenue tracking** — Track clicks and conversions per retailer, per product, per user source
+- **Transparency** — Affiliate links disclosed per FTC guidelines ("As an Amazon Associate, Guid earns from qualifying purchases")
 
 ### Platform Changes
-- Brand/retailer filtering on product pages
-- Retailer-specific image CDN configurations in `next.config.ts`
-- Product matching/deduplication across retailers
-- Retailer logos and attribution
+
+- **Retailer filter** — Add retailer as a filter option on `/products` (alongside category, price, rating). Show retailer logo pills for quick filtering.
+- **Retailer branding** — Small retailer logo badge on product cards and detail pages. Non-intrusive but clear for user trust.
+- **Image CDN config** — Extend `remotePatterns` in `next.config.ts` for each new retailer's image CDN domains.
+- **Retailer landing pages** — `/retailers/wayfair`, `/retailers/amazon` etc. — browse all products from a specific retailer. SEO value for "Wayfair assembly guides" searches.
+- **Admin: retailer management** — Studio page to manage retailer adapters: enable/disable, configure scrape frequency, view health metrics per retailer.
+
+### New Database Fields
+
+```
+Product (extend)
+  - sourceRetailerId  String   (already exists as source_retailer — formalize as FK)
+  - manufacturerSku   String?  (manufacturer's own SKU, separate from retailer SKU)
+  - upcEan            String?  (universal barcode for cross-retailer matching)
+  - matchGroupId      String?  (groups matched products across retailers)
+  - matchConfidence   Float?   (confidence of cross-retailer match)
+
+Retailer (new model)
+  - id, name, slug, logoUrl
+  - baseUrl, adapterType
+  - isActive, lastSyncAt, nextSyncAt
+  - affiliateConfig (JSON — tracking URLs, commission rates)
+  - rateLimitConfig (JSON — delays, max concurrent)
+  - createdAt, updatedAt
+```
 
 ---
 

@@ -21,6 +21,65 @@
 
 When making changes that affect the project plan (new features, changed approaches, removed scope), update all affected docs and log the change in `docs/changelog.md`.
 
+## UI/UX Development Workflow
+
+**When doing ANY UI/UX work** (creating new pages/components, editing existing UI, reviewing designs, fixing layout/style issues), follow this workflow using the **UI/UX Pro Max** skill:
+
+### Step 1: Read Design Guidelines First
+Before writing any UI code, read `docs/design-guidelines.md` for the project's design system: color tokens, typography (IBM Plex Sans + JetBrains Mono), spacing, component specs, accessibility requirements, and the guide viewer three-column layout spec.
+
+### Step 2: Run UI/UX Pro Max Design System Check
+For new features or significant UI changes, generate recommendations:
+```bash
+python3 .claude/skills/ui-ux-pro-max/scripts/search.py "<feature description keywords>" --design-system -p "Guid"
+```
+
+### Step 3: Run Domain-Specific Searches (as needed)
+Get targeted guidance for specific concerns:
+```bash
+# Accessibility review
+python3 .claude/skills/ui-ux-pro-max/scripts/search.py "accessibility contrast focus" --domain ux
+
+# Animation best practices
+python3 .claude/skills/ui-ux-pro-max/scripts/search.py "animation loading skeleton" --domain ux
+
+# Typography guidance
+python3 .claude/skills/ui-ux-pro-max/scripts/search.py "technical documentation" --domain typography
+
+# shadcn/ui component patterns
+python3 .claude/skills/ui-ux-pro-max/scripts/search.py "<component name>" --stack shadcn
+
+# Next.js implementation patterns
+python3 .claude/skills/ui-ux-pro-max/scripts/search.py "<feature>" --stack nextjs
+```
+
+### Step 4: Pre-Delivery Checklist
+Before delivering any UI code, verify:
+- [ ] No emojis used as icons (use Lucide SVG icons)
+- [ ] All clickable elements have `cursor-pointer`
+- [ ] Hover states with smooth transitions (200ms ease-out)
+- [ ] Light mode: text contrast meets 4.5:1 minimum (WCAG AA)
+- [ ] Dark mode: all tokens applied, illustrations have border on white bg
+- [ ] Focus-visible states on all interactive elements (2px amber ring)
+- [ ] `prefers-reduced-motion` respected (no animations when reduced)
+- [ ] Touch targets meet 44px minimum
+- [ ] Responsive at 375px, 640px, 768px, 1024px, 1280px
+- [ ] No horizontal scroll on mobile
+- [ ] All icon-only buttons have `aria-label`
+- [ ] Form inputs have associated `<label>` elements
+- [ ] Colors never used as sole indicator (always paired with icon/text)
+- [ ] Uses project design tokens (`bg-primary`, `text-muted-foreground`) not hardcoded values
+- [ ] Typography follows type scale from design-guidelines.md (IBM Plex Sans body, JetBrains Mono for technical)
+
+### When to Use UI/UX Pro Max
+| Scenario | Required? | What to Run |
+|----------|-----------|-------------|
+| **New page or feature** | Yes | Full `--design-system` + relevant domain searches |
+| **Editing existing component** | Yes (for non-trivial changes) | Domain search for the specific area (ux, typography, etc.) |
+| **Bug fix (visual/layout)** | Recommended | Quick domain search for the issue area |
+| **Code review of UI changes** | Yes | Run pre-delivery checklist |
+| **Non-UI work (API, DB, backend)** | No | Skip entirely |
+
 ## Commands
 
 ```bash
@@ -42,6 +101,7 @@ npx tsx prisma/seed.ts      # Seed admin user
 ## Architecture
 
 **Stack:** Next.js 16, TypeScript, Tailwind v4, shadcn/ui, Prisma v6, NextAuth v5 (beta)
+**Fonts:** IBM Plex Sans (primary sans) + JetBrains Mono (technical/mono) — loaded via `next/font/google`
 
 **Database:** Supabase PostgreSQL (shared with scraper)
 - `DATABASE_URL` (port 6543) = pgbouncer, used at runtime
@@ -70,9 +130,10 @@ npx tsx prisma/seed.ts      # Seed admin user
 
 | Route | Type | Description |
 |-------|------|-------------|
-| `/` | Dynamic | Landing page |
-| `/products` | Dynamic | Product grid with search, filters, sort & pagination |
-| `/products/[articleNumber]` | Dynamic | Product detail (images, docs, assembly guide, save) |
+| `/` | Dynamic | Landing page (guide-centric: "Find step-by-step instructions for any product") |
+| `/products` | Dynamic | Product grid with search, filters, sort & pagination (cards show guide availability status) |
+| `/products/[articleNumber]` | Dynamic | **Guide-first:** shows guide viewer if published guide exists, falls back to product detail page otherwise |
+| `/products/[articleNumber]/details` | Dynamic | Full product detail page (images, docs, ratings, metadata) — always accessible, linked from guide viewer's Product Info Card |
 | `/login` | Client | Login form |
 | `/register` | Client | Registration form |
 | `/profile` | Auth-gated | User profile with saved products |
@@ -90,6 +151,8 @@ npx tsx prisma/seed.ts      # Seed admin user
 | `/studio/ai-generate/[jobId]` | Admin-only | Review single AI-generated guide vs. original PDF |
 | `/studio/ai-config` | Admin-only | Prompt template management, model configuration |
 | `/studio/catalog-sync` | Admin-only | Monthly catalog sync dashboard — sync history, new products, scraper health |
+| `/studio/submissions` | Admin-only | Community guide submission review queue |
+| `/products/[articleNumber]/submit-guide` | Auth-gated | User guide submission form — contribute assembly knowledge |
 
 ### Planned (Phase 3: AI Troubleshooting Assistant)
 
@@ -106,6 +169,10 @@ npx tsx prisma/seed.ts      # Seed admin user
 | `/pricing` | Public | Plan comparison page |
 | `/subscribe` | Auth-gated | Stripe Checkout redirect |
 | `/account/billing` | Auth-gated | Subscription management |
+| `/creators/register` | Auth-gated | Creator registration — link YouTube channel |
+| `/creators/[id]` | Public | Creator profile — channel info, submitted videos |
+| `/creators/submit` | Creator-only | Video submission form — submit YouTube link for a product |
+| `/studio/videos` | Admin-only | Video submission review queue |
 
 ## Database Tables (Prisma models)
 
@@ -129,11 +196,22 @@ npx tsx prisma/seed.ts      # Seed admin user
 - `AIGenerationJob` — tracks AI guide generation jobs (status, confidence, models used, priority, triggeredBy)
 - `AIGenerationConfig` — prompt templates, model config, auto-publish thresholds (one active at a time)
 - `Product` extensions — `guideStatus`, `firstDetectedAt`, `lastScrapedAt`, `isNew`, `discontinued`
+- `GuideSubmission` — community guide submissions (productId, userId, textContent, photos, videoLinks, externalLinks, status, review fields)
 
 ### Planned (Phase 3)
 
 - `ChatSession` — troubleshooting chat sessions (userId, productId, status, resolution)
 - `ChatMessage` — individual messages (role, content, imageUrl)
+
+### Planned (Phase 4)
+
+- `CreatorProfile` — YouTube creator profiles (userId, channelUrl, channelName, subscriberCount, isVerified)
+- `VideoSubmission` — creator video submissions (productId, creatorId, youtubeUrl, status, helpfulVotes)
+
+### Planned (Phase 5)
+
+- `Retailer` — retailer definitions (name, slug, baseUrl, adapterType, affiliateConfig, rateLimitConfig)
+- `Product` extensions — `manufacturerSku`, `upcEan`, `matchGroupId`, `matchConfidence` for cross-retailer dedup
 
 ## Key Components
 

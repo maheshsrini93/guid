@@ -6,6 +6,16 @@ Guid is the **universal product knowledge hub** — step-by-step assembly, setup
 
 **One-liner:** The place you go when you need to build, set up, or fix anything — even years after you bought it.
 
+### Core UX Principle: Guide-First Navigation
+
+Guid is **guide-centric, not product-centric**. When a user searches for a product and clicks on it, they land directly on the step-by-step work instructions — not a product detail page. The guide is the primary experience; product metadata (images, specs, ratings, documents) is secondary, accessible via a "View Details" link from within the guide viewer.
+
+**The flow:** Search → Product card (with guide availability status) → Work instructions (if guide exists) → [optional] View product details
+
+**Fallback:** Products without a published guide fall back to the traditional product detail page until a guide becomes available. Products with guides in progress (queued, generating, in review) also show the product page with a status indicator.
+
+This principle shapes every user-facing decision: SEO landing pages lead directly to guides, product cards show guide availability status, and the homepage messaging emphasizes "find step-by-step instructions for any product" over "browse a product catalog."
+
 ## Problem
 
 People regularly face confusing, missing, or poorly written product instructions. Paper manuals get lost. Manufacturer PDFs are hard to follow. YouTube videos are hit-or-miss. There is no single, reliable destination for clear, step-by-step product guides across brands and categories.
@@ -73,13 +83,14 @@ Use AI to automatically generate step-by-step guides from manufacturer PDFs, ima
 - **New product coverage:** IKEA adds 15 new products to their catalog this month → next monthly sync detects all 15 → AI generates guides → admin reviews any flagged ones → all 15 are live before the end of the month
 
 ### Priority 2: Multi-Retailer Expansion
-Add scrapers and integrations for more retailers — Wayfair, Amazon, Home Depot, Target, etc. Become the universal destination regardless of where the product was purchased.
+Add scrapers and integrations for more retailers — Wayfair, Amazon, Home Depot, Target, etc. Become the universal destination regardless of where the product was purchased. Each retailer gets its own adapter in a standardized framework, with product deduplication to merge identical products sold across multiple stores into unified pages.
 
 **Key scenarios:**
 - User pastes a Wayfair product URL → Guid recognizes the retailer, extracts the product, and shows the guide alongside the IKEA version of the same table
 - A user searches "Weber Spirit E-310 grill assembly" → finds the guide even though they bought it on Amazon, not from Weber directly
-- Same product sold on IKEA, Wayfair, and Amazon → Guid deduplicates and shows one unified product page with all retailer links
+- Same product sold on IKEA, Wayfair, and Amazon → Guid deduplicates and shows one unified product page with all retailer links and price comparison
 - Pro installer searches by article number from a Home Depot box label → instant match, guide loads in seconds
+- User clicks "Buy at Amazon" on a product page → affiliate link tracks the referral → Guid earns commission on the purchase
 
 ### Priority 3: AI Troubleshooting Assistant
 A conversational AI chatbot that helps users fix, maintain, and troubleshoot products they already own. The user just mentions their product name (or scans it), describes the problem in plain language, and the assistant walks them through a solution — no manual needed. The assistant draws from Guid's guide database, manufacturer documentation, and product knowledge to provide contextual, product-specific help.
@@ -93,13 +104,15 @@ A conversational AI chatbot that helps users fix, maintain, and troubleshoot pro
 The assistant turns Guid from a one-time assembly tool into a **lifetime product companion** — the place you come back to whenever anything goes wrong, long after you've thrown away the manual.
 
 ### Priority 4: Community + AI Hybrid
-AI generates initial guides; community improves them. Wikipedia-style model where users add tips, photos, warnings, and alternative approaches. AI + human collaboration produces the best guides.
+AI generates initial guides; community improves them. Wikipedia-style model where users add tips, photos, warnings, and alternative approaches. AI + human collaboration produces the best guides. For products without manufacturer manuals, users can **submit entirely new guides** — providing text instructions, photos, video links, and external resources that go through admin review and AI-enhanced structuring.
 
 **Key scenarios:**
 - AI generates a MALM dresser guide → a pro installer adds a tip to step 8: "Pre-drill the back panel holes to prevent splitting — saves 10 minutes of frustration"
 - User completes a BESTÅ guide and leaves a photo showing how they routed cables through the back panel → future users see this community-contributed improvement
 - AI-generated guide has a vague step → 3 users flag it as confusing → community member submits a clearer rewrite with a photo → admin approves → guide quality improves organically
 - User discovers a hack: "Use a rubber band on the screwdriver tip to grip stripped cam lock screws" → submits it as a community tip → gets upvoted and pinned to the product page
+- **Product has no manual** → user clicks "Submit a New Guide" → writes step-by-step instructions with photos from their own assembly → admin reviews and approves → AI structures it into a proper formatted guide → published with "Community Contributed" attribution
+- **YouTube creator** registers on Guid → submits a video guide for a product they assembled → admin approves → video appears on the product page alongside text/illustration guides → creator gains exposure, Guid gains content
 
 ### Priority 5: Native Mobile Apps (iOS & Android)
 React Native (Expo) apps built after customer validation on the web platform. The mobile app's killer feature is native camera integration — scan a barcode, photograph a broken part, or snap a product label for instant help.
@@ -116,7 +129,12 @@ React Native (Expo) apps built after customer validation on the web platform. Th
 
 ### Layer 1: Freemium Subscription
 - **Free tier:** Browse all guides, search products, save favorites
-- **Premium tier:** AI troubleshooting assistant (unlimited chats), video guides, offline access, AR overlay, priority AI-generated guides, ad-free experience
+- **Premium tier:** AI troubleshooting assistant (unlimited chats), YouTube creator video guides, offline access, AR overlay, priority AI-generated guides, ad-free experience
+
+### Layer 1.5: Creator & Affiliate Revenue
+- **YouTube creator video integration** — Creators self-submit assembly/troubleshooting videos for products. Approved videos appear on product pages. Future revenue share model.
+- **Affiliate links** — Multi-retailer product pages include affiliate "Buy at" links (Amazon Associates, Wayfair affiliate, etc.). Commission earned on referred purchases.
+- **Community guide submissions** — Users submit assembly knowledge for products without official manuals, seeding guide coverage and driving engagement.
 
 ### Layer 2: B2B SaaS Licensing
 - Retailers and brands pay to embed Guid's guide platform into their own product pages
