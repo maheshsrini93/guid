@@ -243,15 +243,15 @@ npx tsx prisma/seed.ts      # Seed admin user
 
 ## AI Pipeline (Phase 1 — Planned)
 
-**Multi-model strategy:**
-- **Primary vision model:** TBD (Gemini Pro Vision vs GPT-4o — benchmark pending)
-- **Secondary vision model:** TBD (the other one — fallback/validation)
+**Multi-model strategy (all-Gemini, Flash-first + Pro-on-fail):**
+- **Primary vision model:** Gemini 2.5 Pro (`gemini-2.5-pro`) — highest accuracy for diagram interpretation, complex/ambiguous pages, escalation target
+- **Secondary vision model (default):** Gemini 2.5 Flash (`gemini-2.5-flash`) — cost-efficient bulk processing, panel detection, formatting; escalates to Pro on triggers (multiple arrows, hinge/rotation, fastener ambiguity, low confidence)
 - **Illustration (simple steps):** Nano Banana (`gemini-2.5-flash-image`) — cheaper, faster
 - **Illustration (complex steps):** Nano Banana Pro (`gemini-3-pro-image-preview`) — higher fidelity, up to 4K
 
 **Monthly catalog sync:** Once per month, scan each retailer's catalog → detect new products → auto-scrape → auto-queue AI generation → auto-publish high-confidence guides. Manual single-product scrape available in Studio for urgent requests.
 
-**API integrations:** Google Gemini API, OpenAI API, `pdf-lib` or `pdfjs-dist` for PDF processing
+**API integrations:** Google Gemini API, `pdf-lib` or `pdfjs-dist` for PDF processing
 
 ## Key Constraints
 - Prisma v7 `prisma-client` generator does NOT work with this setup — stay on v6 `prisma-client-js`

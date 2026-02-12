@@ -1,0 +1,1086 @@
+================================================================================
+  VISION MODEL BENCHMARK: Gemini 2.5 Flash vs Gemini 2.5 Pro
+  20-Page IKEA Assembly PDF Analysis (5 manuals x 4 archetypes)
+  Date: 2026-02-12T15:46:34.368Z
+================================================================================
+
+--------------------------------------------------------------------------------
+  MALM (00599447)
+  Category: Bed frame | Mechanism: Large panels, cam locks, bed slat supports
+  PDF: 40 pages
+--------------------------------------------------------------------------------
+
+  [Page 3] Parts/Fasteners Legend
+  Rationale: Page 3 — typically parts list/hardware legend area
+
+    FLASH (gemini-2.5-flash)
+      Status:      OK
+      Latency:     12.1s
+      Tokens:      960 in / 707 out
+      Cost:        $0.0006
+      Confidence:  1.00
+      JSON Valid:  Yes
+      Parts:       11 | Arrows: 0 | Multi-panel: false
+
+    PRO   (gemini-2.5-pro)
+      Status:      OK
+      Latency:     14.8s
+      Tokens:      960 in / 651 out
+      Cost:        $0.0077
+      Confidence:  1.00
+      JSON Valid:  Yes
+      Parts:       11 | Arrows: 0 | Multi-panel: false
+
+    ESCALATION ANALYSIS (based on Flash result):
+      Would escalate to Pro: NO
+
+    COMPARISON:
+      Confidence delta (Pro - Flash): 0.00
+      Cost ratio (Pro / Flash): 13.6x
+      Latency ratio (Pro / Flash): 1.2x
+
+    MANUAL SCORING (fill in after review):
+      ┌──────────────────────┬───────┬─────┐
+      │ Criterion (0-2)      │ Flash │ Pro │
+      ├──────────────────────┼───────┼─────┤
+      │ Orientation correct.  │  __   │ __  │
+      │ Fastener correctness  │  __   │ __  │
+      │ Action correctness    │  __   │ __  │
+      │ Step completeness     │  __   │ __  │
+      │ Hallucination penalty │  __   │ __  │
+      ├──────────────────────┼───────┼─────┤
+      │ TOTAL (0-10)         │  __   │ __  │
+      └──────────────────────┴───────┴─────┘
+
+
+  [Page 10] Simple 1-Action Step
+  Rationale: Page 10 — early assembly steps (25% through PDF)
+
+    FLASH (gemini-2.5-flash)
+      Status:      OK
+      Latency:     18.9s
+      Tokens:      960 in / 404 out
+      Cost:        $0.0004
+      Confidence:  0.00
+      JSON Valid:  No
+      Parts:       0 | Arrows: 0 | Multi-panel: false
+
+    PRO   (gemini-2.5-pro)
+      Status:      OK
+      Latency:     25.7s
+      Tokens:      960 in / 737 out
+      Cost:        $0.0086
+      Confidence:  0.95
+      JSON Valid:  Yes
+      Parts:       14 | Arrows: 3 | Multi-panel: true
+      Ambiguities: The pins shown in the inset for step 5 are not identified with a part number; they appear to be pre-installed in the panels.; The screw type 130618 is likely a cam lock stud, but its corresponding cam lock is not shown on this page.
+      -> Step 4: Insert and tighten eight connector screws (part 130618) into the pre-drilled holes on two ...
+         Screw: clockwise | Fastener: screw
+         Orient: Screws are inserted perpendicularly into the top surface of the two rails....
+      -> Step 5: Slide the two rails (with screws now installed) onto the long edges of two large panels. T...
+         Orient: The U-shaped channel of the rail fits over the long edge of the panel. The screws installe...
+
+    ESCALATION ANALYSIS (based on Flash result):
+      Would escalate to Pro: YES
+      Triggers: Low confidence: 0.00
+
+    COMPARISON:
+      Confidence delta (Pro - Flash): +0.95
+      Cost ratio (Pro / Flash): 22.2x
+      Latency ratio (Pro / Flash): 1.4x
+
+    MANUAL SCORING (fill in after review):
+      ┌──────────────────────┬───────┬─────┐
+      │ Criterion (0-2)      │ Flash │ Pro │
+      ├──────────────────────┼───────┼─────┤
+      │ Orientation correct.  │  __   │ __  │
+      │ Fastener correctness  │  __   │ __  │
+      │ Action correctness    │  __   │ __  │
+      │ Step completeness     │  __   │ __  │
+      │ Hallucination penalty │  __   │ __  │
+      ├──────────────────────┼───────┼─────┤
+      │ TOTAL (0-10)         │  __   │ __  │
+      └──────────────────────┴───────┴─────┘
+
+
+  [Page 24] Multi-Panel w/ Rotation
+  Rationale: Page 24 — mid-assembly (60% through PDF), likely multi-panel
+
+    FLASH (gemini-2.5-flash)
+      Status:      OK
+      Latency:     15.6s
+      Tokens:      960 in / 847 out
+      Cost:        $0.0007
+      Confidence:  0.95
+      JSON Valid:  Yes
+      Parts:       4 | Arrows: 4 | Multi-panel: false
+      Ambiguities: The exact dimensions of the Allen key (100001) are not specified, only its ID.; The metal bar and the main frame structure do not have explicit part IDs in this step.
+      -> Step 23: Attach a long, thin metal bar to the main frame structure. Place the metal bar on top of o...
+         Screw: clockwise | Fastener: screw
+         Orient: The metal bar is placed flat on top of the frame's side rail. The screws are inserted vert...
+
+    PRO   (gemini-2.5-pro)
+      Status:      OK
+      Latency:     20.5s
+      Tokens:      960 in / 637 out
+      Cost:        $0.0076
+      Confidence:  1.00
+      JSON Valid:  Yes
+      Parts:       13 | Arrows: 4 | Multi-panel: false
+      -> Step 23: Attach four U-shaped metal bars to the outer sides of the main rectangular frame. For each...
+         Screw: clockwise | Fastener: screw
+         Orient: The U-shaped bars are mounted on the exterior of the two long sides of the frame, with the...
+
+    ESCALATION ANALYSIS (based on Flash result):
+      Would escalate to Pro: YES
+      Triggers: Multiple arrows (4) in panel; Rotation indicator: custom; Fastener ambiguity in self-reported uncertainties
+
+    COMPARISON:
+      Confidence delta (Pro - Flash): +0.05
+      Cost ratio (Pro / Flash): 11.6x
+      Latency ratio (Pro / Flash): 1.3x
+
+    MANUAL SCORING (fill in after review):
+      ┌──────────────────────┬───────┬─────┐
+      │ Criterion (0-2)      │ Flash │ Pro │
+      ├──────────────────────┼───────┼─────┤
+      │ Orientation correct.  │  __   │ __  │
+      │ Fastener correctness  │  __   │ __  │
+      │ Action correctness    │  __   │ __  │
+      │ Step completeness     │  __   │ __  │
+      │ Hallucination penalty │  __   │ __  │
+      ├──────────────────────┼───────┼─────┤
+      │ TOTAL (0-10)         │  __   │ __  │
+      └──────────────────────┴───────┴─────┘
+
+
+  [Page 32] Tricky Mechanism
+  Rationale: Page 32 — late assembly (80% through PDF), likely complex mechanism
+
+    FLASH (gemini-2.5-flash)
+      Status:      OK
+      Latency:     18.4s
+      Tokens:      960 in / 876 out
+      Cost:        $0.0007
+      Confidence:  0.90
+      JSON Valid:  Yes
+      Parts:       0 | Arrows: 5 | Multi-panel: true
+      Ambiguities: The exact type of screwdriver (e.g., Phillips, Pozidriv) for the screws in the top section is not specified.; Specific part IDs for the rectangular block and screws are not provided.; The bottom section's warning and instruction panels are implicitly part of step 32 but are not explicitly numbered as sub-steps.
+      -> Step 32: Attach a rectangular stopper/support block to the inside edge of the bed frame, near the h...
+         Screw: clockwise | Fastener: screw
+         Orient: The block is placed horizontally on the top inner edge of the bed frame, with its pre-dril...
+      -> Step 32: WARNING: Do NOT lift the slatted bed base without a mattress placed on it. The image shows...
+         Orient: The slatted base is shown lifted upwards from the foot end of the bed....
+      -> Step 32: To access storage, lift the slatted bed base *with* a mattress placed on it. The hand symb...
+         Orient: The slatted base with a mattress is shown lifted upwards from the foot end of the bed....
+
+    PRO   (gemini-2.5-pro)
+      Status:      OK
+      Latency:     22.6s
+      Tokens:      960 in / 656 out
+      Cost:        $0.0078
+      Confidence:  0.95
+      JSON Valid:  Yes
+      Parts:       2 | Arrows: 2 | Multi-panel: true
+      Ambiguities: The two stoppers used in the first part of the step are not identified with a part number.; The arrows in the bottom panel indicate the direction of lifting the bed base.
+      -> Step 32: Insert two small cylindrical stoppers into the pre-drilled holes on the top surface of the...
+         Orient: The stoppers are inserted vertically downwards into the holes....
+      -> Step 32: A safety warning and instruction for operating the bed's lift mechanism. The left diagram,...
+         Orient: The mattress should be placed flat on top of the slatted bed base....
+
+    ESCALATION ANALYSIS (based on Flash result):
+      Would escalate to Pro: YES
+      Triggers: Multiple arrows (5) in panel; Fastener ambiguity in self-reported uncertainties
+
+    COMPARISON:
+      Confidence delta (Pro - Flash): +0.05
+      Cost ratio (Pro / Flash): 11.6x
+      Latency ratio (Pro / Flash): 1.2x
+
+    MANUAL SCORING (fill in after review):
+      ┌──────────────────────┬───────┬─────┐
+      │ Criterion (0-2)      │ Flash │ Pro │
+      ├──────────────────────┼───────┼─────┤
+      │ Orientation correct.  │  __   │ __  │
+      │ Fastener correctness  │  __   │ __  │
+      │ Action correctness    │  __   │ __  │
+      │ Step completeness     │  __   │ __  │
+      │ Hallucination penalty │  __   │ __  │
+      ├──────────────────────┼───────┼─────┤
+      │ TOTAL (0-10)         │  __   │ __  │
+      └──────────────────────┴───────┴─────┘
+
+--------------------------------------------------------------------------------
+  HEMNES (80242627)
+  Category: Drawer unit | Mechanism: Drawer slides, runner alignment, multiple repeated steps
+  PDF: 32 pages
+--------------------------------------------------------------------------------
+
+  [Page 3] Parts/Fasteners Legend
+  Rationale: Page 3 — typically parts list/hardware legend area
+
+    FLASH (gemini-2.5-flash)
+      Status:      OK
+      Latency:     13.1s
+      Tokens:      960 in / 323 out
+      Cost:        $0.0003
+      Confidence:  1.00
+      JSON Valid:  Yes
+      Parts:       0 | Arrows: 1 | Multi-panel: false
+      -> Step null: General safety warning regarding the risk of furniture tipping and instructions to prevent...
+         Orient: not_applicable...
+
+    PRO   (gemini-2.5-pro)
+      Status:      OK
+      Latency:     20.7s
+      Tokens:      960 in / 377 out
+      Cost:        $0.0050
+      Confidence:  1.00
+      JSON Valid:  Yes
+      Parts:       0 | Arrows: 1 | Multi-panel: false
+      Ambiguities: This page is a general safety warning, not a specific assembly step. The information has been structured into a single 'action' to capture the instructional content.
+      -> Step null: A multi-language safety warning about the risk of furniture tipping over. The page instruc...
+         Orient: not_applicable...
+
+    ESCALATION ANALYSIS (based on Flash result):
+      Would escalate to Pro: NO
+
+    COMPARISON:
+      Confidence delta (Pro - Flash): 0.00
+      Cost ratio (Pro / Flash): 14.7x
+      Latency ratio (Pro / Flash): 1.6x
+
+    MANUAL SCORING (fill in after review):
+      ┌──────────────────────┬───────┬─────┐
+      │ Criterion (0-2)      │ Flash │ Pro │
+      ├──────────────────────┼───────┼─────┤
+      │ Orientation correct.  │  __   │ __  │
+      │ Fastener correctness  │  __   │ __  │
+      │ Action correctness    │  __   │ __  │
+      │ Step completeness     │  __   │ __  │
+      │ Hallucination penalty │  __   │ __  │
+      ├──────────────────────┼───────┼─────┤
+      │ TOTAL (0-10)         │  __   │ __  │
+      └──────────────────────┴───────┴─────┘
+
+
+  [Page 8] Simple 1-Action Step
+  Rationale: Page 8 — early assembly steps (25% through PDF)
+
+    FLASH (gemini-2.5-flash)
+      Status:      OK
+      Latency:     16.9s
+      Tokens:      960 in / 782 out
+      Cost:        $0.0006
+      Confidence:  1.00
+      JSON Valid:  Yes
+      Parts:       13 | Arrows: 0 | Multi-panel: false
+
+    PRO   (gemini-2.5-pro)
+      Status:      OK
+      Latency:     25.8s
+      Tokens:      960 in / 823 out
+      Cost:        $0.0094
+      Confidence:  1.00
+      JSON Valid:  Yes
+      Parts:       14 | Arrows: 0 | Multi-panel: true
+      Ambiguities: The exact number of nails in bag 101221 is not specified, only '1x' for the bag.; The icons showing a hand peeling a sticker with numbers 13 and 23 are interpreted as references to page numbers in the manual, not as parts or actions.
+
+    ESCALATION ANALYSIS (based on Flash result):
+      Would escalate to Pro: NO
+
+    COMPARISON:
+      Confidence delta (Pro - Flash): 0.00
+      Cost ratio (Pro / Flash): 15.4x
+      Latency ratio (Pro / Flash): 1.5x
+
+    MANUAL SCORING (fill in after review):
+      ┌──────────────────────┬───────┬─────┐
+      │ Criterion (0-2)      │ Flash │ Pro │
+      ├──────────────────────┼───────┼─────┤
+      │ Orientation correct.  │  __   │ __  │
+      │ Fastener correctness  │  __   │ __  │
+      │ Action correctness    │  __   │ __  │
+      │ Step completeness     │  __   │ __  │
+      │ Hallucination penalty │  __   │ __  │
+      ├──────────────────────┼───────┼─────┤
+      │ TOTAL (0-10)         │  __   │ __  │
+      └──────────────────────┴───────┴─────┘
+
+
+  [Page 19] Multi-Panel w/ Rotation
+  Rationale: Page 19 — mid-assembly (60% through PDF), likely multi-panel
+
+    FLASH (gemini-2.5-flash)
+      Status:      OK
+      Latency:     11.3s
+      Tokens:      960 in / 518 out
+      Cost:        $0.0005
+      Confidence:  1.00
+      JSON Valid:  Yes
+      Parts:       0 | Arrows: 4 | Multi-panel: false
+      -> Step 18: Place the assembled furniture unit against the wall. Using a pencil, mark a vertical line ...
+         Orient: The pencil mark is a vertical line on the wall, aligned with the top edge of the furniture...
+      -> Step 19: From the vertical mark made in step 18 on the wall, measure 1 1/2 inches (4 cm) vertically...
+         Orient: The 'X' mark is made on the wall, 1 1/2 inches (4 cm) below the vertical line marked in st...
+
+    PRO   (gemini-2.5-pro)
+      Status:      OK
+      Latency:     16.6s
+      Tokens:      960 in / 532 out
+      Cost:        $0.0065
+      Confidence:  1.00
+      JSON Valid:  Yes
+      Parts:       0 | Arrows: 2 | Multi-panel: true
+      -> Step 18: Place the furniture unit against the wall. Use a pencil to make a small vertical mark on t...
+         Orient: The furniture should be in its final desired position, upright and flush against the wall....
+      -> Step 19: Move the furniture away from the wall. Use a tape measure to measure 1 1/2 inches (4 cm) v...
+         Orient: The measurement is taken straight down from the first mark....
+
+    ESCALATION ANALYSIS (based on Flash result):
+      Would escalate to Pro: YES
+      Triggers: Multiple arrows (4) in panel; Drawer slide/runner detected
+
+    COMPARISON:
+      Confidence delta (Pro - Flash): 0.00
+      Cost ratio (Pro / Flash): 14.3x
+      Latency ratio (Pro / Flash): 1.5x
+
+    MANUAL SCORING (fill in after review):
+      ┌──────────────────────┬───────┬─────┐
+      │ Criterion (0-2)      │ Flash │ Pro │
+      ├──────────────────────┼───────┼─────┤
+      │ Orientation correct.  │  __   │ __  │
+      │ Fastener correctness  │  __   │ __  │
+      │ Action correctness    │  __   │ __  │
+      │ Step completeness     │  __   │ __  │
+      │ Hallucination penalty │  __   │ __  │
+      ├──────────────────────┼───────┼─────┤
+      │ TOTAL (0-10)         │  __   │ __  │
+      └──────────────────────┴───────┴─────┘
+
+
+  [Page 25] Tricky Mechanism
+  Rationale: Page 25 — late assembly (80% through PDF), likely complex mechanism
+
+    FLASH (gemini-2.5-flash)
+      Status:      OK
+      Latency:     15.9s
+      Tokens:      960 in / 863 out
+      Cost:        $0.0007
+      Confidence:  0.95
+      JSON Valid:  Yes
+      Parts:       6 | Arrows: 3 | Multi-panel: false
+      Ambiguities: The exact type of fastener for the small circles (dowels vs. screw holes) is not explicitly labeled, but inferred as dowels for alignment. The larger circles with crosses are inferred as cam locks.
+      -> Step 28: Assemble the main frame by inserting the back panel (with vertical stripes) into the verti...
+         Orient: The back panel's striped side faces inwards. The side panels are upright, with the left pa...
+      -> Step 29: Place the top panel onto the assembled unit from step 28. Lower it carefully, aligning the...
+         Orient: The top panel is placed flat on top of the assembled unit....
+
+    PRO   (gemini-2.5-pro)
+      Status:      OK
+      Latency:     21.2s
+      Tokens:      960 in / 672 out
+      Cost:        $0.0079
+      Confidence:  0.95
+      JSON Valid:  Yes
+      Parts:       2 | Arrows: 2 | Multi-panel: true
+      Ambiguities: Part IDs are not specified.; The function of the triangular sticker with an arrow on the side panel is not explicitly explained, but it is likely an orientation marker.
+      -> Step 28: Slide the thin, vertically striped back panel down into the grooves located on the inner r...
+         Orient: The back panel is inserted with the vertical stripes facing forward. It slides down fully ...
+      -> Step 29: Place the top panel onto the assembly, aligning it with the top edges of the side panels a...
+         Orient: The top panel is lowered onto the unit. Holes on the underside of the top panel (implied) ...
+
+    ESCALATION ANALYSIS (based on Flash result):
+      Would escalate to Pro: YES
+      Triggers: Multiple arrows (3) in panel; Complex fastener: multiple; Complex fastener: multiple; Fastener ambiguity in self-reported uncertainties
+
+    COMPARISON:
+      Confidence delta (Pro - Flash): 0.00
+      Cost ratio (Pro / Flash): 12.0x
+      Latency ratio (Pro / Flash): 1.3x
+
+    MANUAL SCORING (fill in after review):
+      ┌──────────────────────┬───────┬─────┐
+      │ Criterion (0-2)      │ Flash │ Pro │
+      ├──────────────────────┼───────┼─────┤
+      │ Orientation correct.  │  __   │ __  │
+      │ Fastener correctness  │  __   │ __  │
+      │ Action correctness    │  __   │ __  │
+      │ Step completeness     │  __   │ __  │
+      │ Hallucination penalty │  __   │ __  │
+      ├──────────────────────┼───────┼─────┤
+      │ TOTAL (0-10)         │  __   │ __  │
+      └──────────────────────┴───────┴─────┘
+
+--------------------------------------------------------------------------------
+  HELMER (10251045)
+  Category: Cabinet with hinges | Mechanism: Door hinges, hinge alignment, soft-close adjustment
+  PDF: 12 pages
+--------------------------------------------------------------------------------
+
+  [Page 3] Parts/Fasteners Legend
+  Rationale: Page 3 — typically parts list/hardware legend area
+
+    FLASH (gemini-2.5-flash)
+      Status:      OK
+      Latency:     17.5s
+      Tokens:      960 in / 862 out
+      Cost:        $0.0007
+      Confidence:  0.95
+      JSON Valid:  Yes
+      Parts:       3 | Arrows: 4 | Multi-panel: false
+      Ambiguities: The second major assembly action is not explicitly numbered, but follows sequentially after step 1. It is assigned step number 2 for clarity in the JSON structure.
+      -> Step 1: Position two large rectangular panels on a flat surface (indicated by the wavy lines repre...
+         Orient: The connecting profile must be oriented such that its specific interlocking shape (shown i...
+      -> Step 2: Insert six (6x) individual slats into the assembled rectangular frame. Each slat has a pre...
+         Orient: Slats are inserted horizontally, perpendicular to the long side rails of the frame. The pr...
+
+    PRO   (gemini-2.5-pro)
+      Status:      OK
+      Latency:     32.8s
+      Tokens:      960 in / 661 out
+      Cost:        $0.0078
+      Confidence:  0.90
+      JSON Valid:  Yes
+      Parts:       14 | Arrows: 1 | Multi-panel: true
+      Ambiguities: The '6x' callout is slightly ambiguous. It could mean to use 6 clips in total (e.g., on 3 slats, one clip at each end), or to perform the clipping action on 6 separate slats.; The instructions show two different methods for securing slats (clips and pins) but do not explicitly state which slats use which method.
+      -> Step 1: First, place two large rectangular frames on a soft surface, such as a rug, parallel to ea...
+         Orient: Frames are laid flat on a soft surface. Slats are placed horizontally across the width of ...
+
+    ESCALATION ANALYSIS (based on Flash result):
+      Would escalate to Pro: YES
+      Triggers: Multiple arrows (4) in panel
+
+    COMPARISON:
+      Confidence delta (Pro - Flash): -0.05
+      Cost ratio (Pro / Flash): 11.8x
+      Latency ratio (Pro / Flash): 1.9x
+
+    MANUAL SCORING (fill in after review):
+      ┌──────────────────────┬───────┬─────┐
+      │ Criterion (0-2)      │ Flash │ Pro │
+      ├──────────────────────┼───────┼─────┤
+      │ Orientation correct.  │  __   │ __  │
+      │ Fastener correctness  │  __   │ __  │
+      │ Action correctness    │  __   │ __  │
+      │ Step completeness     │  __   │ __  │
+      │ Hallucination penalty │  __   │ __  │
+      ├──────────────────────┼───────┼─────┤
+      │ TOTAL (0-10)         │  __   │ __  │
+      └──────────────────────┴───────┴─────┘
+
+
+  [Page 5] Simple 1-Action Step
+  Rationale: Page 5 — early assembly steps (25% through PDF)
+
+    FLASH (gemini-2.5-flash)
+      Status:      OK
+      Latency:     16.9s
+      Tokens:      960 in / 897 out
+      Cost:        $0.0007
+      Confidence:  0.90
+      JSON Valid:  Yes
+      Parts:       4 | Arrows: 3 | Multi-panel: false
+      Ambiguities: The exact number of slats per frame is not explicitly stated, but 5 are drawn. The '6x' for step 4 refers to the number of fasteners per frame, not the number of slats. This implies 6 fasteners are used per frame, which may not correspond to 2 fasteners per slat for 5 slats (10 fasteners).; In step 5, the brackets have visible holes, but no screws or tools are shown, and the instruction is 'CLICK!', suggesting a snap-fit. It's unclear if screws are to be added later or if it's purely a snap-fit connection.
+      -> Step 4: Insert the horizontal slats into the rectangular frames. Each slat has a small plastic cli...
+         Orient: Slats are placed horizontally across the width of the frame. The plastic fasteners on the ...
+      -> Step 5: Attach two vertical support brackets to the underside of the assembled frames. Position ea...
+         Orient: The vertical support brackets are positioned underneath the frames. The arrows indicate a ...
+
+    PRO   (gemini-2.5-pro)
+      Status:      OK
+      Latency:     23.0s
+      Tokens:      960 in / 711 out
+      Cost:        $0.0083
+      Confidence:  0.95
+      JSON Valid:  Yes
+      Parts:       10 | Arrows: 3 | Multi-panel: true
+      Ambiguities: The exact material or type of the clip in step 4 is not specified.; The exact snap-fit mechanism for the legs in step 5 is not detailed, only indicated by the word 'CLICK!'.
+      -> Step 4: Insert six small clips into the rectangular slots on the inner side rails of the two slatt...
+         Orient: The clips are inserted vertically downwards into the rectangular slots located on the inne...
+      -> Step 5: Attach two L-shaped support legs to one of the slatted frames. Push the legs inwards onto ...
+         Orient: The legs attach to the underside of the frame. The shorter horizontal part of the 'L' fits...
+
+    ESCALATION ANALYSIS (based on Flash result):
+      Would escalate to Pro: YES
+      Triggers: Multiple arrows (3) in panel; Mirrored step detected; Mirrored step detected; Fastener ambiguity in self-reported uncertainties
+
+    COMPARISON:
+      Confidence delta (Pro - Flash): +0.05
+      Cost ratio (Pro / Flash): 12.2x
+      Latency ratio (Pro / Flash): 1.4x
+
+    MANUAL SCORING (fill in after review):
+      ┌──────────────────────┬───────┬─────┐
+      │ Criterion (0-2)      │ Flash │ Pro │
+      ├──────────────────────┼───────┼─────┤
+      │ Orientation correct.  │  __   │ __  │
+      │ Fastener correctness  │  __   │ __  │
+      │ Action correctness    │  __   │ __  │
+      │ Step completeness     │  __   │ __  │
+      │ Hallucination penalty │  __   │ __  │
+      ├──────────────────────┼───────┼─────┤
+      │ TOTAL (0-10)         │  __   │ __  │
+      └──────────────────────┴───────┴─────┘
+
+
+  [Page 7] Multi-Panel w/ Rotation
+  Rationale: Page 7 — mid-assembly (60% through PDF), likely multi-panel
+
+    FLASH (gemini-2.5-flash)
+      Status:      OK
+      Latency:     18.1s
+      Tokens:      960 in / 161 out
+      Cost:        $0.0002
+      Confidence:  0.00
+      JSON Valid:  No
+      Parts:       0 | Arrows: 0 | Multi-panel: false
+
+    PRO   (gemini-2.5-pro)
+      Status:      OK
+      Latency:     27.2s
+      Tokens:      960 in / 785 out
+      Cost:        $0.0090
+      Confidence:  0.95
+      JSON Valid:  Yes
+      Parts:       4 | Arrows: 5 | Multi-panel: true
+      Ambiguities: Part IDs are not provided, so descriptions are used instead.; The exact type of screwdriver head (e.g., Phillips, Pozidriv) is not specified; it is identified as 'Phillips screwdriver' based on the visual representation.
+      -> Step 8: Secure the drawer slide assembly to the inside of the cabinet frame. At the front of the c...
+         Screw: clockwise | Fastener: multiple
+         Orient: The drawer slide assembly is positioned vertically inside the cabinet frame, against one o...
+      -> Step 9: Attach the back panel to the cabinet assembly. Slide the back panel down into the grooves ...
+         Orient: The back panel is lowered into the rear of the cabinet assembly, fitting into vertical gro...
+
+    ESCALATION ANALYSIS (based on Flash result):
+      Would escalate to Pro: YES
+      Triggers: Low confidence: 0.00
+
+    COMPARISON:
+      Confidence delta (Pro - Flash): +0.95
+      Cost ratio (Pro / Flash): 37.6x
+      Latency ratio (Pro / Flash): 1.5x
+
+    MANUAL SCORING (fill in after review):
+      ┌──────────────────────┬───────┬─────┐
+      │ Criterion (0-2)      │ Flash │ Pro │
+      ├──────────────────────┼───────┼─────┤
+      │ Orientation correct.  │  __   │ __  │
+      │ Fastener correctness  │  __   │ __  │
+      │ Action correctness    │  __   │ __  │
+      │ Step completeness     │  __   │ __  │
+      │ Hallucination penalty │  __   │ __  │
+      ├──────────────────────┼───────┼─────┤
+      │ TOTAL (0-10)         │  __   │ __  │
+      └──────────────────────┴───────┴─────┘
+
+
+  [Page 9] Tricky Mechanism
+  Rationale: Page 9 — late assembly (80% through PDF), likely complex mechanism
+
+    FLASH (gemini-2.5-flash)
+      Status:      OK
+      Latency:     20.0s
+      Tokens:      960 in / 469 out
+      Cost:        $0.0004
+      Confidence:  0.00
+      JSON Valid:  No
+      Parts:       0 | Arrows: 0 | Multi-panel: false
+
+    PRO   (gemini-2.5-pro)
+      Status:      OK
+      Latency:     37.5s
+      Tokens:      960 in / 896 out
+      Cost:        $0.0102
+      Confidence:  0.00
+      JSON Valid:  No
+      Parts:       0 | Arrows: 0 | Multi-panel: false
+
+    ESCALATION ANALYSIS (based on Flash result):
+      Would escalate to Pro: YES
+      Triggers: Low confidence: 0.00
+
+    COMPARISON:
+      Confidence delta (Pro - Flash): 0.00
+      Cost ratio (Pro / Flash): 23.9x
+      Latency ratio (Pro / Flash): 1.9x
+
+    MANUAL SCORING (fill in after review):
+      ┌──────────────────────┬───────┬─────┐
+      │ Criterion (0-2)      │ Flash │ Pro │
+      ├──────────────────────┼───────┼─────┤
+      │ Orientation correct.  │  __   │ __  │
+      │ Fastener correctness  │  __   │ __  │
+      │ Action correctness    │  __   │ __  │
+      │ Step completeness     │  __   │ __  │
+      │ Hallucination penalty │  __   │ __  │
+      ├──────────────────────┼───────┼─────┤
+      │ TOTAL (0-10)         │  __   │ __  │
+      └──────────────────────┴───────┴─────┘
+
+--------------------------------------------------------------------------------
+  MICKE (80213074)
+  Category: Chair | Mechanism: Seat attachment, leg bolts, armrest assembly
+  PDF: 40 pages
+--------------------------------------------------------------------------------
+
+  [Page 3] Parts/Fasteners Legend
+  Rationale: Page 3 — typically parts list/hardware legend area
+
+    FLASH (gemini-2.5-flash)
+      Status:      OK
+      Latency:     19.5s
+      Tokens:      960 in / 866 out
+      Cost:        $0.0007
+      Confidence:  1.00
+      JSON Valid:  Yes
+      Parts:       14 | Arrows: 0 | Multi-panel: false
+
+    PRO   (gemini-2.5-pro)
+      Status:      OK
+      Latency:     18.6s
+      Tokens:      960 in / 898 out
+      Cost:        $0.0102
+      Confidence:  1.00
+      JSON Valid:  Yes
+      Parts:       14 | Arrows: 0 | Multi-panel: false
+      Ambiguities: The part with IDs 112519, 121338, 130521 has multiple part numbers listed for a single item, which could indicate alternative parts or revisions.; The exact drive type for the screws (Phillips vs. Pozidriv) cannot be definitively determined from the line drawing.
+
+    ESCALATION ANALYSIS (based on Flash result):
+      Would escalate to Pro: NO
+
+    COMPARISON:
+      Confidence delta (Pro - Flash): 0.00
+      Cost ratio (Pro / Flash): 15.3x
+      Latency ratio (Pro / Flash): 1.0x
+
+    MANUAL SCORING (fill in after review):
+      ┌──────────────────────┬───────┬─────┐
+      │ Criterion (0-2)      │ Flash │ Pro │
+      ├──────────────────────┼───────┼─────┤
+      │ Orientation correct.  │  __   │ __  │
+      │ Fastener correctness  │  __   │ __  │
+      │ Action correctness    │  __   │ __  │
+      │ Step completeness     │  __   │ __  │
+      │ Hallucination penalty │  __   │ __  │
+      ├──────────────────────┼───────┼─────┤
+      │ TOTAL (0-10)         │  __   │ __  │
+      └──────────────────────┴───────┴─────┘
+
+
+  [Page 10] Simple 1-Action Step
+  Rationale: Page 10 — early assembly steps (25% through PDF)
+
+    FLASH (gemini-2.5-flash)
+      Status:      OK
+      Latency:     16.8s
+      Tokens:      960 in / 804 out
+      Cost:        $0.0006
+      Confidence:  1.00
+      JSON Valid:  Yes
+      Parts:       2 | Arrows: 5 | Multi-panel: true
+      -> Step null: This panel serves as a reference, showing the desk structure with the drawer installed. A ...
+         Orient: The desk is viewed from a slightly elevated front-right perspective....
+      -> Step null: This panel provides context, showing the desk structure with the drawer removed. A hand po...
+         Orient: The desk is viewed from a slightly elevated front-right perspective, consistent with the p...
+      -> Step 9: Place the long, flat board on a protective soft surface (such as a rug or blanket) to prev...
+         Orient: The long board is laid flat horizontally on a protective surface. The dowels are inserted ...
+
+    PRO   (gemini-2.5-pro)
+      Status:      OK
+      Latency:     21.8s
+      Tokens:      960 in / 632 out
+      Cost:        $0.0075
+      Confidence:  0.90
+      JSON Valid:  Yes
+      Parts:       4 | Arrows: 3 | Multi-panel: true
+      Ambiguities: The top section shows two possible desk configurations (cabinet on left vs. right). This is likely context for the overall build rather than a choice to be made in this specific step.; An icon shows a hand peeling a sticker labeled '25'. The meaning of this is unclear in the context of step 9; it may refer to a part label to be removed or a cross-reference to another page or step.
+      -> Step 9: First, reorient the main desk assembly as shown by the large curved arrow. Then, on a prot...
+         Orient: The main desk assembly is turned over. A long panel is laid flat on a protective surface. ...
+
+    ESCALATION ANALYSIS (based on Flash result):
+      Would escalate to Pro: YES
+      Triggers: Multiple arrows (5) in panel
+
+    COMPARISON:
+      Confidence delta (Pro - Flash): -0.10
+      Cost ratio (Pro / Flash): 12.0x
+      Latency ratio (Pro / Flash): 1.3x
+
+    MANUAL SCORING (fill in after review):
+      ┌──────────────────────┬───────┬─────┐
+      │ Criterion (0-2)      │ Flash │ Pro │
+      ├──────────────────────┼───────┼─────┤
+      │ Orientation correct.  │  __   │ __  │
+      │ Fastener correctness  │  __   │ __  │
+      │ Action correctness    │  __   │ __  │
+      │ Step completeness     │  __   │ __  │
+      │ Hallucination penalty │  __   │ __  │
+      ├──────────────────────┼───────┼─────┤
+      │ TOTAL (0-10)         │  __   │ __  │
+      └──────────────────────┴───────┴─────┘
+
+
+  [Page 24] Multi-Panel w/ Rotation
+  Rationale: Page 24 — mid-assembly (60% through PDF), likely multi-panel
+
+    FLASH (gemini-2.5-flash)
+      Status:      OK
+      Latency:     12.7s
+      Tokens:      960 in / 922 out
+      Cost:        $0.0007
+      Confidence:  0.95
+      JSON Valid:  Yes
+      Parts:       3 | Arrows: 4 | Multi-panel: false
+      Ambiguities: The multiple part IDs for the same visual part (e.g., 121304, 121208, 121186, 10060533 for the grommet) are common in IKEA instructions, indicating interchangeable parts or different packaging IDs. I've listed the first ID as primary.
+      -> Step 34: Insert two circular hole covers into the pre-drilled holes on the inner side panel of the ...
+         Orient: The circular caps are pushed into the holes, flush with the surface....
+      -> Step 35: First, insert the ribbed cylindrical cable grommet into the circular hole on the top surfa...
+         Orient: The cable grommet is inserted from the top, with its wider flange resting on the desk surf...
+
+    PRO   (gemini-2.5-pro)
+      Status:      OK
+      Latency:     31.4s
+      Tokens:      960 in / 1097 out
+      Cost:        $0.0122
+      Confidence:  0.90
+      JSON Valid:  Yes
+      Parts:       3 | Arrows: 4 | Multi-panel: true
+      Ambiguities: Step 35 combines two distinct actions: inserting a grommet and applying hole covers. They are broken out into separate actions for clarity.; Multiple part numbers are listed for the grommet (121304, 121208, etc.) and the covers (112519, 121338, etc.), likely indicating interchangeable parts from different suppliers.; The diagram for part 112519 shows a strip of three covers, but the action requires four ('4x'). It's assumed the provided parts are sufficient.
+      -> Step 34: Apply two adhesive bumper pads to the inside front edge of the cabinet frame, one near the...
+         Orient: The pads are placed on the vertical surface that the cabinet door closes against....
+      -> Step 35: Insert the plastic cable management grommet into the pre-cut hole on the top surface of th...
+         Orient: Press-fit the grommet into the hole from the top, so the flange rests on the desk surface....
+      -> Step 35: Apply four adhesive covers to conceal the visible fastener holes. Two are placed on the in...
+         Orient: The adhesive side of the cover is pressed over the hole....
+
+    ESCALATION ANALYSIS (based on Flash result):
+      Would escalate to Pro: YES
+      Triggers: Multiple arrows (4) in panel; Hinge hardware detected
+
+    COMPARISON:
+      Confidence delta (Pro - Flash): -0.05
+      Cost ratio (Pro / Flash): 17.5x
+      Latency ratio (Pro / Flash): 2.5x
+
+    MANUAL SCORING (fill in after review):
+      ┌──────────────────────┬───────┬─────┐
+      │ Criterion (0-2)      │ Flash │ Pro │
+      ├──────────────────────┼───────┼─────┤
+      │ Orientation correct.  │  __   │ __  │
+      │ Fastener correctness  │  __   │ __  │
+      │ Action correctness    │  __   │ __  │
+      │ Step completeness     │  __   │ __  │
+      │ Hallucination penalty │  __   │ __  │
+      ├──────────────────────┼───────┼─────┤
+      │ TOTAL (0-10)         │  __   │ __  │
+      └──────────────────────┴───────┴─────┘
+
+
+  [Page 32] Tricky Mechanism
+  Rationale: Page 32 — late assembly (80% through PDF), likely complex mechanism
+
+    FLASH (gemini-2.5-flash)
+      Status:      OK
+      Latency:     13.5s
+      Tokens:      960 in / 882 out
+      Cost:        $0.0007
+      Confidence:  0.90
+      JSON Valid:  Yes
+      Parts:       4 | Arrows: 3 | Multi-panel: false
+      Ambiguities: The exact type of connection for step 21 (e.g., dowels and cam locks) is implied by the structure but no specific fastener manipulation is shown in this step, so 'none' is used for fastenerType for the action itself.; Specific part IDs for the panels are not provided, so generic descriptions are used.
+      -> Step 20: Insert four wooden dowels (part 101344) into the pre-drilled holes on the short edges of t...
+         Orient: Dowels are inserted horizontally into the short sides of the small panel. The small panel ...
+      -> Step 21: Attach a side panel to the partially assembled frame structure from step 20. Align the pre...
+         Orient: The side panel is oriented vertically, with its pre-drilled holes facing inwards to align ...
+
+    PRO   (gemini-2.5-pro)
+      Status:      OK
+      Latency:     25.8s
+      Tokens:      960 in / 676 out
+      Cost:        $0.0080
+      Confidence:  1.00
+      JSON Valid:  Yes
+      Parts:       2 | Arrows: 1 | Multi-panel: true
+      -> Step 20: Insert four fluted wooden dowels (101344) into the four pre-drilled holes on the long edge...
+         Orient: The dowels are inserted into the holes on the narrow, long edges of the panel....
+      -> Step 21: Align the two dowels on one side of the small panel with the two holes on the lower crossb...
+         Orient: The small panel is held vertically and moved horizontally to engage with the main frame....
+
+    ESCALATION ANALYSIS (based on Flash result):
+      Would escalate to Pro: YES
+      Triggers: Multiple arrows (3) in panel; Rotation indicator: custom; Fastener ambiguity in self-reported uncertainties
+
+    COMPARISON:
+      Confidence delta (Pro - Flash): +0.10
+      Cost ratio (Pro / Flash): 11.8x
+      Latency ratio (Pro / Flash): 1.9x
+
+    MANUAL SCORING (fill in after review):
+      ┌──────────────────────┬───────┬─────┐
+      │ Criterion (0-2)      │ Flash │ Pro │
+      ├──────────────────────┼───────┼─────┤
+      │ Orientation correct.  │  __   │ __  │
+      │ Fastener correctness  │  __   │ __  │
+      │ Action correctness    │  __   │ __  │
+      │ Step completeness     │  __   │ __  │
+      │ Hallucination penalty │  __   │ __  │
+      ├──────────────────────┼───────┼─────┤
+      │ TOTAL (0-10)         │  __   │ __  │
+      └──────────────────────┴───────┴─────┘
+
+--------------------------------------------------------------------------------
+  BILLY (50508652)
+  Category: Shelf/Storage | Mechanism: Shelving pegs, wall anchoring, level adjustment
+  PDF: 16 pages
+--------------------------------------------------------------------------------
+
+  [Page 3] Parts/Fasteners Legend
+  Rationale: Page 3 — typically parts list/hardware legend area
+
+    FLASH (gemini-2.5-flash)
+      Status:      OK
+      Latency:     8.9s
+      Tokens:      960 in / 272 out
+      Cost:        $0.0003
+      Confidence:  1.00
+      JSON Valid:  Yes
+      Parts:       0 | Arrows: 0 | Multi-panel: false
+      -> Step null: Secure the furniture to the wall using the included fixing devices to prevent tip-over. No...
+         Orient: not_applicable...
+
+    PRO   (gemini-2.5-pro)
+      Status:      OK
+      Latency:     11.7s
+      Tokens:      960 in / 136 out
+      Cost:        $0.0026
+      Confidence:  1.00
+      JSON Valid:  Yes
+      Parts:       0 | Arrows: 0 | Multi-panel: false
+      Ambiguities: This page is a multi-language safety warning about furniture tip-over hazards. It does not contain any assembly steps, parts lists, or tool requirements.
+
+    ESCALATION ANALYSIS (based on Flash result):
+      Would escalate to Pro: YES
+      Triggers: Complex fastener: multiple
+
+    COMPARISON:
+      Confidence delta (Pro - Flash): 0.00
+      Cost ratio (Pro / Flash): 8.3x
+      Latency ratio (Pro / Flash): 1.3x
+
+    MANUAL SCORING (fill in after review):
+      ┌──────────────────────┬───────┬─────┐
+      │ Criterion (0-2)      │ Flash │ Pro │
+      ├──────────────────────┼───────┼─────┤
+      │ Orientation correct.  │  __   │ __  │
+      │ Fastener correctness  │  __   │ __  │
+      │ Action correctness    │  __   │ __  │
+      │ Step completeness     │  __   │ __  │
+      │ Hallucination penalty │  __   │ __  │
+      ├──────────────────────┼───────┼─────┤
+      │ TOTAL (0-10)         │  __   │ __  │
+      └──────────────────────┴───────┴─────┘
+
+
+  [Page 5] Simple 1-Action Step
+  Rationale: Page 5 — early assembly steps (25% through PDF)
+
+    FLASH (gemini-2.5-flash)
+      Status:      OK
+      Latency:     17.1s
+      Tokens:      960 in / 334 out
+      Cost:        $0.0003
+      Confidence:  1.00
+      JSON Valid:  Yes
+      Parts:       0 | Arrows: 0 | Multi-panel: false
+      -> Step null: General safety warning regarding furniture tip-over. This page emphasizes the importance o...
+         Orient: not_applicable...
+
+    PRO   (gemini-2.5-pro)
+      Status:      OK
+      Latency:     9.6s
+      Tokens:      960 in / 141 out
+      Cost:        $0.0026
+      Confidence:  1.00
+      JSON Valid:  Yes
+      Parts:       0 | Arrows: 0 | Multi-panel: false
+      Ambiguities: This page contains only safety warnings in multiple languages (Indonesian, Malaysian, Thai, Vietnamese, Arabic) about the risk of furniture tipping over. It is not an assembly step.
+
+    ESCALATION ANALYSIS (based on Flash result):
+      Would escalate to Pro: NO
+
+    COMPARISON:
+      Confidence delta (Pro - Flash): 0.00
+      Cost ratio (Pro / Flash): 7.6x
+      Latency ratio (Pro / Flash): 0.6x
+
+    MANUAL SCORING (fill in after review):
+      ┌──────────────────────┬───────┬─────┐
+      │ Criterion (0-2)      │ Flash │ Pro │
+      ├──────────────────────┼───────┼─────┤
+      │ Orientation correct.  │  __   │ __  │
+      │ Fastener correctness  │  __   │ __  │
+      │ Action correctness    │  __   │ __  │
+      │ Step completeness     │  __   │ __  │
+      │ Hallucination penalty │  __   │ __  │
+      ├──────────────────────┼───────┼─────┤
+      │ TOTAL (0-10)         │  __   │ __  │
+      └──────────────────────┴───────┴─────┘
+
+
+  [Page 9] Multi-Panel w/ Rotation
+  Rationale: Page 9 — mid-assembly (60% through PDF), likely multi-panel
+
+    FLASH (gemini-2.5-flash)
+      Status:      OK
+      Latency:     12.2s
+      Tokens:      960 in / 611 out
+      Cost:        $0.0005
+      Confidence:  1.00
+      JSON Valid:  Yes
+      Parts:       4 | Arrows: 3 | Multi-panel: false
+      -> Step 4: Attach two vertical side panels to the horizontal base panel. For each side panel, align t...
+         Screw: clockwise | Fastener: cam_lock
+         Orient: The base panel lies flat. The side panels stand upright, perpendicular to the base panel. ...
+
+    PRO   (gemini-2.5-pro)
+      Status:      OK
+      Latency:     18.9s
+      Tokens:      960 in / 580 out
+      Cost:        $0.0070
+      Confidence:  1.00
+      JSON Valid:  Yes
+      Parts:       3 | Arrows: 3 | Multi-panel: false
+      Ambiguities: The exact type of cross-head screwdriver (e.g., Phillips vs. Pozidriv) is not specified, though it is clearly a cross-head type.
+      -> Step 4: Attach two vertical side panels to the long horizontal base panel using four cam lock fast...
+         Screw: clockwise | Fastener: cam_lock
+         Orient: The two vertical panels stand upright on the horizontal base panel. The large holes for th...
+
+    ESCALATION ANALYSIS (based on Flash result):
+      Would escalate to Pro: YES
+      Triggers: Multiple arrows (3) in panel; Rotation indicator: custom; Complex fastener: cam_lock
+
+    COMPARISON:
+      Confidence delta (Pro - Flash): 0.00
+      Cost ratio (Pro / Flash): 13.7x
+      Latency ratio (Pro / Flash): 1.6x
+
+    MANUAL SCORING (fill in after review):
+      ┌──────────────────────┬───────┬─────┐
+      │ Criterion (0-2)      │ Flash │ Pro │
+      ├──────────────────────┼───────┼─────┤
+      │ Orientation correct.  │  __   │ __  │
+      │ Fastener correctness  │  __   │ __  │
+      │ Action correctness    │  __   │ __  │
+      │ Step completeness     │  __   │ __  │
+      │ Hallucination penalty │  __   │ __  │
+      ├──────────────────────┼───────┼─────┤
+      │ TOTAL (0-10)         │  __   │ __  │
+      └──────────────────────┴───────┴─────┘
+
+
+  [Page 12] Tricky Mechanism
+  Rationale: Page 12 — late assembly (80% through PDF), likely complex mechanism
+
+    FLASH (gemini-2.5-flash)
+      Status:      OK
+      Latency:     9.1s
+      Tokens:      960 in / 496 out
+      Cost:        $0.0004
+      Confidence:  1.00
+      JSON Valid:  Yes
+      Parts:       2 | Arrows: 6 | Multi-panel: false
+      -> Step 8: Take the long, thin panel (likely a drawer bottom or back panel) and slightly flex or bend...
+         Orient: The thin panel is inserted horizontally into the drawer frame. It needs to be slightly cur...
+
+    PRO   (gemini-2.5-pro)
+      Status:      OK
+      Latency:     17.2s
+      Tokens:      960 in / 407 out
+      Cost:        $0.0053
+      Confidence:  1.00
+      JSON Valid:  Yes
+      Parts:       2 | Arrows: 6 | Multi-panel: false
+      -> Step 8: Take the thin, flat panel (drawer bottom) and fold it along the two pre-scored dashed line...
+         Orient: The folded panel is inserted into the grooves running along the length of the drawer frame...
+
+    ESCALATION ANALYSIS (based on Flash result):
+      Would escalate to Pro: YES
+      Triggers: Multiple arrows (6) in panel; Rotation indicator: custom
+
+    COMPARISON:
+      Confidence delta (Pro - Flash): 0.00
+      Cost ratio (Pro / Flash): 11.9x
+      Latency ratio (Pro / Flash): 1.9x
+
+    MANUAL SCORING (fill in after review):
+      ┌──────────────────────┬───────┬─────┐
+      │ Criterion (0-2)      │ Flash │ Pro │
+      ├──────────────────────┼───────┼─────┤
+      │ Orientation correct.  │  __   │ __  │
+      │ Fastener correctness  │  __   │ __  │
+      │ Action correctness    │  __   │ __  │
+      │ Step completeness     │  __   │ __  │
+      │ Hallucination penalty │  __   │ __  │
+      ├──────────────────────┼───────┼─────┤
+      │ TOTAL (0-10)         │  __   │ __  │
+      └──────────────────────┴───────┴─────┘
+
+================================================================================
+  AGGREGATE SUMMARY
+================================================================================
+
+  ┌───────────────────────┬────────────────┬────────────────┐
+  │ Metric                │ Gemini 2.5     │ Gemini 2.5     │
+  │                       │ Flash          │ Pro            │
+  ├───────────────────────┼────────────────┼────────────────┤
+  │ Success rate          │ 20/20 pages     │ 20/20 pages     │
+  │ Errors                │ 0              │ 0              │
+  │ Avg latency           │ 15.2s           │ 22.2s           │
+  │ Total cost            │ $0.0106        │ $0.1510        │
+  │ Avg cost/page         │ $0.0005        │ $0.0076        │
+  │ Avg confidence        │ 0.82            │ 0.92            │
+  │ JSON parse rate       │ 17/20             │ 19/20             │
+  └───────────────────────┴────────────────┴────────────────┘
+
+  ESCALATION TRIGGER STATISTICS:
+    Pages that would trigger Pro escalation: 15/20 (75%)
+    Trigger breakdown:
+      - Multiple arrows: 11 pages
+      - Fastener ambiguity in self-reported uncertainties: 5 pages
+      - Rotation indicator: 4 pages
+      - Complex fastener: 4 pages
+      - Low confidence: 3 pages
+      - Mirrored step detected: 2 pages
+      - Drawer slide/runner detected: 1 pages
+      - Hinge hardware detected: 1 pages
+
+  RESULTS BY ARCHETYPE:
+    Parts/Fasteners Legend: Flash conf=0.99, Pro conf=0.98, Escalation: 2/5
+    Simple 1-Action Step: Flash conf=0.78, Pro conf=0.96, Escalation: 3/5
+    Multi-Panel w/ Rotation: Flash conf=0.78, Pro conf=0.97, Escalation: 5/5
+    Tricky Mechanism: Flash conf=0.75, Pro conf=0.78, Escalation: 5/5
+
+  COST PROJECTION (2,800 products, ~20 pages each = ~56,000 pages):
+    Flash-only (all pages):    $29.73
+    Pro-only (all pages):      $422.94
+    Hybrid (Flash + Pro escal): $324.64 (75% Pro usage)
+
+================================================================================
+  SCORING GUIDE
+================================================================================
+
+  Per page, score each model 0-10:
+    Orientation correctness (0-2): Parts face correct direction, holes align
+    Fastener correctness (0-2):    Right screw type, direction, cam lock turn
+    Action correctness (0-2):      Step description matches the diagram
+    Step completeness (0-2):       All visible actions captured, no omissions
+    Hallucination penalty:         Subtract 1 per invented part/tool/step
+
+  Total score across 20 pages: 0-200 per model
+
+  MANUAL SCORE TOTALS (fill in after review):
+    Flash total: ___/200
+    Pro total:   ___/200
+
+================================================================================

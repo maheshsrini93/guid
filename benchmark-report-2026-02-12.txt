@@ -1,0 +1,340 @@
+═══════════════════════════════════════════════════════════════
+  VISION MODEL BENCHMARK: Gemini vs GPT-4o
+  IKEA Assembly PDF Analysis
+  Date: 2026-02-12T14:29:18.514Z
+═══════════════════════════════════════════════════════════════
+
+──── BILLY (20522046) ────
+Category: Bookshelf | Page: 6
+
+  [GEMINI] gemini-2.0-flash
+    Status:    OK
+    Latency:   9.4s
+    Tokens:    3704 in / 382 out
+    Cost:      $0.0005
+    Page type: assembly_step
+    Steps:     none
+    Parts:     5
+    Hardware:  none
+    Confidence:0.95
+    → Step null: Show tools needed: Phillips head screwdriver, flat head screwdriver, pencil, ham...
+      Orient: not_applicable...
+    → Step null: Do not use hammer directly on the wood...
+      Orient: not_applicable...
+    → Step null: Do not sit on the furniture during assembly...
+      Orient: not_applicable...
+    → Step null: If you have questions, contact IKEA...
+      Orient: not_applicable...
+
+  [OPENAI] gpt-4o
+    Status:    OK
+    Latency:   9.0s
+    Tokens:    1441 in / 177 out
+    Cost:      $0.0054
+    Page type: tools
+    Steps:     none
+    Parts:     0
+    Hardware:  none
+    Confidence:0.95
+    → Step null: Gather necessary tools and ensure you have a helper. Do not assemble alone. Asse...
+      Orient: not_applicable...
+
+──── MICKE (10244743) ────
+Category: Desk | Page: 6
+
+  [GEMINI] gemini-2.0-flash
+    Status:    OK
+    Latency:   4.2s
+    Tokens:    3704 in / 335 out
+    Cost:      $0.0005
+    Page type: assembly_step
+    Steps:     1, 2
+    Parts:     4
+    Hardware:  screws, dowels
+    Confidence:0.95
+    → Step 1: Attach the top to the drawer frame using screws....
+      Screw: clockwise
+      Orient: Align the holes on the top with the holes on the drawer frame. Screw in the scre...
+    → Step 2: Attach the legs to the drawer frame using dowels....
+      Orient: Insert the dowels into the holes on the drawer frame. Align the legs with the do...
+
+  [OPENAI] gpt-4o
+    Status:    OK
+    Latency:   10.2s
+    Tokens:    1441 in / 271 out
+    Cost:      $0.0063
+    Page type: multi_step
+    Steps:     1, 2
+    Parts:     3
+    Hardware:  screws, dowels
+    Confidence:0.95
+    → Step 1: Attach two screws to the bottom panel using a screwdriver....
+      Screw: clockwise
+      Orient: The panel is laid flat with pre-drilled holes facing up....
+    → Step 2: Insert two dowels into the vertical side panels and attach them to the bottom pa...
+      Orient: The side panels are positioned vertically with dowel holes aligned with the bott...
+
+──── MALM (00599447) ────
+Category: Bed frame | Page: 6
+
+  [GEMINI] gemini-2.0-flash
+    Status:    OK
+    Latency:   2.6s
+    Tokens:    3704 in / 78 out
+    Cost:      $0.0004
+    Page type: parts_list
+    Steps:     none
+    Parts:     12
+    Hardware:  screws, bolts, nuts
+    Confidence:0.95
+
+  [OPENAI] gpt-4o
+    Status:    OK
+    Latency:   3.6s
+    Tokens:    1441 in / 66 out
+    Cost:      $0.0043
+    Page type: parts_list
+    Steps:     none
+    Parts:     12
+    Hardware:  screws, bolts, nuts
+    Confidence:0.95
+
+──── KOMPLEMENT (70277957) ────
+Category: Wardrobe | Page: 4
+
+  [GEMINI] gemini-2.0-flash
+    Status:    OK
+    Latency:   1.7s
+    Tokens:    2156 in / 55 out
+    Cost:      $0.0002
+    Page type: other
+    Steps:     none
+    Parts:     0
+    Hardware:  none
+    Confidence:1
+
+  [OPENAI] gpt-4o
+    Status:    OK
+    Latency:   2.6s
+    Tokens:    1441 in / 48 out
+    Cost:      $0.0041
+    Page type: other
+    Steps:     none
+    Parts:     0
+    Hardware:  none
+    Confidence:0.9
+
+──── KALLAX (00324518) ────
+Category: Storage shelf | Page: 6
+
+  [GEMINI] gemini-2.0-flash
+    Status:    OK
+    Latency:   4.4s
+    Tokens:    3704 in / 462 out
+    Cost:      $0.0006
+    Page type: assembly_step
+    Steps:     none
+    Parts:     6
+    Hardware:  none
+    Confidence:0.95
+    → Step null: Show the tools needed for assembly: Phillips head screwdriver, flat head screwdr...
+    → Step null: Do not use a hammer directly on the wood pieces....
+    → Step null: Use a hammer and pencil to mark the wood pieces....
+    → Step null: If you have questions, consult the instructions or call IKEA....
+    → Step null: Attach the furniture to the wall to prevent tipping....
+
+  [OPENAI] gpt-4o
+    Status:    OK
+    Latency:   12.1s
+    Tokens:    1441 in / 307 out
+    Cost:      $0.0067
+    Page type: tools
+    Steps:     none
+    Parts:     0
+    Hardware:  none
+    Confidence:0.9
+    → Step null: Gather necessary tools: flathead screwdriver, Phillips screwdriver, pencil, leve...
+      Orient: not_applicable...
+    → Step null: If you encounter issues, contact IKEA for assistance....
+      Orient: not_applicable...
+    → Step null: Ensure the assembled shelf is secured to the wall to prevent tipping....
+      Orient: Ensure the shelf is upright and secured to the wall....
+
+──── HEMNES (80242627) ────
+Category: Dresser | Page: 6
+
+  [GEMINI] gemini-2.0-flash
+    Status:    OK
+    Latency:   2.7s
+    Tokens:    3704 in / 70 out
+    Cost:      $0.0004
+    Page type: tools
+    Steps:     none
+    Parts:     7
+    Hardware:  screws, wall anchors
+    Confidence:0.9
+
+  [OPENAI] gpt-4o
+    Status:    OK
+    Latency:   9.2s
+    Tokens:    1441 in / 214 out
+    Cost:      $0.0057
+    Page type: tools
+    Steps:     none
+    Parts:     0
+    Hardware:  wall plugs, screws
+    Confidence:0.9
+    → Step null: Gather necessary tools and prepare for assembly. Drill holes in the wall using s...
+      Orient: Drill holes in the wall using the specified drill bits. Use 8 mm for concrete an...
+
+──── NORDEN (10423886) ────
+Category: Dining table | Page: 6
+
+  [GEMINI] gemini-2.0-flash
+    Status:    OK
+    Latency:   3.8s
+    Tokens:    3704 in / 274 out
+    Cost:      $0.0005
+    Page type: assembly_step
+    Steps:     4
+    Parts:     3
+    Hardware:  screws
+    Confidence:0.95
+    → Step 4: Attach the frame pieces together using screws (105330) and tool (10083377). Use ...
+      Screw: clockwise
+      Orient: Align the holes in the frame pieces and insert the screws....
+
+  [OPENAI] gpt-4o
+    Status:    OK
+    Latency:   8.9s
+    Tokens:    1441 in / 205 out
+    Cost:      $0.0057
+    Page type: assembly_step
+    Steps:     4
+    Parts:     2
+    Hardware:  screws, cylindrical connectors
+    Confidence:0.95
+    → Step 4: Attach the frame pieces together using screws. Insert the screws through the pre...
+      Screw: clockwise
+      Orient: The frame should be upright with the pre-drilled holes facing outward. Ensure th...
+
+──── LACK (50319029) ────
+Category: Coffee table | Page: 6
+
+  [GEMINI] gemini-2.0-flash
+    Status:    OK
+    Latency:   5.3s
+    Tokens:    3704 in / 488 out
+    Cost:      $0.0006
+    Page type: assembly_step
+    Steps:     4, 5, 6
+    Parts:     3
+    Hardware:  screws
+    Confidence:0.95
+    → Step 4: Attach the bracket (120298) to the frame using two screws (108530)....
+      Screw: clockwise
+      Orient: The bracket is attached to the inside of the frame....
+    → Step 5: Attach the metal support (120938) to the frame....
+      Orient: The metal support is attached to the inside of the frame....
+    → Step 6: Secure the metal support (120938) to the frame using screws....
+      Screw: clockwise
+      Orient: The metal support is attached to the inside of the frame....
+
+  [OPENAI] gpt-4o
+    Status:    OK
+    Latency:   14.1s
+    Tokens:    1441 in / 297 out
+    Cost:      $0.0066
+    Page type: multi_step
+    Steps:     4, 5
+    Parts:     3
+    Hardware:  screws
+    Confidence:0.95
+    → Step 4: Attach two metal brackets (120298) to the underside of the table frame using scr...
+      Screw: clockwise
+      Orient: The table frame is upside down, brackets align with pre-drilled holes on the fra...
+    → Step 5: Insert two plastic clips (120938) into the ends of the table legs and secure the...
+      Orient: The table frame remains upside down, clips are inserted into the open ends of th...
+
+──── BRIMNES (40300662) ────
+Category: Cabinet | Page: 6
+
+  [GEMINI] gemini-2.0-flash
+    Status:    OK
+    Latency:   2.4s
+    Tokens:    3704 in / 85 out
+    Cost:      $0.0004
+    Page type: parts_list
+    Steps:     none
+    Parts:     12
+    Hardware:  screws, dowels, cam locks, nails
+    Confidence:0.95
+
+  [OPENAI] gpt-4o
+    Status:    OK
+    Latency:   3.9s
+    Tokens:    1441 in / 81 out
+    Cost:      $0.0044
+    Page type: parts_list
+    Steps:     none
+    Parts:     13
+    Hardware:  screws, cam locks, dowels, nails, brackets, handles
+    Confidence:1
+
+──── BRIMNES (80340454) ────
+Category: Nightstand | Page: 6
+
+  [GEMINI] gemini-2.0-flash
+    Status:    OK
+    Latency:   3.2s
+    Tokens:    3704 in / 218 out
+    Cost:      $0.0005
+    Page type: assembly_step
+    Steps:     1
+    Parts:     10
+    Hardware:  screws, dowels, nails
+    Confidence:0.95
+    → Step 1: Insert part 118331 into the holes of the board. Use a screwdriver to turn the pa...
+      Screw: clockwise
+      Orient: Insert the screw into the hole on the board....
+
+  [OPENAI] gpt-4o
+    Status:    OK
+    Latency:   8.5s
+    Tokens:    1441 in / 177 out
+    Cost:      $0.0054
+    Page type: assembly_step
+    Steps:     1
+    Parts:     3
+    Hardware:  dowels
+    Confidence:0.95
+    → Step 1: Insert two dowels into each of the two panels. Ensure the dowels are screwed in ...
+      Screw: clockwise
+      Orient: Panels are laid flat with pre-drilled holes facing up. Dowel holes are aligned i...
+
+═══════════════════════════════════════════════════════════════
+  SUMMARY
+═══════════════════════════════════════════════════════════════
+
+  Gemini (gemini-2.0-flash):
+    Success: 10/10 pages
+    Failed:  0
+    Avg latency: 4.0s
+    Total cost:  $0.0045
+    Parseable JSON: 10/10
+
+  OpenAI (gpt-4o):
+    Success: 10/10 pages
+    Failed:  0
+    Avg latency: 8.2s
+    Total cost:  $0.0545
+    Parseable JSON: 10/10
+
+═══════════════════════════════════════════════════════════════
+  Review the per-page outputs above to compare:
+  - Screw direction accuracy
+  - Part orientation detail
+  - Hardware identification precision
+  - Step description quality
+  - JSON structure adherence
+═══════════════════════════════════════════════════════════════

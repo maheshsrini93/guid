@@ -195,7 +195,7 @@ export function createVisionProvidersFromEnv(): {
   secondary?: VisionProvider;
 } {
   const primaryProvider = (process.env.AI_PRIMARY_PROVIDER ?? "gemini") as AIProvider;
-  const primaryModel = process.env.AI_PRIMARY_MODEL ?? "gemini-2.0-flash";
+  const primaryModel = process.env.AI_PRIMARY_MODEL ?? "gemini-2.5-flash";
   const primaryApiKey =
     process.env.AI_PRIMARY_API_KEY ??
     (primaryProvider === "gemini"

@@ -105,8 +105,8 @@ The AI guide system follows a **test-refine-review** loop before scaling:
 
 | Role | Model | API Model ID | Purpose |
 |------|-------|-------------|---------|
-| **Primary vision model** | TBD (Gemini vs OpenAI) | TBD | Fine-detail image recognition of assembly diagrams — screw rotation, part orientation, hole alignment, hardware identification |
-| **Secondary vision model** | TBD (the other one) | TBD | Fallback and validation — cross-check critical details |
+| **Primary vision model** | Gemini 2.5 Pro | `gemini-2.5-pro` | Highest accuracy for diagram interpretation + structured extraction from PDFs. Best at tiny arrows, Torx/fastener nuance, orientation, hinge/drawer-slide alignment. Used for complex/ambiguous pages and escalations from Flash. |
+| **Secondary vision model** | Gemini 2.5 Flash | `gemini-2.5-flash` | Cost-efficient bulk processing — panel detection, step segmentation, JSON→human instructions formatting, rule checks, and simple/clean pages. Default model; escalates to Pro when triggers hit. |
 | **Illustration generation (complex)** | Nano Banana Pro (Gemini 3 Pro Image) | `gemini-3-pro-image-preview` | High-fidelity isometric technical illustrations for complex assembly steps — advanced reasoning, up to 4K resolution, precise text rendering |
 | **Illustration generation (simple)** | Nano Banana (Gemini 2.5 Flash Image) | `gemini-2.5-flash-image` | Faster, cheaper illustrations for simpler steps — optimized for high-volume batch generation |
 
@@ -120,21 +120,104 @@ The AI guide system follows a **test-refine-review** loop before scaling:
 - Identifying part orientation (which side faces up, where holes align)
 - Distinguishing between similar-looking hardware (different screw types, dowels, cam locks)
 - Understanding spatial relationships in exploded-view diagrams
+- Detecting fastener ambiguity (Torx vs Philips, "tight vs loose" indicators)
+- Interpreting hinge/drawer-slide alignment, rotation, and mirrored steps
 
-A benchmark test will compare Gemini Pro Vision vs. GPT-4o on a standard set of IKEA assembly pages to determine primary/secondary assignment.
+**Model routing policy (Flash-first + Pro-on-fail):**
+
+The pipeline defaults to **Gemini 2.5 Flash** for all pages and escalates to **Gemini 2.5 Pro** only when specific triggers are detected. This keeps Pro usage to ~10–25% of pages while protecting accuracy.
+
+| Pipeline Stage | Model | Purpose |
+|----------------|-------|---------|
+| PDF ingest + render | — | Render pages at high resolution and crop panels (improves accuracy more than model swapping) |
+| Panel detection / step segmentation | Flash | Detect panels, group into steps, extract obvious part IDs/quantities |
+| Per-page visual extraction → structured JSON | Flash (default) → Pro (escalation) | Extract raw visual facts per page (parts, actions, spatial relationships). Escalate to Pro when triggers hit (see below) |
+| Continuity refinement + instruction generation | Flash (text-only) | Takes the full ordered step sequence, rewrites instructions with narrative flow, consistent terminology, cross-step references, and transition language. See "Step Continuity" section below. |
+| Rule checks | Flash | Validate schema + consistency (counts match parts list, step references exist, no "teleporting" parts) |
+
+**Escalation triggers (Flash → Pro) — tuned from 20-page benchmark:**
+- Multiple arrows/overlays (≥ 5) in one panel — raised from ≥ 3 after benchmark showed most IKEA pages have 3-4 arrows normally
+- Hinge/drawer-slide alignment, rotation, or mirrored steps
+- Fastener ambiguity (Torx vs Philips; "tight vs loose" indicator)
+- Low confidence (< 0.7) or self-reported uncertainty from Flash
+- Flash fails to produce valid JSON output
+- Flash ↔ rule-checker disagreement
+
+**20-page benchmark (completed 2026-02-12):**
+
+Tested 5 IKEA manuals (MALM bed frame, HEMNES drawer unit, HELMER cabinet, MICKE desk, BILLY shelf) × 4 archetypes per manual = 20 pages. Both models tested with identical prompts.
+
+| Metric | Flash | Pro |
+|--------|-------|-----|
+| **Success rate** | 20/20 | 20/20 |
+| **Avg latency** | 15.2s | 22.2s (1.5x) |
+| **Avg cost/page** | $0.0005 | $0.0076 (14x) |
+| **Total cost (20 pages)** | $0.011 | $0.151 |
+| **Avg confidence** | 0.82 | 0.92 |
+| **JSON parse rate** | 17/20 | 19/20 |
+
+**By archetype:**
+
+| Archetype | Flash conf | Pro conf | Escalation rate |
+|-----------|------------|----------|-----------------|
+| Parts/Fasteners Legend | 0.99 | 0.98 | 2/5 |
+| Simple 1-Action Step | 0.78 | 0.96 | 3/5 |
+| Multi-Panel w/ Rotation | 0.78 | 0.97 | 5/5 |
+| Tricky Mechanism | 0.75 | 0.78 | 5/5 |
+
+**Key findings:** Flash handles parts legends perfectly (~$0.0003/page). Pro provides meaningful uplift on multi-panel and complex pages (0.78→0.97 confidence). Both struggle equally on genuinely ambiguous mechanism pages. With tuned triggers (arrows ≥ 5), estimated Pro escalation drops from 75% to ~25-35%.
+
+**Cost projection (2,800 products × ~20 pages = 56,000 pages):** Flash-only: ~$30. Pro-only: ~$423. Hybrid (25% Pro): ~$127.
+
+**Model decision history:** Originally benchmarked Gemini 2.0 Flash vs GPT-4o (2026-02-12, 10 IKEA PDFs). Decided to go all-Gemini (dropping OpenAI GPT-4o) and upgrade to Gemini 2.5 generation. Second benchmark (2026-02-12, 20 pages) validated Flash-first + Pro-on-fail with tuned escalation triggers.
 
 #### Pipeline
 
 ```
 [Assembly PDF]
-    → PDF page extraction (split into individual pages/images)
-    → Vision model analysis (per-page: identify parts, actions, sequence)
-    → Structured data extraction (steps, tools, warnings, part references)
+    → PDF page extraction (render pages at high resolution, crop panels)
+    → Panel detection & step segmentation (Flash: detect panels, group into steps)
+    → Per-page visual extraction → structured JSON (Flash default, escalate to Pro on triggers)
+    → Step sequence assembly (merge all pages into ordered step list)
+    → Continuity refinement pass (Flash text-only: rewrite instructions with full sequence context)
+    → Rule checks (Flash: validate schema, counts, step references, consistency)
     → Guide assembly (compile into AssemblyGuide + AssemblyStep records)
     → Illustration generation (Nano Banana / Nano Banana Pro creates new diagrams per step)
     → Quality score (automated checks: completeness, sequence logic, part coverage)
     → Human review queue (admin reviews in Studio before publishing)
 ```
+
+#### Step Continuity: Two-Pass Extraction + Instruction Generation
+
+Assembly instructions are inherently sequential — each step builds on the previous one. A good "Step 14" instruction depends on knowing what was accomplished in steps 1–13. The pipeline uses a **two-pass approach** to ensure this continuity while keeping vision analysis focused and accurate.
+
+**Pass 1: Per-Page Visual Extraction (vision model, per page — current implementation)**
+
+Each PDF page is analyzed independently by the vision model. The prompt focuses on extracting **raw visual facts**: what parts are shown, what actions are depicted, spatial relationships, arrow directions, fastener types, and annotations. This is where the vision model excels — reading fine-grained visual details from a single image without needing narrative context from other pages.
+
+The per-page extraction outputs structured JSON: step numbers, part references (with quantities), tool usage, spatial actions, screw directions, and confidence indicators. This data is factual, not narrative — it describes what's **shown on the page**, not how to explain it to a person.
+
+**Pass 2: Continuity-Aware Instruction Generation (text model, full sequence — to be implemented)**
+
+After all pages are extracted, a second LLM pass takes the **complete ordered sequence** of extracted steps and generates human-readable instructions with proper narrative flow. This pass:
+
+1. **Receives the full step sequence** as a single context — all extracted data from Pass 1, in order
+2. **Writes flowing instructions** — Each step's instruction text is written with awareness of what came before: _"Now that you've attached the side panels (Step 3), insert the shelf pins into the pre-drilled holes..."_
+3. **Detects and merges split steps** — A step that spans two PDF pages is consolidated into a single coherent step
+4. **Adds transition language** — Bridges between major assembly phases: _"With the frame assembled, you'll now add the shelves and back panel"_
+5. **Resolves forward/backward references** — _"Use the same Allen key from Step 2"_ or _"These dowels are the ones from the parts overview"_
+6. **Maintains consistent terminology** — Ensures the same part is called the same name throughout (not "cam lock" in step 3 and "round metal fastener" in step 12)
+7. **Preserves safety context** — If a warning in step 5 relates to an action that repeats in step 18, the warning is reiterated or referenced
+
+**Why two passes instead of sequential context passing (page N gets context from pages 1..N-1)?**
+
+- **Vision models perform best on focused prompts** — Adding prior step text to a vision prompt dilutes attention from the image. Keeping Pass 1 image-only means higher extraction accuracy.
+- **No error propagation** — If page 3's extraction has an error, it doesn't cascade into pages 4+. The continuity pass can fix inconsistencies across the whole sequence.
+- **Much cheaper** — Pass 2 is text-only (no vision), so it costs a fraction of a vision call. For a 20-page guide, the continuity pass costs ~$0.001 vs ~$0.01 for 20 vision calls.
+- **Parallelizable** — Per-page extraction can be parallelized in the future (rate limits permitting). Sequential context passing forces strict serial processing.
+- **Full-sequence visibility** — The continuity pass sees the entire guide at once, enabling global optimizations like consistent terminology and cross-step references that sequential passing can't achieve.
+
+**Implementation:** Pass 2 uses Flash (text-only, no image input) with a prompt that receives all extracted step data as structured JSON and outputs rewritten instruction text for each step. For large guides (30+ steps), the full context comfortably fits within Flash's context window. The output replaces the raw `instruction` field from Pass 1 while preserving all other extracted data (parts, tools, confidence, etc.).
 
 #### Quality Control
 
@@ -171,8 +254,7 @@ AIGenerationConfig
 
 ### API Integrations
 
-- **Google Gemini API** — Vision analysis + illustration generation (Nano Banana / Nano Banana Pro)
-- **OpenAI API** — Vision analysis (primary or secondary depending on benchmark)
+- **Google Gemini API** — Vision analysis (Gemini 2.5 Flash + Pro) + illustration generation (Nano Banana / Nano Banana Pro)
 - **PDF processing** — `pdf-lib` or `pdfjs-dist` for page extraction and image conversion
 
 ### Continuous Catalog Sync & Auto-Generation
@@ -827,7 +909,7 @@ Build native apps **after Phase 5** — once the web app has real customer valid
 - **File storage:** Supabase Storage or Vercel Blob (for uploaded PDFs, generated illustrations)
 - **Background jobs:** Vercel Cron + Inngest or Trigger.dev (for AI batch processing AND monthly catalog sync)
 - **Monthly catalog sync:** Vercel Cron triggers catalog scanner once per month per retailer; Inngest handles the scrape-detect-queue workflow with retries and rate limiting
-- **AI APIs:** Gemini + OpenAI (rate-limited, queued)
+- **AI APIs:** Google Gemini (Gemini 2.5 Flash, Gemini 2.5 Pro, Nano Banana models — rate-limited, queued)
 
 ### Environment Strategy
 | Environment | Purpose |

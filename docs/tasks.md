@@ -11,16 +11,18 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 - [ ] **BLOCKER: Provide illustration creation guidelines** — Product owner must provide detailed requirements for how AI-generated isometric illustrations should look: level of detail, annotation style, color usage, motion/direction indicators, part highlighting, label placement, and consistency standards. These guidelines drive all illustration prompts.
 
 ### 1.1 AI Infrastructure Setup
-- [ ] **Choose primary vision model** — Benchmark Gemini Pro Vision vs GPT-4o on 10 IKEA assembly PDF pages for fine-detail accuracy (screw direction, part orientation, hole alignment)
-- [ ] **Set up AI provider accounts** — Gemini API + OpenAI API keys, rate limit config, cost tracking
+- [x] **Choose primary & secondary vision models + run benchmark** — All-Gemini strategy validated. 20-page benchmark complete (5 manuals × 4 archetypes): Flash avg conf=0.82, Pro avg conf=0.92, Flash 14x cheaper. Escalation triggers tuned (arrows ≥5, conf <0.7, JSON failure). Env vars and abstraction layer updated to Gemini 2.5 Flash/Pro.
+- [x] **Set up AI provider accounts** — Gemini API + OpenAI API keys, rate limit config, cost tracking
 - [x] **Build PDF extraction pipeline** — Extract individual pages from assembly PDFs as images using `pdf-lib` or `pdfjs-dist`
 - [x] **Create AI abstraction layer** — Provider-agnostic interface for vision analysis (swap primary/secondary models easily)
 - [x] **Design structured output schema** — Define the JSON structure for AI-generated guide data (steps, tools, parts, warnings, confidence scores)
 
 ### 1.2 AI Generation Pipeline
-- [ ] **Build single-product generation endpoint** — Server action: takes a product ID → fetches PDF → runs vision analysis → returns structured guide data
-- [ ] **Implement step extraction logic** — AI prompt that analyzes each PDF page and extracts: step number, instruction text, tools needed, parts referenced, warnings, screw directions
-- [ ] **Add confidence scoring** — Each step gets a confidence score based on model certainty; flag low-confidence steps
+- [x] **Build single-product generation endpoint** — Server action: takes a product ID → fetches PDF → runs vision analysis → returns structured guide data
+- [x] **Implement step extraction logic** — AI prompt that analyzes each PDF page and extracts: step number, instruction text, tools needed, parts referenced, warnings, screw directions
+- [x] **Add confidence scoring** — Each step gets a confidence score based on model certainty; flag low-confidence steps
+- [ ] **Refactor step extraction prompt to extract raw visual facts only** — The current `STEP_EXTRACTION_PROMPT` in `generate-guide.ts` asks the vision model to both extract visual data AND write final instruction text per page. Refactor it to focus on raw visual extraction only: parts shown, actions depicted, spatial relationships, arrow directions, fastener types, annotations. Output factual structured JSON per page, not narrative prose. This prepares the pipeline for the continuity refinement pass.
+- [ ] **Implement continuity refinement pass** — After per-page visual extraction, add a second LLM pass (Flash text-only, no vision) that takes the full ordered sequence of extracted steps and generates human-readable instruction text with proper continuity. The pass must: (1) write each step's instruction with awareness of all prior steps, (2) detect and merge steps split across PDF pages, (3) add transition language between major assembly phases, (4) resolve forward/backward references ("Use the same Allen key from Step 2"), (5) maintain consistent part terminology throughout, and (6) reiterate safety warnings when relevant actions repeat. See implementation-plan.md "Step Continuity" section for full architecture rationale.
 - [ ] **Build illustration generation** — Integrate Nano Banana (`gemini-2.5-flash-image`) for simple steps and Nano Banana Pro (`gemini-3-pro-image-preview`) for complex steps. Auto-classify step complexity based on part count and spatial relationships.
 - [ ] **Implement illustration model routing** — Cost-efficiency logic: route simple steps (single part, straightforward action) to Nano Banana (cheaper/faster), complex steps (exploded views, multi-part, fine annotations) to Nano Banana Pro (higher fidelity, ~$0.134/image)
 - [ ] **Create quality check automation** — Verify: step count matches PDF pages, all parts referenced, logical step sequence, no missing tools

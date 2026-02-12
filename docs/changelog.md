@@ -4,6 +4,182 @@ All notable changes to the project documentation (`docs/`) are logged here. Newe
 
 ---
 
+## 2026-02-12 — Step Continuity: Two-Pass Pipeline Architecture for Instruction Generation
+
+**Summary:** Identified a continuity gap in the AI guide generation pipeline — the current implementation analyzes each PDF page independently and writes instruction text per page, with no awareness of previous steps. Assembly instructions are inherently sequential (each step builds on the last), so this produces instructions that read as isolated page descriptions instead of a flowing narrative. Added a two-pass architecture: Pass 1 (vision, per page) extracts raw visual facts, Pass 2 (text-only, full sequence) rewrites instructions with continuity. Added two new tasks for the refactoring.
+
+### Problem
+The `STEP_EXTRACTION_PROMPT` in `generate-guide.ts` asks the vision model to both extract visual data AND write final instruction text for each page independently. This means:
+- Step 14 can't reference "the side panels you attached in Step 3"
+- Steps split across two PDF pages get duplicated instead of merged
+- Part terminology may drift (e.g., "cam lock" in step 3, "round metal fastener" in step 12)
+- No transition language between major assembly phases
+
+### Solution: Two-Pass Extraction + Instruction Generation
+- **Pass 1 (current, to be refactored):** Per-page visual extraction focuses on raw facts only — parts, actions, spatial relationships, arrows, fasteners. No narrative prose.
+- **Pass 2 (new):** A continuity-aware instruction generation pass (Flash text-only) takes the full ordered step sequence and writes flowing instructions with cross-step references, consistent terminology, transition language, and merged split steps.
+
+### Why two passes (not sequential context passing)
+- Vision models perform best on focused, image-only prompts
+- No error propagation between pages
+- Much cheaper (text-only call for Pass 2)
+- Full-sequence visibility enables global optimizations
+- Per-page extraction remains parallelizable for future optimization
+
+### `docs/implementation-plan.md`
+- **Updated:** Pipeline diagram — added "Step sequence assembly" and "Continuity refinement pass" stages between visual extraction and rule checks
+- **Added:** "Step Continuity: Two-Pass Extraction + Instruction Generation" section — full architecture description with rationale for two-pass over sequential context, implementation details, and cost analysis
+- **Updated:** Model routing policy table — renamed "Visual extraction" to "Per-page visual extraction", replaced "Instruction generation + variants" row with "Continuity refinement + instruction generation" row describing the full-sequence text-only pass
+
+### `docs/tasks.md`
+- **Added:** "Refactor step extraction prompt to extract raw visual facts only" task in section 1.2 — refactor `STEP_EXTRACTION_PROMPT` to output factual structured JSON, not narrative prose
+- **Added:** "Implement continuity refinement pass" task in section 1.2 — build the second LLM pass with 6 specific continuity requirements (flowing instructions, split-step merging, transition language, cross-step references, consistent terminology, safety reiteration)
+
+---
+
+## 2026-02-12 — Phase 1.2: Single-Product Generation Endpoint + Step Extraction + Confidence Scoring
+
+**Summary:** Built the core AI guide generation pipeline — a server action that takes a product ID, finds its assembly PDF, extracts all pages, runs vision analysis on each page (Flash-first with Pro escalation), and returns a fully structured `GeneratedGuide` with steps, tools, parts, confidence scores, and quality flags. Covers three tasks from section 1.2.
+
+### Files Created
+- **`src/lib/ai/generate-guide.ts`** — Core generation orchestration:
+  - `generateGuideForProduct(productId)` — full pipeline: product lookup → PDF fetch → page extraction → per-page vision analysis → step assembly → quality checks → job record updates
+  - Step extraction prompt — structured JSON prompt that extracts: step numbers, titles, instructions, parts, tools, callouts, screw directions, complexity classification, and per-step confidence scores
+  - Flash-first escalation logic — analyzes page indicators (arrow count ≥5, hinge/rotation, fastener ambiguity, confidence <0.7, JSON parse failure) and escalates to Pro when triggered
+  - JSON parsing with fallback — handles markdown fences, extra text, and malformed responses
+  - Quality flag automation — checks for low confidence steps, sequence gaps, missing steps, missing tools
+  - Auto-estimates difficulty (easy/medium/hard) and time based on step count and complexity ratio
+  - Creates and updates `AIGenerationJob` records, updates product `guide_status`
+  - Integrates existing `CostTracker` and `RateLimiter` throughout the pipeline
+
+- **`src/lib/actions/ai-generation.ts`** — Server actions (admin-only):
+  - `generateGuideAction(productId)` — validates product, checks for duplicate jobs, runs generation pipeline
+  - `getGenerationJobStatus(jobId)` — check job progress
+  - `listGenerationJobs(options)` — list recent jobs with optional status filter
+
+### Files Changed
+- **`src/lib/ai/index.ts`** — Added barrel exports for `generateGuideForProduct` and `GenerateGuideOptions`
+
+### `docs/tasks.md`
+- **Marked complete:** "Build single-product generation endpoint" in section 1.2
+- **Marked complete:** "Implement step extraction logic" in section 1.2
+- **Marked complete:** "Add confidence scoring" in section 1.2
+
+---
+
+## 2026-02-12 — Phase 1.1: 20-Page Gemini 2.5 Benchmark Complete + Env Migration
+
+**Summary:** Built and ran 20-page benchmark comparing Gemini 2.5 Flash vs Gemini 2.5 Pro across 5 IKEA manuals (MALM bed frame, HEMNES drawer unit, HELMER cabinet, MICKE desk, BILLY shelf) × 4 archetypes. Both models achieved 100% success rate. Flash is 14x cheaper ($0.0005 vs $0.0076/page) with 0.82 avg confidence; Pro at 0.92. Tuned escalation triggers based on results. Updated all env vars and abstraction layer to Gemini 2.5.
+
+### Benchmark Results
+- **Flash**: 20/20 success, 15.2s avg latency, $0.0005/page avg, 0.82 confidence, 17/20 JSON parse
+- **Pro**: 20/20 success, 22.2s avg latency, $0.0076/page avg, 0.92 confidence, 19/20 JSON parse
+- **By archetype**: Flash handles parts legends perfectly (0.99). Pro significantly better on multi-panel (0.78→0.97) and simple steps (0.78→0.96). Both struggle on tricky mechanisms (0.75 vs 0.78).
+- **Escalation tuning**: Arrow threshold raised from ≥3 to ≥5 (most IKEA pages have 3-4 arrows normally). Added JSON parse failure as trigger. Target escalation rate: ~25-35%.
+- **Cost projection**: Full catalog (56,000 pages) — Flash-only: ~$30, Pro-only: ~$423, Hybrid (25% Pro): ~$127.
+
+### Files Changed
+- **`scripts/benchmark-vision.ts`** — Rewritten: now compares Gemini 2.5 Flash vs Pro (was 2.0 Flash vs GPT-4o). 5 products × 4 archetypes = 20 pages. Added escalation trigger analysis, scoring rubric template, cost projections, per-archetype breakdown. Tuned arrow threshold to ≥5.
+- **`.env`** — Updated: `AI_PRIMARY_MODEL="gemini-2.5-flash"`, `AI_SECONDARY_PROVIDER="gemini"`, `AI_SECONDARY_MODEL="gemini-2.5-pro"` (was gemini-2.0-flash + openai/gpt-4o)
+- **`.env.example`** — Updated: all-Gemini strategy with Flash default + Pro escalation. OpenAI key now optional/commented.
+- **`src/lib/ai/vision-provider.ts`** — Updated: default fallback model from "gemini-2.0-flash" to "gemini-2.5-flash"
+- **`benchmark-report-gemini25-2026-02-12.txt`** (new) — Full 20-page benchmark report
+
+### `docs/implementation-plan.md`
+- **Updated:** Escalation triggers — added tuned thresholds (arrows ≥5, JSON failure trigger), documented benchmark findings
+- **Replaced:** "20-page benchmark (planned)" section with completed results table, archetype breakdown, cost projection
+
+### `docs/tasks.md`
+- **Marked complete:** "Choose primary & secondary vision models + run benchmark" in section 1.1
+
+---
+
+## 2026-02-12 — Vision Model Strategy Overhaul: All-Gemini, Flash-First + Pro-on-Fail
+
+**Summary:** Dropped OpenAI GPT-4o entirely. Upgraded from Gemini 2.0 Flash to Gemini 2.5 generation. New strategy: Gemini 2.5 Flash as the default (cost-efficient bulk processor) with Gemini 2.5 Pro as the escalation target (highest accuracy for complex/ambiguous pages). Added detailed routing policy, escalation triggers, and a 20-page benchmark plan.
+
+### Rationale
+- OpenAI models are expensive relative to Gemini for this use case
+- Gemini 2.5 Flash is the safer "cheap but not dumb" workhorse for IKEA's micro-visual language (tiny arrows, Torx nuance)
+- Gemini 2.5 Pro provides best-in-class accuracy for the hard pages (hinges, drawer slides, cam locks, mirrored steps)
+- Flash-first routing keeps Pro usage to ~10–25% of pages, optimizing cost without sacrificing accuracy
+
+### `docs/implementation-plan.md`
+- **Replaced:** Multi-Model Strategy table — Primary: Gemini 2.0 Flash → **Gemini 2.5 Pro**. Secondary: GPT-4o → **Gemini 2.5 Flash**.
+- **Added:** Model routing policy table — 5 pipeline stages showing which model handles what (Flash default for panel detection, step segmentation, rule checks, instruction generation; Pro for escalations only)
+- **Added:** Escalation triggers list — 5 specific conditions that cause Flash→Pro escalation (multiple arrows, hinge alignment, fastener ambiguity, low confidence, rule-checker disagreement)
+- **Added:** 20-page benchmark plan — 5 manuals × 4 archetypes (parts legend, simple step, multi-panel rotation, tricky mechanism), scoring rubric (0–10 per page, 0–200 total)
+- **Added:** 2 new vision model selection criteria (fastener ambiguity, hinge/rotation interpretation)
+- **Updated:** Pipeline diagram — now shows Flash/Pro routing at each stage instead of generic "vision model analysis"
+- **Removed:** OpenAI API from API Integrations section
+- **Updated:** Infrastructure AI APIs — removed OpenAI reference, added specific Gemini model names
+- **Updated:** Model decision history — documents the evolution from Gemini 2.0 Flash + GPT-4o to all-Gemini 2.5
+
+### `docs/tasks.md`
+- **Unmarked:** Task 1.1 "Choose primary vision model" — changed from `[x]` back to `[ ]`
+- **Renamed & expanded:** Task to "Choose primary & secondary vision models + run benchmark" — describes new all-Gemini strategy and remaining work (build 20-page benchmark, validate models, tune triggers, update env vars and AI abstraction layer)
+
+### `CLAUDE.md`
+- **Updated:** AI Pipeline multi-model strategy — replaced Gemini 2.0 Flash + GPT-4o with Gemini 2.5 Pro + Gemini 2.5 Flash, added routing description
+- **Removed:** OpenAI API from API integrations line
+
+---
+
+## 2026-02-12 — Phase 1.1: Choose Primary Vision Model (Benchmark Complete)
+
+### Benchmark Results
+- **Tested:** Gemini 2.0 Flash vs GPT-4o on 10 diverse IKEA assembly PDF pages (BILLY bookshelf, MICKE desk, MALM bed frame, KOMPLEMENT wardrobe insert, KALLAX shelf, HEMNES dresser, NORDEN dining table, LACK coffee table, BRIMNES cabinet, BRIMNES nightstand)
+- **Winner (Primary):** Gemini 2.0 Flash — 12x cheaper ($0.0045 vs $0.0545 total), 2x faster (4.0s vs 8.2s avg latency), comparable quality, better at extracting specific part numbers
+- **Secondary:** GPT-4o — slightly better at spatial orientation descriptions, used as fallback/validation for low-confidence results
+- **Decision:** `AI_PRIMARY_PROVIDER=gemini`, `AI_PRIMARY_MODEL=gemini-2.0-flash`, `AI_SECONDARY_PROVIDER=openai`, `AI_SECONDARY_MODEL=gpt-4o`
+
+### Critical Bug Fix: PDF Extraction
+- **Fixed:** `src/lib/ai/pdf-extractor.ts` — pdfjs-dist v5.4.624 + node-canvas was silently producing blank white PNG images. Rewrote to use poppler's `pdftoppm` command-line tool. Now produces correct 187KB+ images with full assembly diagram content.
+- **Dependency:** Requires `poppler` system package (`brew install poppler` on macOS)
+- **API change:** `scale` parameter replaced with `dpi` parameter (default 200 DPI)
+
+### Files Changed
+- **`.env`** — Uncommented and set vision model config: `AI_PRIMARY_PROVIDER="gemini"`, `AI_PRIMARY_MODEL="gemini-2.0-flash"`, `AI_SECONDARY_PROVIDER="openai"`, `AI_SECONDARY_MODEL="gpt-4o"`
+- **`.env.example`** — Updated vision model section from TBD to decided values with benchmark summary
+- **`src/lib/ai/pdf-extractor.ts`** — Rewritten from pdfjs-dist to poppler (`pdftoppm`/`pdfinfo`). Added `getPdfPageCount()` function.
+- **`scripts/benchmark-vision.ts`** (new) — Benchmark script: selects 10 diverse products by category, extracts page 6 from each PDF, runs both models with identical structured analysis prompt, generates comparison report
+- **`benchmark-report-2026-02-12.txt`** — Generated benchmark results file
+
+### `docs/tasks.md`
+- **Marked complete:** "Choose primary vision model" in section 1.1
+
+---
+
+## 2026-02-12 — Phase 1.1: Set Up AI Provider Accounts
+
+### `.env` / `.env.example`
+- **Added:** `GEMINI_API_KEY` — required for illustration generation (Nano Banana models) and potentially vision analysis
+- **Added:** `ILLUSTRATION_MODEL_SIMPLE="gemini-2.5-flash-image"` — Nano Banana for simple step illustrations
+- **Added:** `ILLUSTRATION_MODEL_COMPLEX="gemini-3-pro-image-preview"` — Nano Banana Pro for complex step illustrations
+- **Added:** `OPENAI_API_KEY` — commented out, optional until vision model benchmark determines if OpenAI is needed
+- **Added:** Vision model config vars (`AI_PRIMARY_PROVIDER`, `AI_PRIMARY_MODEL`, `AI_SECONDARY_PROVIDER`, `AI_SECONDARY_MODEL`) — commented out as TBD pending benchmark
+- **Created:** `.env.example` documenting all env vars with descriptions, requirement status, and links to API key pages
+
+### `src/lib/ai/rate-limiter.ts` (new)
+- **Created:** Sliding-window rate limiter for AI API providers
+- **Implemented:** `RateLimiter` class with `acquire()` (wait-then-record), `canProceed()`, `waitTime()`, `available()` methods
+- **Added:** Default rate limits per provider (Gemini: 15 RPM free tier, OpenAI: 30 RPM safe default)
+- **Added:** `getRateLimiter(provider)` registry — singleton limiter per provider across the app
+
+### `src/lib/ai/cost-tracker.ts` (new)
+- **Created:** Cost estimation and cumulative tracking for AI API usage
+- **Added:** `MODEL_PRICING` lookup table — per-1M-token pricing for Gemini (2.0 Flash, 2.5 Flash/Pro, Nano Banana models) and OpenAI (GPT-4o, 4o-mini, 4.1 family)
+- **Implemented:** `calculateCost(model, inputTokens, outputTokens)` — single-call cost estimation
+- **Implemented:** `CostTracker` class — per-job cumulative tracker with `record()`, `totalCostUsd`, `summary()` (model breakdown for storing in AIGenerationJob)
+
+### `src/lib/ai/index.ts`
+- **Updated:** Barrel exports to include `RateLimiter`, `getRateLimiter`, `DEFAULT_RATE_LIMITS`, `CostTracker`, `calculateCost`, `MODEL_PRICING` and their types
+
+### `docs/tasks.md`
+- **Marked complete:** "Set up AI provider accounts" in section 1.1
+
+---
+
 ## 2026-02-12 — Guide-First UX Architecture: Application-Wide Navigation Paradigm Shift
 
 **Summary:** The entire application shifts from product-centric to guide-centric navigation. When a user clicks on a product, they land directly on the step-by-step work instructions (if a guide exists) instead of the product detail page. Product metadata is secondary, accessible via a "View Details" link. Products without guides fall back to the traditional product detail page.
