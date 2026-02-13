@@ -8,7 +8,11 @@ import {
   generateGuideForProduct,
   type GenerateGuideOptions,
 } from "@/lib/ai/generate-guide";
-import type { GeneratedGuide, GeneratedStep } from "@/lib/ai/types";
+import type {
+  GeneratedGuide,
+  GeneratedStep,
+  CorrectionCategory,
+} from "@/lib/ai/types";
 
 async function requireAdmin() {
   const session = await auth();
@@ -332,13 +336,21 @@ export async function rejectGenerationJob(
 /**
  * Server action: Update a step's instruction text in the rawOutput JSON.
  * Used for inline editing during review.
+ *
+ * Also records a ReviewerCorrection to capture the before/after diff
+ * and the category of the error, feeding the prompt refinement feedback loop.
  */
 export async function updateJobStep(
   jobId: string,
   stepNumber: number,
-  updates: { title?: string; instruction?: string }
+  updates: {
+    title?: string;
+    instruction?: string;
+    correctionCategory?: CorrectionCategory;
+    correctionNotes?: string;
+  }
 ) {
-  await requireAdmin();
+  const user = await requireAdmin();
   const validId = jobIdSchema.parse(jobId);
 
   const job = await prisma.aIGenerationJob.findUnique({
@@ -360,17 +372,152 @@ export async function updateJobStep(
     return { success: false, error: `Step ${stepNumber} not found` };
   }
 
-  if (updates.title) guide.steps[stepIndex].title = updates.title;
-  if (updates.instruction) guide.steps[stepIndex].instruction = updates.instruction;
+  const userId = (user as unknown as { id: string }).id;
+  const category = updates.correctionCategory || "other";
+  const corrections: Array<{
+    jobId: string;
+    stepNumber: number;
+    field: string;
+    originalValue: string;
+    correctedValue: string;
+    category: string;
+    reviewerNotes: string | null;
+    reviewedBy: string;
+  }> = [];
 
-  await prisma.aIGenerationJob.update({
-    where: { id: validId },
-    data: {
-      rawOutput: JSON.parse(JSON.stringify(guide)),
-    },
-  });
+  // Capture title correction
+  if (updates.title && updates.title !== guide.steps[stepIndex].title) {
+    corrections.push({
+      jobId: validId,
+      stepNumber,
+      field: "title",
+      originalValue: guide.steps[stepIndex].title,
+      correctedValue: updates.title,
+      category,
+      reviewerNotes: updates.correctionNotes || null,
+      reviewedBy: userId,
+    });
+    guide.steps[stepIndex].title = updates.title;
+  }
+
+  // Capture instruction correction
+  if (updates.instruction && updates.instruction !== guide.steps[stepIndex].instruction) {
+    corrections.push({
+      jobId: validId,
+      stepNumber,
+      field: "instruction",
+      originalValue: guide.steps[stepIndex].instruction,
+      correctedValue: updates.instruction,
+      category,
+      reviewerNotes: updates.correctionNotes || null,
+      reviewedBy: userId,
+    });
+    guide.steps[stepIndex].instruction = updates.instruction;
+  }
+
+  // Batch: update rawOutput + create correction records
+  await prisma.$transaction([
+    prisma.aIGenerationJob.update({
+      where: { id: validId },
+      data: {
+        rawOutput: JSON.parse(JSON.stringify(guide)),
+      },
+    }),
+    ...(corrections.length > 0
+      ? [prisma.reviewerCorrection.createMany({ data: corrections })]
+      : []),
+  ]);
 
   revalidatePath(`/studio/ai-generate/${validId}`);
 
-  return { success: true };
+  return { success: true, correctionsSaved: corrections.length };
+}
+
+// ─── Feedback Loop Query Actions ───
+
+/**
+ * Server action: Get all reviewer corrections for a specific job.
+ */
+export async function getJobCorrections(jobId: string) {
+  await requireAdmin();
+  const validId = jobIdSchema.parse(jobId);
+
+  const corrections = await prisma.reviewerCorrection.findMany({
+    where: { jobId: validId },
+    orderBy: [{ stepNumber: "asc" }, { createdAt: "asc" }],
+  });
+
+  return corrections;
+}
+
+/**
+ * Server action: Get aggregated feedback summary across all jobs.
+ * Returns correction counts by category and recent examples.
+ */
+export async function getFeedbackSummary() {
+  await requireAdmin();
+
+  // Count corrections by category
+  const categoryCounts = await prisma.reviewerCorrection.groupBy({
+    by: ["category"],
+    _count: { id: true },
+    orderBy: { _count: { id: "desc" } },
+  });
+
+  // Count corrections by field
+  const fieldCounts = await prisma.reviewerCorrection.groupBy({
+    by: ["field"],
+    _count: { id: true },
+  });
+
+  // Total correction count
+  const totalCorrections = await prisma.reviewerCorrection.count();
+
+  // Total jobs with at least one correction
+  const jobsWithCorrections = await prisma.reviewerCorrection
+    .findMany({
+      select: { jobId: true },
+      distinct: ["jobId"],
+    })
+    .then((r) => r.length);
+
+  // Recent corrections with context (most recent 20)
+  const recentCorrections = await prisma.reviewerCorrection.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 20,
+    include: {
+      job: {
+        select: {
+          product: {
+            select: { product_name: true, article_number: true },
+          },
+        },
+      },
+    },
+  });
+
+  return {
+    totalCorrections,
+    jobsWithCorrections,
+    byCategory: categoryCounts.map((c) => ({
+      category: c.category,
+      count: c._count.id,
+    })),
+    byField: fieldCounts.map((f) => ({
+      field: f.field,
+      count: f._count.id,
+    })),
+    recentCorrections: recentCorrections.map((c) => ({
+      id: c.id,
+      stepNumber: c.stepNumber,
+      field: c.field,
+      category: c.category,
+      originalValue: c.originalValue,
+      correctedValue: c.correctedValue,
+      reviewerNotes: c.reviewerNotes,
+      productName: c.job.product.product_name,
+      articleNumber: c.job.product.article_number,
+      createdAt: c.createdAt,
+    })),
+  };
 }

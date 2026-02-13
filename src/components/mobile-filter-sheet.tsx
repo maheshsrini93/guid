@@ -21,11 +21,11 @@ export function MobileFilterSheet({ categories }: MobileFilterSheetProps) {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline" size="sm" className="lg:hidden">
+        <Button variant="outline" size="sm" className="lg:hidden min-h-[44px] sm:min-h-0">
           Filters
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-80 overflow-y-auto">
+      <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto rounded-t-xl pb-8">
         <SheetHeader>
           <SheetTitle>Filters</SheetTitle>
         </SheetHeader>

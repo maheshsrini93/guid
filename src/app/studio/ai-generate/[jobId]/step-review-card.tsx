@@ -4,7 +4,8 @@ import { useState, useTransition } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { updateJobStep } from "@/lib/actions/ai-generation";
-import type { GeneratedStep } from "@/lib/ai/types";
+import type { GeneratedStep, CorrectionCategory } from "@/lib/ai/types";
+import { CORRECTION_CATEGORIES } from "@/lib/ai/types";
 
 interface StepReviewCardProps {
   jobId: string;
@@ -20,20 +21,39 @@ export function StepReviewCard({
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(step.title);
   const [instruction, setInstruction] = useState(step.instruction);
+  const [category, setCategory] = useState<CorrectionCategory>("other");
+  const [notes, setNotes] = useState("");
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [savedMessage, setSavedMessage] = useState<string | null>(null);
 
   function handleSave() {
     setError(null);
+    setSavedMessage(null);
+    const hasChanges =
+      title !== step.title || instruction !== step.instruction;
+    if (!hasChanges) {
+      setIsEditing(false);
+      return;
+    }
     startTransition(async () => {
       const result = await updateJobStep(jobId, step.stepNumber, {
         title: title !== step.title ? title : undefined,
         instruction: instruction !== step.instruction ? instruction : undefined,
+        correctionCategory: category,
+        correctionNotes: notes || undefined,
       });
       if (!result.success) {
         setError(result.error || "Failed to save");
       } else {
         setIsEditing(false);
+        setNotes("");
+        setSavedMessage(
+          result.correctionsSaved
+            ? `Saved with ${result.correctionsSaved} correction(s) logged`
+            : "Saved"
+        );
+        setTimeout(() => setSavedMessage(null), 3000);
       }
     });
   }
@@ -41,6 +61,8 @@ export function StepReviewCard({
   function handleCancel() {
     setTitle(step.title);
     setInstruction(step.instruction);
+    setCategory("other");
+    setNotes("");
     setIsEditing(false);
     setError(null);
   }
@@ -92,6 +114,34 @@ export function StepReviewCard({
         <p className="text-sm text-muted-foreground whitespace-pre-line mt-1">
           {step.instruction}
         </p>
+      )}
+
+      {/* Correction category + notes (visible only in edit mode) */}
+      {isEditing && (
+        <div className="mt-3 space-y-2 rounded-md border border-dashed p-3 bg-muted/30">
+          <p className="text-xs font-medium text-muted-foreground">
+            What type of correction is this?
+          </p>
+          <select
+            value={category}
+            onChange={(e) =>
+              setCategory(e.target.value as CorrectionCategory)
+            }
+            className="w-full text-sm border rounded px-2 py-1.5 bg-background focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer"
+          >
+            {CORRECTION_CATEGORIES.map((c) => (
+              <option key={c.value} value={c.value}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+          <input
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Optional note about this correction..."
+            className="w-full text-sm border rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
       )}
 
       {/* Callouts */}
@@ -152,6 +202,9 @@ export function StepReviewCard({
       {/* Edit controls */}
       {error && (
         <div className="mt-2 text-xs text-red-600">{error}</div>
+      )}
+      {savedMessage && (
+        <div className="mt-2 text-xs text-green-600">{savedMessage}</div>
       )}
 
       {isEditable && (

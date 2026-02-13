@@ -152,6 +152,37 @@ export type QualityFlagCode =
   | "high_low_confidence_ratio" // too many low-confidence steps in the guide
   | "part_sequence_error"; // step references a part not introduced in prior steps
 
+// ─── Reviewer Feedback Types ───
+
+/** Categories for reviewer corrections — used to identify prompt weaknesses */
+export type CorrectionCategory =
+  | "incorrect_part_name" // AI misidentified a part
+  | "unclear_instruction" // instruction was confusing or ambiguous
+  | "missing_safety_warning" // safety warning should have been included
+  | "wrong_direction" // rotation/direction was incorrect
+  | "missing_step_detail" // instruction was too vague
+  | "incorrect_order" // steps were in the wrong sequence
+  | "wrong_tool" // incorrect tool referenced
+  | "terminology_inconsistency" // used different names for the same part
+  | "grammar_style" // grammar or style fix
+  | "other"; // catch-all
+
+export const CORRECTION_CATEGORIES: {
+  value: CorrectionCategory;
+  label: string;
+}[] = [
+  { value: "incorrect_part_name", label: "Incorrect part name" },
+  { value: "unclear_instruction", label: "Unclear instruction" },
+  { value: "missing_safety_warning", label: "Missing safety warning" },
+  { value: "wrong_direction", label: "Wrong direction/rotation" },
+  { value: "missing_step_detail", label: "Missing step detail" },
+  { value: "incorrect_order", label: "Incorrect step order" },
+  { value: "wrong_tool", label: "Wrong tool referenced" },
+  { value: "terminology_inconsistency", label: "Terminology inconsistency" },
+  { value: "grammar_style", label: "Grammar / style fix" },
+  { value: "other", label: "Other" },
+];
+
 /** Metadata about the generation process itself */
 export interface GenerationMetadata {
   primaryModel: string;

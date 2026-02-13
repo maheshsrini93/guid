@@ -190,6 +190,7 @@ model AssemblyGuide {
   timeMinutes Int?
   tools       String?
   published   Boolean        @default(false)
+  aiGenerated Boolean        @default(false) // true when created by AI pipeline
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
   product     Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -230,14 +231,38 @@ model AIGenerationJob {
   reviewNotes     String?
   priority        JobPriority @default(normal)
   triggeredBy     JobTrigger  @default(manual)
+  attempts        Int         @default(0)
+  maxAttempts     Int         @default(3)
+  lastError       String?
+  startedAt       DateTime?
   createdAt       DateTime    @default(now())
   completedAt     DateTime?
-  product         Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product         Product              @relation(fields: [productId], references: [id], onDelete: Cascade)
+  corrections     ReviewerCorrection[]
 
   @@index([productId])
   @@index([status])
   @@index([priority])
+  @@index([status, priority, createdAt])
   @@map("ai_generation_jobs")
+}
+
+model ReviewerCorrection {
+  id             String          @id @default(cuid())
+  jobId          String
+  stepNumber     Int
+  field          String          // "title" | "instruction"
+  originalValue  String
+  correctedValue String
+  category       String          // CorrectionCategory — e.g., "incorrect_part_name", "unclear_instruction"
+  reviewerNotes  String?
+  reviewedBy     String?
+  createdAt      DateTime        @default(now())
+  job            AIGenerationJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+  @@index([category])
+  @@map("reviewer_corrections")
 }
 
 model AIGenerationConfig {

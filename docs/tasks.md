@@ -57,7 +57,7 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 | P1.3.2 | done | Generate pilot guides | Run generation pipeline on all pilot products | P1.3.1 | P1.3.3, P1.3.6, P1.3.7 |
 | P1.3.3 | done | Build review UI in Studio | Side-by-side view: original PDF (left) vs AI-generated guide (right), per step | P1.3.2 | P1.3.4, P1.7.2 |
 | P1.3.4 | done | Add inline editing on review screen | Admin can edit instruction text, flag illustrations for regeneration, add notes | P1.3.3 | P1.3.5 |
-| P1.3.5 | todo | Implement feedback loop | Store reviewer corrections and notes; use them to refine prompts | P1.3.4 | P1.3.8 |
+| P1.3.5 | done | Implement feedback loop | Store reviewer corrections and notes; use them to refine prompts | P1.3.4 | P1.3.8 |
 | P1.3.6 | todo | Integrate instruction writing guidelines | Apply the product owner's instruction writing requirements to the text generation prompts. Ensure output meets vocabulary, structure, and accessibility standards for non-native English speakers. | P1.0.1, P1.3.2 | P1.3.8 |
 | P1.3.7 | todo | Integrate illustration guidelines | Apply the product owner's illustration creation requirements to the Nano Banana / Nano Banana Pro image generation prompts. Ensure output meets style, annotation, and consistency standards. | P1.0.2, P1.3.2 | P1.3.8 |
 | P1.3.8 | todo | Iterate on prompts | Based on pilot review feedback, improve extraction accuracy for problem areas (cam locks, part orientation, screw direction) | P1.3.5, P1.3.6, P1.3.7 | P1.3.9 |
@@ -67,11 +67,11 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P1.4.1 | todo | Build job queue system | Database model: `AIGenerationJob` (queued/processing/review/approved/failed) | P1.3.9 | P1.4.2, P1.4.3, P1.4.5, P1.7.1 |
-| P1.4.2 | todo | Create batch processing dashboard | Studio page: queue overview, progress tracking, completion rates, failure reasons | P1.4.1 | — |
-| P1.4.3 | todo | Implement queue worker | Background process: picks jobs from queue, runs generation, respects rate limits, handles failures | P1.4.1 | P1.4.4, P1.5.1 |
-| P1.4.4 | todo | Add auto-publish for high-confidence guides | Guides above confidence threshold auto-publish; below threshold -> review queue | P1.4.3 | P1.5.4 |
-| P1.4.5 | todo | Build monitoring dashboard | Real-time stats: jobs completed, average confidence, failure rate, estimated completion time | P1.4.1 | — |
+| P1.4.1 | done | Build job queue system | Database model: `AIGenerationJob` (queued/processing/review/approved/failed) | P1.3.9 | P1.4.2, P1.4.3, P1.4.5, P1.7.1 |
+| P1.4.2 | done | Create batch processing dashboard | Studio page: queue overview, progress tracking, completion rates, failure reasons | P1.4.1 | — |
+| P1.4.3 | done | Implement queue worker | Background process: picks jobs from queue, runs generation, respects rate limits, handles failures | P1.4.1 | P1.4.4, P1.5.1 |
+| P1.4.4 | done | Add auto-publish for high-confidence guides | Guides above confidence threshold auto-publish; below threshold -> review queue | P1.4.3 | P1.5.4 |
+| P1.4.5 | done | Build monitoring dashboard | Real-time stats: jobs completed, average confidence, failure rate, estimated completion time | P1.4.1 | — |
 
 ### 1.5 Monthly Catalog Sync & Auto-Generation
 
@@ -80,16 +80,16 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 | P1.5.1 | todo | Build monthly catalog sync | Vercel Cron or Inngest function that runs once per month (e.g., 1st of each month) per retailer. Performs a full catalog diff against the existing Product table to detect all new products. Also triggerable manually from Studio. | P1.4.3 | P1.5.2, P1.5.6, P1.5.7, P1.5.8, P1.5.11, P1.5.21 |
 | P1.5.2 | todo | Implement catalog diff logic | Each retailer adapter implements `detectNewProducts()` that compares the retailer's current catalog against the DB and returns products not yet present. Uses sitemaps, RSS feeds, or full category scraping. | P1.5.1 | P1.5.3 |
 | P1.5.3 | todo | Add new product auto-detection | When sync inserts a new product, check for assembly PDF in ProductDocuments. If PDF exists, auto-create `AIGenerationJob` with `priority: high` and `triggeredBy: auto_sync`. | P1.5.2, P1.5.5, P1.5.7 | P1.5.9 |
-| P1.5.4 | todo | Implement auto-publish rules | After pilot quality baselines are set: guides >= 90% confidence auto-publish immediately; 70-89% auto-publish with "AI-Generated" badge and flagged for review; < 70% enter review queue only. Thresholds configurable in `AIGenerationConfig`. | P1.4.4 | — |
+| P1.5.4 | done | Implement auto-publish rules | After pilot quality baselines are set: guides >= 90% confidence auto-publish immediately; 70-89% auto-publish with "AI-Generated" badge and flagged for review; < 70% enter review queue only. Thresholds configurable in `AIGenerationConfig`. | P1.4.4 | — |
 | P1.5.5 | done | Add guideStatus field to Product | Enum: none/queued/generating/in_review/published/no_source_material. Track pipeline state per product. (Completed as part of P1.6.3 — Extend Product model.) | — | P1.5.3, P1.5.13, P1.5.20, P2.0.1 |
 | P1.5.6 | todo | Add firstDetectedAt/lastScrapedAt/isNew fields | Track when product was first found, last scraped, and whether it's new (< 30 days since detection). | P1.5.1 | P1.5.10, P1.5.12 |
-| P1.5.7 | todo | Add priority/triggeredBy to AIGenerationJob | Priority: high/normal/low. TriggeredBy: manual/auto_sync/batch. New products from monthly sync get high priority. | P1.5.1 | P1.5.3 |
+| P1.5.7 | done | Add priority/triggeredBy to AIGenerationJob | Priority: high/normal/low. TriggeredBy: manual/auto_sync/batch. New products from monthly sync get high priority. (Completed as part of P1.6.1 — AIGenerationJob model already includes these fields.) | P1.5.1 | P1.5.3 |
 | P1.5.8 | todo | Handle assembly PDF updates | During monthly sync, detect when a product's assembly PDF has changed (hash comparison). Auto-queue regeneration job. Version the old guide. | P1.5.1 | — |
 | P1.5.9 | todo | Handle product delisting | During monthly sync, detect products no longer in retailer catalog. Mark as `discontinued: true`. Keep guides live. Show "This product has been discontinued" notice on product page. | P1.5.3 | — |
 | P1.5.10 | todo | Build catalog sync dashboard in Studio | New dashboard section: last sync date per retailer, new products this month, pending generation, auto-published count, review queue depth, time-to-guide distribution, failed scrapes, sync history log. | P1.5.6 | P1.7.4 |
 | P1.5.11 | todo | Add scraper error handling & retry | Failed scrapes retry with exponential backoff within the sync run. Persistent failures send webhook alert (Slack/email). Individual product failures don't block the batch. | P1.5.1 | — |
 | P1.5.12 | todo | Add "New" badge to product cards | Show "New" pill badge on products where `isNew: true` (first 30 days after detection). Amber pill, subtle pulse on first view. | P1.5.6 | — |
-| P1.5.13 | todo | Add "Guide in Progress" state | Product detail page shows "Guide being generated — check back shortly" with progress indicator when `guideStatus` is queued/generating. | P1.5.5 | — |
+| P1.5.13 | done | Add "Guide in Progress" state | Product detail page shows "Guide being generated — check back shortly" with progress indicator when `guideStatus` is queued/generating. | P1.5.5 | — |
 | P1.5.14 | todo | Build "Submit a New Guide" CTA | For products with `guideStatus: no_source_material`, show a prominent CTA card on the product detail page inviting users to contribute assembly knowledge. Do NOT show "Guide Coming Soon" — without source material, guides depend on community input. | — | P1.5.15 |
 | P1.5.15 | todo | Build guide submission form | `/products/[articleNumber]/submit-guide` page: text instructions input, photo upload (drag-and-drop + camera on mobile, stored in Supabase Storage), video link fields, external resource link fields, optional tool list, estimated time, and difficulty rating. At least one content type required. | P1.5.14 | P1.5.16 |
 | P1.5.16 | todo | Add GuideSubmission model | id, productId, userId, status (pending/approved/rejected/needs_info/processing), textContent, photos (JSON), videoLinks (JSON), externalLinks (JSON), toolsList, estimatedTime, difficulty, reviewedBy, reviewNotes, reviewedAt, timestamps. Run `npx prisma db push`. | P1.5.15 | P1.5.17, P1.5.18, P1.5.19, P1.5.20 |
@@ -113,9 +113,9 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P1.7.1 | todo | /studio/ai-generate dashboard | AI generation dashboard: start jobs, view queue, batch controls | P1.4.1 | — |
+| P1.7.1 | done | /studio/ai-generate dashboard | AI generation dashboard: start jobs, view queue, batch controls | P1.4.1 | — |
 | P1.7.2 | done | /studio/ai-generate/[jobId] review | Single job review: side-by-side PDF vs guide, edit, approve/reject | P1.3.3 | — |
-| P1.7.3 | todo | /studio/ai-config management | Prompt template management, model configuration, version history | P1.6.2 | — |
+| P1.7.3 | done | /studio/ai-config management | Prompt template management, model configuration, version history | P1.6.2 | — |
 | P1.7.4 | todo | /studio/catalog-sync dashboard | Monthly catalog sync dashboard: last sync dates, new products per cycle, time-to-guide metrics, scraper health, sync history log, manual sync trigger | P1.5.10 | — |
 
 ---
@@ -163,8 +163,8 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 | P2.2.10 | done | Add mobile swipe navigation | Swipe left for next step, swipe right for previous. 200ms slide transition with fade. Haptic feedback via `navigator.vibrate` if supported. | P2.2.9 | — |
 | P2.2.11 | done | Add mobile TOC bottom sheet | Floating button (bottom-right, `List` icon) opens bottom sheet listing all steps with completion states. Tap any step to jump directly. | P2.2.9 | — |
 | P2.2.12 | done | Add completion screen | At end of guide: "Guide Complete" heading, total steps, rating prompt (5-star, 48px touch targets), social share buttons (ghost style), sign-up CTA for anonymous users. Subtle checkmark animation (respects `prefers-reduced-motion`). | P2.2.2 | — |
-| P2.2.13 | todo | Add progress saving | For signed-in users, auto-save current scroll position / step number. On return: banner with "Welcome back! Continue from Step 14?" with "Resume" (primary) and "Start Over" (ghost) buttons. | P2.2.2 | — |
-| P2.2.14 | todo | Add step bookmarking | Save specific steps across different guides for quick reference. Useful for pro installers who bookmark tricky steps across products. | P2.2.2 | — |
+| P2.2.13 | done | Add progress saving | For signed-in users, auto-save current scroll position / step number. On return: banner with "Welcome back! Continue from Step 14?" with "Resume" (primary) and "Start Over" (ghost) buttons. | P2.2.2 | — |
+| P2.2.14 | done | Add step bookmarking | Save specific steps across different guides for quick reference. Useful for pro installers who bookmark tricky steps across products. | P2.2.2 | — |
 | P2.2.15 | done | Add keyboard navigation | Arrow keys (left/right) for step navigation on desktop. Home/End jump to first/last step. Proper focus management and `aria-current="step"` on active TOC item. | P2.2.2 | — |
 
 ### 2.3 Search & Discovery
@@ -184,10 +184,10 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P2.4.1 | todo | Add tabbed sections | Reorganize the product detail page (now at `/products/[articleNumber]/details`) into tabs: Overview (images, specs) | Documents (PDFs, manuals) | Related Products. The "Assembly Guide" tab is no longer needed here since the guide is the primary view at `/products/[articleNumber]`. Sticky tab bar on scroll. | P2.0.2 | P2.4.2, P2.4.3, P2.4.4 |
-| P2.4.2 | todo | Add image gallery lightbox | Click any product image to open full-screen lightbox with zoom (scroll wheel desktop, pinch mobile) and swipe between images. | P2.4.1 | — |
-| P2.4.3 | todo | Add spec table | Clean key-value table for product specifications: dimensions, weight, materials, color, article number. Mono font for measurements. | P2.4.1 | — |
-| P2.4.4 | todo | Add related products carousel | Horizontal scrollable row of related products at bottom (same category, similar price range). | P2.4.1 | — |
+| P2.4.1 | done | Add tabbed sections | Reorganize the product detail page (now at `/products/[articleNumber]/details`) into tabs: Overview (images, specs) | Documents (PDFs, manuals) | Related Products. The "Assembly Guide" tab is no longer needed here since the guide is the primary view at `/products/[articleNumber]`. Sticky tab bar on scroll. | P2.0.2 | P2.4.2, P2.4.3, P2.4.4 |
+| P2.4.2 | done | Add image gallery lightbox | Click any product image to open full-screen lightbox with zoom (scroll wheel desktop, pinch mobile) and swipe between images. | P2.4.1 | — |
+| P2.4.3 | done | Add spec table | Clean key-value table for product specifications: dimensions, weight, materials, color, article number. Mono font for measurements. | P2.4.1 | — |
+| P2.4.4 | done | Add related products carousel | Horizontal scrollable row of related products at bottom (same category, similar price range). | P2.4.1 | — |
 
 ### 2.5 Performance
 
@@ -196,7 +196,7 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 | P2.5.1 | done | Optimize image loading | Configure `next/image` with responsive `sizes` prop, serve 320w/640w/960w/1280w srcset. Blur-up placeholders for perceived performance. | — | — |
 | P2.5.2 | done | Add lazy loading | All below-the-fold images use `loading="lazy"`. Only first 4 product cards and primary product image load eagerly. | — | — |
 | P2.5.3 | done | Profile and optimize database queries | Enable Prisma query logging, identify slow queries (target: all product list queries under 200ms). Add composite indexes for `(category, current_price)`, `(category, average_rating)`, `(product_type, guide_status)`. | — | — |
-| P2.5.4 | todo | Optimize filter query builder | Review `product-filters.ts` for N+1 queries, unnecessary JOINs, suboptimal WHERE clause ordering. Ensure most selective filter applied first. | — | — |
+| P2.5.4 | done | Optimize filter query builder | Review `product-filters.ts` for N+1 queries, unnecessary JOINs, suboptimal WHERE clause ordering. Ensure most selective filter applied first. | — | — |
 | P2.5.5 | done | Implement ISR | Incremental Static Regeneration for product detail pages (`revalidate: 86400`). Pre-generate top 100 most-viewed product pages at build time. | — | — |
 | P2.5.6 | done | Add edge caching | Cache product list API responses (`s-maxage=3600, stale-while-revalidate=86400`). Cache completed assembly guide data aggressively. | — | — |
 | P2.5.7 | done | Add skeleton loading states | Skeleton screens with shimmer animation on product grid (card-shaped placeholders), product detail (image + text blocks), guide viewer (progress bar + instruction), and search results. | — | — |
@@ -220,9 +220,9 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 | P2.7.1 | done | Full responsive audit | Test all pages at 375px (iPhone SE), 390px (iPhone 14/15), 768px (iPad), 1024px, 1280px. Fix all layout breakage. | — | — |
 | P2.7.2 | done | Mobile guide viewer audit | Verify mobile step-by-step card layout (built in 2.2) works at 375px and 390px. Illustration above text, 48px navigation buttons, swipe working. Bottom sheet TOC accessible. | P2.2.9 | — |
 | P2.7.3 | done | Mobile search overlay | Full-screen search experience with recent searches, trending products, keyboard-optimized input. | — | — |
-| P2.7.4 | todo | Touch targets audit | All interactive elements meet 44px minimum. Increase padding on buttons, links, filter chips. | — | — |
-| P2.7.5 | todo | Bottom sheet patterns | Use slide-up bottom sheets on mobile for filter menus, sort options, step jump instead of dropdown menus. | — | — |
-| P2.7.6 | todo | Pull-to-refresh | On product list and guide pages for native-app feel. | — | — |
+| P2.7.4 | done | Touch targets audit | All interactive elements meet 44px minimum. Increase padding on buttons, links, filter chips. | — | — |
+| P2.7.5 | done | Bottom sheet patterns | Use slide-up bottom sheets on mobile for filter menus, sort options, step jump instead of dropdown menus. | — | — |
+| P2.7.6 | done | Pull-to-refresh | On product list and guide pages for native-app feel. | — | — |
 
 ---
 
@@ -444,8 +444,8 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P0.1.1 | todo | Set up Vercel deployment | Connect repo, configure environment variables, deploy | — | P0.1.2 |
-| P0.1.2 | todo | Set up preview deployments | Auto-deploy PRs to preview URLs | P0.1.1 | — |
+| P0.1.1 | done | Set up Vercel deployment | Connect repo, configure environment variables, deploy | — | P0.1.2 |
+| P0.1.2 | done | Set up preview deployments | Auto-deploy PRs to preview URLs | P0.1.1 | — |
 | P0.1.3 | done | Add error tracking (Sentry) | Sentry integration for runtime error monitoring | — | — |
 | P0.1.4 | done | Set up CI (GitHub Actions) | GitHub Actions: lint, type check, build on every PR | — | — |
 
@@ -463,5 +463,27 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
 | P0.3.1 | done | Add Vercel Analytics | Page views, performance metrics | — | — |
-| P0.3.2 | todo | Track guide engagement | Steps viewed, completion rate, time per step, drop-off points | — | — |
-| P0.3.3 | todo | Track search patterns | What users search for, zero-result queries, discovery method usage | — | — |
+| P0.3.2 | done | Track guide engagement | Steps viewed, completion rate, time per step, drop-off points | — | — |
+| P0.3.3 | done | Track search patterns | What users search for, zero-result queries, discovery method usage | — | — |
+
+### Review Backlog (from 2026-02-13 team session)
+
+Items flagged by the Critic agent during the parallel team session. Should be addressed before starting new feature work.
+
+#### IMPORTANT (fix before next deploy)
+
+| ID | Status | Task | Description | Depends | Blocks |
+|----|--------|------|-------------|---------|--------|
+| P0.4.1 | todo | Fix dark mode hardcoded colors across Studio pages | 10+ files use hardcoded light-mode Tailwind colors (`bg-red-50`, `text-green-600`, `bg-gray-50`) without `dark:` variants. Replace with semantic design tokens (`bg-muted`, `bg-destructive/10`) or add `dark:` variants. Files: `studio/ai-generate/page.tsx`, `studio/ai-generate/monitoring/page.tsx`, `studio/ai-generate/batch-enqueue.tsx`, `studio/ai-generate/single-enqueue.tsx`, `studio/ai-generate/feedback/page.tsx`, `studio/ai-generate/[jobId]/step-review-card.tsx`, `studio/ai-config/config-actions.tsx`, `studio/ai-config/config-form.tsx`, `studio/layout.tsx` | — | — |
+| P0.4.2 | todo | Fix queue/cron API dual auth pattern | `/api/queue/process` and `/api/cron/process-queue` allow unauthenticated access when `CRON_SECRET` is not set. Both routes need dual auth: accept admin session (for Studio dashboard buttons) OR CRON_SECRET Bearer token (for Vercel Cron). Pattern: `const isAdmin = session?.user?.role === "admin"; const hasCronSecret = cronSecret && authHeader === Bearer ${cronSecret}; if (!isAdmin && !hasCronSecret) return 401`. | — | — |
+| P0.4.3 | todo | Wrap queue process route fail path in $transaction | In `/api/queue/process/route.ts` (~lines 110-122), the job status update and product `guide_status` update are separate Prisma calls. If the product update fails, the job is marked failed but `guide_status` stays at "generating" forever. Wrap both in `prisma.$transaction()` to match the cron route pattern. | — | — |
+
+#### SUGGESTION (address when convenient)
+
+| ID | Status | Task | Description | Depends | Blocks |
+|----|--------|------|-------------|---------|--------|
+| P0.4.4 | todo | Add loop guard to ProcessAllButton | `ProcessAllButton` in `studio/ai-generate/queue-controls.tsx` has a `while (!stopRef.current)` loop with no max iteration guard. Add `MAX_ITERATIONS = 500` or a timeout to prevent infinite loops on unexpected API responses. | — | — |
+| P0.4.5 | todo | Add focus trap to gallery lightbox | `src/components/gallery-lightbox.tsx` doesn't trap focus — Tab key can reach elements behind the backdrop. Add focus trapping (e.g., `inert` attribute on background content or a focus-trap library) for proper modal accessibility. | — | — |
+| P0.4.6 | todo | Replace animate-spin with motion-safe:animate-spin | Tailwind's `animate-spin` does not respect `prefers-reduced-motion`. Replace with `motion-safe:animate-spin` in 2 files: `src/components/pull-to-refresh.tsx` (RefreshCw icon) and `src/components/product-detail-tabs.tsx` (carousel "Coming Soon" Loader2 badge). | — | — |
+| P0.4.7 | todo | Replace fragile autoPublished heuristic in monitoring | `studio/ai-generate/monitoring/page.tsx` uses `reviewNotes.contains("Auto-published")` to count auto-published vs reviewed guides. This couples to the exact string in `auto-publish.ts`. Consider adding a dedicated `autoPublished: Boolean` field to the AIGenerationJob model, or add a code comment linking these. | — | — |
+| P0.4.8 | todo | Add label elements to login/register form inputs | `src/app/login/page.tsx` and `src/app/register/page.tsx` use `placeholder` text only — no associated `<label>` or `aria-label` on form inputs. Add proper `<Label htmlFor="...">` elements (can be `sr-only` if visual labels aren't desired) per WCAG form accessibility requirements. | — | — |

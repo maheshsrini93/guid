@@ -11,18 +11,18 @@ export async function HeaderNav() {
         <Link href="/" className="font-bold text-lg cursor-pointer transition-colors duration-200 ease-out hover:text-primary">
           Guid
         </Link>
-        <nav className="ml-auto flex items-center gap-4 text-sm">
-          <Link href="/products" className="cursor-pointer transition-colors duration-200 ease-out hover:text-primary">
+        <nav className="ml-auto flex items-center gap-1 sm:gap-4 text-sm">
+          <Link href="/products" className="inline-flex min-h-[44px] items-center px-2 cursor-pointer transition-colors duration-200 ease-out hover:text-primary">
             Products
           </Link>
           {session?.user ? (
             <>
               {(session.user as unknown as { role: string }).role === "admin" && (
-                <Link href="/studio" className="cursor-pointer transition-colors duration-200 ease-out hover:text-primary">
+                <Link href="/studio" className="inline-flex min-h-[44px] items-center px-2 cursor-pointer transition-colors duration-200 ease-out hover:text-primary">
                   Studio
                 </Link>
               )}
-              <Link href="/profile" className="cursor-pointer transition-colors duration-200 ease-out hover:text-primary">
+              <Link href="/profile" className="inline-flex min-h-[44px] items-center px-2 cursor-pointer transition-colors duration-200 ease-out hover:text-primary">
                 Profile
               </Link>
               <form
@@ -33,7 +33,7 @@ export async function HeaderNav() {
               >
                 <button
                   type="submit"
-                  className="text-muted-foreground cursor-pointer transition-colors duration-200 ease-out hover:text-primary"
+                  className="inline-flex min-h-[44px] items-center px-2 text-muted-foreground cursor-pointer transition-colors duration-200 ease-out hover:text-primary"
                 >
                   Sign out
                 </button>
@@ -41,10 +41,10 @@ export async function HeaderNav() {
             </>
           ) : (
             <>
-              <Link href="/login" className="cursor-pointer transition-colors duration-200 ease-out hover:text-primary">
+              <Link href="/login" className="inline-flex min-h-[44px] items-center px-2 cursor-pointer transition-colors duration-200 ease-out hover:text-primary">
                 Sign in
               </Link>
-              <Link href="/register" className="cursor-pointer transition-colors duration-200 ease-out hover:text-primary">
+              <Link href="/register" className="inline-flex min-h-[44px] items-center px-2 cursor-pointer transition-colors duration-200 ease-out hover:text-primary">
                 Register
               </Link>
             </>

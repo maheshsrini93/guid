@@ -5,10 +5,12 @@ import type { GuideStep } from "./types";
 interface StepSectionProps {
   step: GuideStep;
   totalSteps: number;
+  /** Optional bookmark button rendered after the step header */
+  bookmarkAction?: React.ReactNode;
 }
 
 export const StepSection = forwardRef<HTMLElement, StepSectionProps>(
-  function StepSection({ step, totalSteps }, ref) {
+  function StepSection({ step, totalSteps, bookmarkAction }, ref) {
     const headingId = `step-heading-${step.stepNumber}`;
 
     return (
@@ -26,7 +28,7 @@ export const StepSection = forwardRef<HTMLElement, StepSectionProps>(
           >
             {step.stepNumber}
           </span>
-          <div>
+          <div className="flex-1 min-w-0">
             <h3 id={headingId} className="font-semibold">
               {step.title}
             </h3>
@@ -34,6 +36,7 @@ export const StepSection = forwardRef<HTMLElement, StepSectionProps>(
               Step {step.stepNumber} of {totalSteps}
             </span>
           </div>
+          {bookmarkAction}
         </div>
 
         {/* Instruction text */}

@@ -179,6 +179,7 @@ export default async function ProductPage({
           timeMinutes: true,
           tools: true,
           published: true,
+          aiGenerated: true,
           steps: {
             orderBy: { stepNumber: "asc" },
             select: {
@@ -203,6 +204,12 @@ export default async function ProductPage({
     product.assemblyGuide?.published === true;
 
   if (hasPublishedGuide && product.assemblyGuide) {
+    // Get session for progress saving (P2.2.13)
+    const guideSession = await auth();
+    const guideUserId = guideSession?.user
+      ? (guideSession.user as unknown as { id: string }).id
+      : null;
+
     // Find the first available dimension for the info card
     const dimensionEntry = [
       { label: "Width", value: product.product_width },
@@ -272,7 +279,12 @@ export default async function ProductPage({
           difficulty={product.assemblyGuide.difficulty}
           timeMinutes={product.assemblyGuide.timeMinutes}
           tools={product.assemblyGuide.tools}
+          aiGenerated={product.assemblyGuide.aiGenerated}
           steps={product.assemblyGuide.steps}
+          guideId={product.assemblyGuide.id}
+          userId={guideUserId}
+          articleNumber={product.article_number}
+          productName={product.product_name}
           sidebarExtra={
             <ProductInfoCard
               articleNumber={product.article_number}
@@ -350,6 +362,40 @@ export default async function ProductPage({
           {product.product_name || product.article_number}
         </span>
       </nav>
+
+      {/* Guide in Progress banner (P1.5.13) */}
+      {(product.guide_status === "queued" || product.guide_status === "generating") && (
+        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 p-4 flex items-center gap-3">
+          <div className="h-5 w-5 shrink-0 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" />
+          <div>
+            <p className="text-sm font-medium text-amber-900 dark:text-amber-200">
+              Assembly guide being generated
+            </p>
+            <p className="text-xs text-amber-700 dark:text-amber-400">
+              {product.guide_status === "queued"
+                ? "This product is queued for AI guide generation. Check back shortly."
+                : "Our AI is currently creating a step-by-step assembly guide for this product."}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Guide in Review banner */}
+      {product.guide_status === "in_review" && (
+        <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30 p-4 flex items-center gap-3">
+          <div className="h-5 w-5 shrink-0 rounded-full border-2 border-blue-400 flex items-center justify-center">
+            <div className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-blue-900 dark:text-blue-200">
+              Assembly guide under review
+            </p>
+            <p className="text-xs text-blue-700 dark:text-blue-400">
+              A guide has been generated and is being reviewed for quality. It will be available soon.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-8 md:grid-cols-2">
         {/* Images */}

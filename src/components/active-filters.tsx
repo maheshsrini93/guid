@@ -43,7 +43,7 @@ export function ActiveFilters() {
         <Badge
           key={f.key}
           variant="secondary"
-          className="cursor-pointer gap-1"
+          className="cursor-pointer gap-1 min-h-[44px] px-3 py-2 sm:min-h-0 sm:py-0.5 sm:px-2"
           onClick={() => removeParam(f.key)}
         >
           {f.label}

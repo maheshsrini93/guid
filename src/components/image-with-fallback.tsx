@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { isValidImageUrl } from "@/lib/image-utils";
 
 interface ImageWithFallbackProps {
   src: string;
@@ -30,7 +31,7 @@ export function ImageWithFallback({
   const [error, setError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  if (error) {
+  if (error || !isValidImageUrl(src)) {
     return (
       <div
         className={cn(

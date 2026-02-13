@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { SaveProductButton } from "@/components/save-product-button";
+import { BookmarkedStepsList } from "@/components/bookmarked-steps-list";
+import { isValidImageUrl } from "@/lib/image-utils";
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -83,7 +85,7 @@ export default async function ProfilePage() {
                     href={`/products/${product.article_number}`}
                     className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-gray-50"
                   >
-                    {product.images[0] ? (
+                    {isValidImageUrl(product.images[0]?.url) ? (
                       <Image
                         src={product.images[0].url}
                         alt={product.product_name || "Product"}
@@ -128,6 +130,13 @@ export default async function ProfilePage() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Bookmarked Steps (P2.2.14) */}
+      <Separator className="my-8" />
+      <div>
+        <h2 className="text-xl font-semibold mb-4">Bookmarked Steps</h2>
+        <BookmarkedStepsList />
       </div>
     </main>
   );

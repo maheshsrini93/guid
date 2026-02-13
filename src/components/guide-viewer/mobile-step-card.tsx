@@ -13,6 +13,8 @@ interface MobileStepCardProps {
   onPrevious: () => void;
   onNext: () => void;
   onImageClick?: (imageUrl: string, alt: string) => void;
+  /** Optional bookmark button rendered in the step header */
+  bookmarkAction?: React.ReactNode;
 }
 
 export function MobileStepCard({
@@ -22,6 +24,7 @@ export function MobileStepCard({
   onPrevious,
   onNext,
   onImageClick,
+  bookmarkAction,
 }: MobileStepCardProps) {
   const progressPercent = ((currentIndex + 1) / totalSteps) * 100;
   const isFirst = currentIndex === 0;
@@ -59,12 +62,13 @@ export function MobileStepCard({
           >
             {step.stepNumber}
           </span>
-          <div>
+          <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-lg">{step.title}</h3>
             <span className="text-caption text-muted-foreground">
               Step {step.stepNumber} of {totalSteps}
             </span>
           </div>
+          {bookmarkAction}
         </div>
 
         {/* Instruction */}

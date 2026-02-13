@@ -19,34 +19,40 @@ export default async function StudioLayout({
 
   return (
     <div className="flex min-h-[calc(100vh-3.5rem)]">
-      <aside className="w-56 border-r bg-gray-50 p-4">
+      <aside className="w-56 border-r bg-muted/50 p-4">
         <h2 className="mb-4 font-semibold text-sm uppercase text-muted-foreground">
           Studio
         </h2>
         <nav className="space-y-1">
           <Link
             href="/studio"
-            className="block rounded-md px-3 py-2 text-sm hover:bg-gray-100"
+            className="block rounded-md px-3 py-2 text-sm hover:bg-accent"
           >
             Dashboard
           </Link>
           <Link
             href="/studio/products"
-            className="block rounded-md px-3 py-2 text-sm hover:bg-gray-100"
+            className="block rounded-md px-3 py-2 text-sm hover:bg-accent"
           >
             Products
           </Link>
           <Link
             href="/studio/guides"
-            className="block rounded-md px-3 py-2 text-sm hover:bg-gray-100"
+            className="block rounded-md px-3 py-2 text-sm hover:bg-accent"
           >
             Guides
           </Link>
           <Link
             href="/studio/ai-generate"
-            className="block rounded-md px-3 py-2 text-sm hover:bg-gray-100"
+            className="block rounded-md px-3 py-2 text-sm hover:bg-accent"
           >
             AI Generate
+          </Link>
+          <Link
+            href="/studio/ai-config"
+            className="block rounded-md px-3 py-2 text-sm hover:bg-accent"
+          >
+            AI Config
           </Link>
         </nav>
         <div className="mt-8 border-t pt-4">

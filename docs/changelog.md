@@ -6,6 +6,32 @@ All notable changes to the project documentation (`docs/`) are logged here. Newe
 
 | # | Date | Change | Phase | Docs Affected |
 |---|------|--------|-------|---------------|
+| 66 | 2026-02-13 | Added review backlog section (P0.4.1–P0.4.8) to tasks.md: 3 IMPORTANT items (dark mode colors, queue API auth, transaction safety) + 5 SUGGESTION items (loop guard, focus trap, reduced motion, heuristic coupling, form labels) flagged by Critic agent during team session | 0 | tasks |
+| 65 | 2026-02-13 | P1.5.13: "Guide in Progress" state banners — amber "guide being generated" banner with spinner for queued/generating status, blue "guide under review" banner with dot indicator for in_review status; added to both guide-first product page (fallback branch) and explicit details page; added guide_status to details page Prisma query; contextual copy differentiates queued vs actively generating | 1.5 | products/[articleNumber]/page.tsx, products/[articleNumber]/details/page.tsx, tasks |
+| 64 | 2026-02-13 | P1.5.4: Three-tier auto-publish rules — updated autoPublishOrRoute() with three distinct tiers: (1) auto_publish >= 90% confidence creates guide and marks approved, (2) review 70-89% creates guide with aiGenerated=true badge and publishes immediately but keeps job in review for admin verification, (3) hold < 70% no guide created, routed to manual review; added aiGenerated field to AssemblyGuide schema; extracted upsertGuide() helper; added "AI-Generated" badge (blue outline) to guide viewer in desktop, tablet, and mobile layouts; updated Prisma query to select aiGenerated field | 1.5 | prisma/schema.prisma, lib/auto-publish.ts, guide-viewer/types.ts, guide-viewer/guide-viewer.tsx, products/[articleNumber]/page.tsx, tasks |
+| 63 | 2026-02-13 | P1.7.1: AI generate dashboard enhancements — single product search+enqueue component (search by name/article number, shows guide status and assembly doc availability, one-click generate), product search API endpoint (/api/queue/product-search), priority and source filters (high/normal/low, manual/batch/auto_sync) as URL-based tab rows alongside status filter, composite where clause for multi-filter support | 1.7 | studio/ai-generate/single-enqueue.tsx, api/queue/product-search/route.ts, studio/ai-generate/page.tsx, tasks |
+| 62 | 2026-02-13 | P1.4.5: Dedicated monitoring dashboard — /studio/ai-generate/monitoring with 6 key metric cards (today/week/total completions, success rate, avg confidence, guide coverage), processing performance (avg/P50/P95 times), queue health (depth, priority breakdown, estimated wait time), 14-day throughput chart, model usage with per-model confidence, auto-publish vs review pipeline split, source breakdown, cost estimates; linked from ai-generate page header | 1.4 | studio/ai-generate/monitoring/page.tsx, studio/ai-generate/page.tsx, tasks |
+| 61 | 2026-02-13 | P1.4.5 + P1.7.1: Batch processing dashboard & monitoring — batch analytics section with completion rate bar, avg processing time, 7-day throughput chart (stacked completed/failed per day), trigger source breakdown (manual/batch/auto_sync), top failure reasons list; "Process All" button with live progress and stop control; fixed broken queue-actions.ts import (was referencing deleted @/lib/queue); added Source column to jobs table; fixed cron route type error; fixed batch-enqueue discriminated union handling | 1.4, 1.7 | studio/ai-generate/page.tsx, studio/ai-generate/queue-controls.tsx, studio/ai-generate/batch-enqueue.tsx, actions/queue-actions.ts, api/cron/process-queue/route.ts, tasks |
+| 60 | 2026-02-13 | P2.4.4: Related products carousel — RelatedProductsCarousel component with horizontal scroll, snap-to-card, hidden scrollbar, left/right chevron buttons (desktop), responsive card widths (1.5 mobile peek / 2 tablet / 3 md / 4 desktop), guide availability badges (green "Guide" / amber "Soon"), ImageWithFallback for lazy loading, ResizeObserver for scroll state; Prisma query fetches 8 same-category products by rating; replaced "Related Products" tab placeholder | 2.4 | components/product-detail-tabs.tsx, products/[articleNumber]/details/page.tsx, tasks |
+| 59 | 2026-02-13 | P1.4.4: Auto-publish for high-confidence guides — autoPublishOrRoute() function loads active AIGenerationConfig thresholds, runs quality checks via classifyQualityGate (auto_publish >= 90%, review 70-89%, hold < 70%), auto-publishes by creating/updating AssemblyGuide + Steps and marking product "published", routes lower-confidence guides to review queue; integrated into cron process-queue worker | 1.4 | lib/auto-publish.ts, api/cron/process-queue/route.ts, tasks |
+| 58 | 2026-02-13 | P2.7.5: Bottom sheet patterns — MobileSortSheet component (side="bottom" Sheet with check indicators, 44px touch targets), MobileFilterSheet converted from side="left" to side="bottom" with max-h-[85vh] and rounded-t-xl, sort Select hidden on mobile with MobileSortSheet shown instead | 2.7 | components/mobile-sort-sheet.tsx, components/mobile-filter-sheet.tsx, products/page.tsx, tasks |
+| 57 | 2026-02-13 | P2.4.3: Spec table on product details — SpecTable component with alternating row backgrounds (bg-muted/50), scope="row" headers, JetBrains Mono on measurements, sr-only captions; three grouped tables (Specifications, Product Dimensions, Package Dimensions) consolidating article number, color, designer, materials, assembly required, and all dimensions; replaced previous grid-based dimension layout in Overview tab | 2.4 | components/product-detail-tabs.tsx, products/[articleNumber]/details/page.tsx, tasks |
+| 56 | 2026-02-13 | P2.7.4: Touch targets audit — min-h-[44px] on header nav links/sign-out, filter checkbox rows, active filter badges (mobile), search autocomplete/recent items, select items, pagination buttons (mobile), input fields (h-11 mobile/h-9 desktop), select triggers (mobile), login/register text links | 2.7 | header-nav.tsx, product-filters.tsx, active-filters.tsx, search-input.tsx, ui/select.tsx, ui/input.tsx, products/page.tsx, login/page.tsx, register/page.tsx, tasks |
+| 55 | 2026-02-13 | P2.4.2: Image gallery lightbox — GalleryLightbox component with keyboard navigation (Escape close, ArrowLeft/Right), touch swipe (50px threshold), prev/next buttons, image counter in mono font, backdrop blur overlay; updated ProductImageGallery to open lightbox on main image click with cursor-pointer and focus-visible ring | 2.4 | components/gallery-lightbox.tsx, components/product-image-gallery.tsx, tasks |
+| 54 | 2026-02-13 | P1.4.3: Queue worker — Vercel Cron endpoint (/api/cron/process-queue) running every 5 min, processes up to 3 jobs per run with concurrency cap (max 2), Gemini rate limiter integration, priority-ordered job claiming, updated vercel.json with cron schedule | 1.4 | api/cron/process-queue/route.ts, vercel.json, tasks |
+| 53 | 2026-02-13 | P1.4.2: Batch processing dashboard — queue stats (5 cards), process-next/cancel/retry buttons, batch enqueue with priority and size controls, eligible products API endpoint, fixed process route schema alignment, priority column in jobs table | 1.4 | queue.ts, actions/queue-actions.ts, api/queue/process/route.ts, api/queue/eligible/route.ts, studio/ai-generate/page.tsx, studio/ai-generate/batch-enqueue.tsx, tasks |
+| 52 | 2026-02-13 | P2.4.1: Tabbed product detail page — installed shadcn/ui Tabs, created ProductDetailTabs client component with 3 tabs (Overview, Documents, Related Products), line variant with sticky tab bar, rewrote details/page.tsx to hero (images + product header) above tabs with content below, mono font on dimensions, document count badges, empty states for docs and related products | 2.4 | components/product-detail-tabs.tsx, components/ui/tabs.tsx, products/[articleNumber]/details/page.tsx, tasks |
+| 51 | 2026-02-13 | P2.7.6: Pull-to-refresh component — reusable PullToRefresh wrapper with touch gesture detection, pull threshold (80px), resistance easing, animated RefreshCw indicator, router.refresh() integration, overscroll-behavior:contain to prevent browser default | 2.7 | components/pull-to-refresh.tsx, tasks |
+| 50 | 2026-02-13 | P2.2.14: Add step bookmarking across guides — useStepBookmarks hook (localStorage), BookmarkButton component (filled/unfilled Bookmark icon on step headers), BookmarkedStepsList client component (grouped by guide, with remove/clear actions), integrated into StepSection, MobileStepCard, and GuideViewer, added to profile page | 2.2 | guide-viewer/use-step-bookmarks.ts, guide-viewer/bookmark-button.tsx, guide-viewer/step-section.tsx, guide-viewer/mobile-step-card.tsx, guide-viewer/guide-viewer.tsx, guide-viewer/index.ts, bookmarked-steps-list.tsx, profile/page.tsx, products/[articleNumber]/page.tsx, tasks |
+| 49 | 2026-02-13 | P0.3.3: Search pattern tracking — search-tracking.ts utility (4 event types: search_query, search_autocomplete, search_zero_results, search_discovery), integrated into SearchInput component with per-interaction tracking for queries, autocomplete clicks, discovery methods (text/article_number/url/recent) | 0 | lib/search-tracking.ts, search-input.tsx, tasks |
+| 48 | 2026-02-13 | P1.4.1: Build job queue system — enqueue (single + batch), status transitions with validation (queued->processing->review->approved/failed + failed->queued re-queue), cancel/re-queue, priority ordering (high>normal>low), comprehensive queue stats, filtered+paginated job listing | 1.4 | actions/job-queue.ts, tasks |
+| 47 | 2026-02-13 | P0.3.2: Guide engagement tracking — guide-tracking.ts utility (6 event types: guide_view, guide_step_view, guide_step_time, guide_complete, guide_drop_off, guide_rating) and use-guide-tracking.ts React hook with automatic lifecycle tracking via Vercel Analytics custom events | 0 | lib/guide-tracking.ts, lib/use-guide-tracking.ts, tasks |
+| 46 | 2026-02-13 | P2.2.13: Add progress saving for signed-in users — useGuideProgress hook (localStorage keyed by userId+guideId, debounced saves), ResumeBanner component ("Welcome back! Continue from Step X?"), integrated into GuideViewer for all layouts (mobile/tablet/desktop), page passes guideId and userId props | 2.2 | guide-viewer/use-guide-progress.ts, guide-viewer/resume-banner.tsx, guide-viewer/guide-viewer.tsx, guide-viewer/index.ts, products/[articleNumber]/page.tsx, tasks |
+| 45 | 2026-02-13 | P1.7.3: Build /studio/ai-config management page — CRUD for AIGenerationConfig, model params, prompt templates, auto-publish thresholds, activate/deactivate toggle, version bumping | 1.7 | actions/ai-config.ts, studio/ai-config/page.tsx, studio/ai-config/config-form.tsx, studio/ai-config/config-actions.tsx, studio/ai-config/new-config-button.tsx, studio/layout.tsx, tasks |
+| 44 | 2026-02-13 | P2.5.4: Optimize filter query builder — reordered WHERE clauses (equality/boolean first, range second, EXISTS third, ILIKE last), combined min/max price into single condition, added article-number detection to bypass 4-way ILIKE for numeric queries | 2.5 | product-filters.ts, tasks |
+| 43 | 2026-02-13 | P0.1.2: Preview deployments — added git and github config to vercel.json for auto-alias, auto-cancellation, and PR comment integration | 0 | vercel.json, tasks |
+| 42 | 2026-02-13 | P0.1.1: Vercel deployment setup — vercel.json with security headers and region config, postinstall script for Prisma generation, env var documentation | 0 | vercel.json, package.json, .env.example, tasks |
+| 41 | 2026-02-13 | P1.3.5: Implement reviewer feedback loop — ReviewerCorrection model, correction categories, before/after diff tracking, feedback insights dashboard | 1.3 | prisma/schema.prisma, ai/types.ts, actions/ai-generation.ts, step-review-card.tsx, studio/ai-generate/feedback/page.tsx, studio/ai-generate/page.tsx, tasks |
 | 40 | 2026-02-12 | P2.5.5-P2.5.6 + P2.6.6 + P2.7.2-P2.7.3: ISR (revalidate 1h list / 24h detail), Cache-Control on search API, heading hierarchy audit (h1 on login/register/guide-first), search dropdown max-height for mobile | 2.5, 2.6, 2.7 | products/page.tsx, products/[articleNumber]/page.tsx, details/page.tsx, api/search/route.ts, login/page.tsx, register/page.tsx, search-input.tsx, tasks |
 | 39 | 2026-02-12 | P2.5.1-P2.5.3 + P2.7.1: Performance optimization — replaced include with select on all Prisma queries, dynamic imports for GuideViewer/AssemblyGuideViewer, image loading prop on ImageWithFallback, lazy thumbnails, responsive fixes (flex-wrap on stats/search, table overflow, studio min-width) | 2.5, 2.7 | products/[articleNumber]/page.tsx, details/page.tsx, products/page.tsx, studio/products/page.tsx, studio/guides/page.tsx, profile/page.tsx, image-with-fallback.tsx, product-image-gallery.tsx, page.tsx, tasks |
 | 38 | 2026-02-12 | P1.3.3 + P1.3.4 + P1.7.2: Studio Review UI — job list, side-by-side review, inline editing, approve/reject | 1.3, 1.7 | studio/ai-generate/page.tsx, studio/ai-generate/[jobId]/, actions/ai-generation.ts, studio/layout.tsx, tasks |
@@ -46,6 +72,55 @@ All notable changes to the project documentation (`docs/`) are logged here. Newe
 | 3 | 2026-02-11 | Sync #2: Nano Banana models + Phase 1 blockers + proactive chatbot + mobile apps | 1–6 | implementation-plan, master-plan, user-journeys, tasks |
 | 2 | 2026-02-11 | Sync #1: AI troubleshooting assistant + target users + key scenarios | 3 | master-plan, implementation-plan, user-journeys, tasks |
 | 1 | 2026-02-11 | Initial creation — all 5 project docs via guided Q&A | — | master-plan, implementation-plan, design-guidelines, user-journeys, tasks |
+
+---
+
+## 2026-02-13 — Reviewer Feedback Loop (P1.3.5)
+
+**Summary:** Implemented a full feedback loop for the AI guide review process. Reviewer corrections are now tracked with before/after diffs, categorized by error type, and surfaced on a dedicated feedback insights dashboard. This data enables systematic prompt refinement by identifying the most common types of AI errors.
+
+### Tasks Completed
+
+| ID | Task |
+|----|------|
+| P1.3.5 | Implement feedback loop — store reviewer corrections and notes; use them to refine prompts |
+
+### Database Changes
+
+#### `ReviewerCorrection` model (new)
+- `id`, `jobId`, `stepNumber`, `field` (title/instruction), `originalValue`, `correctedValue`, `category`, `reviewerNotes`, `reviewedBy`, `createdAt`
+- Relation: belongs to `AIGenerationJob`
+- Indexes on `jobId` and `category` for efficient aggregation queries
+
+### Files Changed
+
+#### `prisma/schema.prisma`
+- Added `ReviewerCorrection` model with relation to `AIGenerationJob`
+- Added `corrections` relation on `AIGenerationJob`
+
+#### `src/lib/ai/types.ts`
+- Added `CorrectionCategory` type with 10 categories: incorrect_part_name, unclear_instruction, missing_safety_warning, wrong_direction, missing_step_detail, incorrect_order, wrong_tool, terminology_inconsistency, grammar_style, other
+- Added `CORRECTION_CATEGORIES` constant array with human-readable labels
+
+#### `src/lib/actions/ai-generation.ts`
+- Updated `updateJobStep` to accept `correctionCategory` and `correctionNotes`, capture before/after diffs in `ReviewerCorrection` records using a Prisma transaction
+- Added `getJobCorrections(jobId)` — query corrections for a specific job
+- Added `getFeedbackSummary()` — aggregate stats: total corrections, by-category counts, by-field counts, jobs corrected count, and 20 most recent corrections with product context
+
+#### `src/app/studio/ai-generate/[jobId]/step-review-card.tsx`
+- Added correction category dropdown (visible in edit mode) with all 10 categories
+- Added optional notes input for explaining the correction
+- Shows success message with correction count after save
+
+### Files Created
+
+#### `src/app/studio/ai-generate/feedback/page.tsx`
+- Summary stats: total corrections, jobs corrected, title vs instruction split
+- Horizontal bar chart showing correction frequency by category
+- Recent corrections list with side-by-side original (red) vs corrected (green) diff display, product context, and reviewer notes
+
+#### `src/app/studio/ai-generate/page.tsx`
+- Added "Reviewer Feedback" button linking to the insights dashboard
 
 ---
 

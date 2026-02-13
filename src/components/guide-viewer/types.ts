@@ -15,6 +15,7 @@ export interface GuideData {
   difficulty: string;
   timeMinutes: number | null;
   tools: string | null;
+  aiGenerated?: boolean;
   steps: GuideStep[];
 }
 

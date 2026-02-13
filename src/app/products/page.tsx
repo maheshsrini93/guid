@@ -12,11 +12,13 @@ import { ProductSortSelect } from "@/components/product-sort-select";
 import { ProductFilters } from "@/components/product-filters";
 import { ActiveFilters } from "@/components/active-filters";
 import { MobileFilterSheet } from "@/components/mobile-filter-sheet";
+import { MobileSortSheet } from "@/components/mobile-sort-sheet";
 import {
   type ProductFilterParams,
   buildProductWhere,
   getSortOrderBy,
 } from "@/lib/product-filters";
+import { isValidImageUrl } from "@/lib/image-utils";
 
 export const metadata: Metadata = {
   title: "Browse Products",
@@ -116,7 +118,12 @@ export default async function ProductsPage({
             <SearchInput />
           </Suspense>
           <Suspense>
-            <ProductSortSelect />
+            <div className="hidden sm:block">
+              <ProductSortSelect />
+            </div>
+          </Suspense>
+          <Suspense>
+            <MobileSortSheet />
           </Suspense>
           <Suspense>
             <MobileFilterSheet categories={categories} />
@@ -157,7 +164,7 @@ export default async function ProductsPage({
                   href={`/products/${product.article_number}`}
                   className="group rounded-lg border p-4 transition-shadow hover:shadow-md"
                 >
-                  {product.images[0] ? (
+                  {isValidImageUrl(product.images[0]?.url) ? (
                     <div className="relative mb-3 aspect-square w-full rounded-md bg-gray-50 dark:bg-muted overflow-hidden">
                       <Image
                         src={product.images[0].url}
@@ -225,7 +232,7 @@ export default async function ProductsPage({
           {totalPages > 1 && (
             <div className="mt-8 flex items-center justify-center gap-2">
               {page > 1 && (
-                <Button variant="outline" size="sm" asChild>
+                <Button variant="outline" size="sm" className="min-h-[44px] sm:min-h-0" asChild>
                   <Link href={paginationUrl(page - 1)}>Previous</Link>
                 </Button>
               )}
@@ -233,7 +240,7 @@ export default async function ProductsPage({
                 Page {page} of {totalPages}
               </span>
               {page < totalPages && (
-                <Button variant="outline" size="sm" asChild>
+                <Button variant="outline" size="sm" className="min-h-[44px] sm:min-h-0" asChild>
                   <Link href={paginationUrl(page + 1)}>Next</Link>
                 </Button>
               )}

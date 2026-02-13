@@ -12,19 +12,29 @@ export interface ProductFilterParams {
   page?: string;
 }
 
+/**
+ * Build a Prisma WHERE clause from URL search params.
+ *
+ * Optimization strategy:
+ * 1. Equality/boolean filters first (most selective, use indexes)
+ * 2. Range filters next (price, rating — use indexes)
+ * 3. Relation subqueries (hasAssemblyDocs — EXISTS subquery)
+ * 4. Text search last (ILIKE is the most expensive)
+ *
+ * For text search: detect numeric-only queries and short-circuit
+ * to an exact article_number match instead of running 4 ILIKE scans.
+ */
 export function buildProductWhere(
   params: ProductFilterParams
 ): Prisma.ProductWhereInput {
   const conditions: Prisma.ProductWhereInput[] = [];
 
-  if (params.q) {
+  // 1. Boolean/equality filters (most selective, indexed)
+  if (params.assembly === "true") {
+    conditions.push({ assembly_required: true });
+  } else if (params.assembly === "false") {
     conditions.push({
-      OR: [
-        { product_name: { contains: params.q, mode: "insensitive" } },
-        { article_number: { contains: params.q, mode: "insensitive" } },
-        { product_type: { contains: params.q, mode: "insensitive" } },
-        { category_path: { contains: params.q, mode: "insensitive" } },
-      ],
+      OR: [{ assembly_required: false }, { assembly_required: null }],
     });
   }
 
@@ -34,18 +44,14 @@ export function buildProductWhere(
     });
   }
 
-  if (params.minPrice) {
-    const min = parseFloat(params.minPrice);
-    if (!isNaN(min)) {
-      conditions.push({ price_current: { gte: min } });
-    }
-  }
-
-  if (params.maxPrice) {
-    const max = parseFloat(params.maxPrice);
-    if (!isNaN(max)) {
-      conditions.push({ price_current: { lte: max } });
-    }
+  // 2. Range filters — combine min/max into a single price_current condition
+  const minPrice = params.minPrice ? parseFloat(params.minPrice) : NaN;
+  const maxPrice = params.maxPrice ? parseFloat(params.maxPrice) : NaN;
+  if (!isNaN(minPrice) || !isNaN(maxPrice)) {
+    const priceFilter: Prisma.FloatNullableFilter = {};
+    if (!isNaN(minPrice)) priceFilter.gte = minPrice;
+    if (!isNaN(maxPrice)) priceFilter.lte = maxPrice;
+    conditions.push({ price_current: priceFilter });
   }
 
   if (params.minRating) {
@@ -55,18 +61,49 @@ export function buildProductWhere(
     }
   }
 
-  if (params.assembly === "true") {
-    conditions.push({ assembly_required: true });
-  } else if (params.assembly === "false") {
-    conditions.push({
-      OR: [{ assembly_required: false }, { assembly_required: null }],
-    });
-  }
-
+  // 3. Relation subquery (EXISTS — more expensive than column filters)
   if (params.hasAssemblyDocs === "true") {
     conditions.push({
       documents: { some: { document_type: "assembly" } },
     });
+  }
+
+  // 4. Text search last (ILIKE is the most expensive operation)
+  if (params.q) {
+    const query = params.q.trim();
+    // Detect article-number-like input (digits, dots, dashes only)
+    // e.g., "702.758.14" or "70275814" — use exact match on indexed column
+    const isArticleNumber = /^[\d.\-]+$/.test(query);
+
+    if (isArticleNumber) {
+      // Normalized search: strip dots/dashes for flexible matching
+      const normalized = query.replace(/[.\-]/g, "");
+      conditions.push({
+        OR: [
+          { article_number: { contains: query, mode: "insensitive" } },
+          // Also match without separators in case user omits them
+          ...(normalized !== query
+            ? [
+                {
+                  article_number: {
+                    contains: normalized,
+                    mode: "insensitive" as const,
+                  },
+                },
+              ]
+            : []),
+        ],
+      });
+    } else {
+      conditions.push({
+        OR: [
+          { product_name: { contains: query, mode: "insensitive" } },
+          { article_number: { contains: query, mode: "insensitive" } },
+          { product_type: { contains: query, mode: "insensitive" } },
+          { category_path: { contains: query, mode: "insensitive" } },
+        ],
+      });
+    }
   }
 
   return conditions.length > 0 ? { AND: conditions } : {};

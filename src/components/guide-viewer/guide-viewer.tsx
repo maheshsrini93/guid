@@ -9,6 +9,10 @@ import { Lightbox } from "./lightbox";
 import { MobileStepCard } from "./mobile-step-card";
 import { MobileTocSheet } from "./mobile-toc-sheet";
 import { CompletionScreen } from "./completion-screen";
+import { ResumeBanner } from "./resume-banner";
+import { BookmarkButton } from "./bookmark-button";
+import { useGuideProgress } from "./use-guide-progress";
+import { useStepBookmarks } from "./use-step-bookmarks";
 import { Badge } from "@/components/ui/badge";
 import { List } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,11 +23,20 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { useGuideTracking } from "@/lib/use-guide-tracking";
 import type { GuideStep, GuideData } from "./types";
 
 interface GuideViewerProps extends GuideData {
   /** Content to render below the illustration panel in the right column (e.g. ProductInfoCard) */
   sidebarExtra?: React.ReactNode;
+  /** Guide ID for progress saving (signed-in users) */
+  guideId?: string | null;
+  /** User ID for progress saving (signed-in users) */
+  userId?: string | null;
+  /** Article number for step bookmarking links */
+  articleNumber?: string | null;
+  /** Product name for bookmark display context */
+  productName?: string | null;
 }
 
 export function GuideViewer({
@@ -32,8 +45,13 @@ export function GuideViewer({
   difficulty,
   timeMinutes,
   tools,
+  aiGenerated,
   steps,
   sidebarExtra,
+  guideId,
+  userId,
+  articleNumber,
+  productName,
 }: GuideViewerProps) {
   // --- State ---
   const [activeStepNumber, setActiveStepNumber] = useState(
@@ -59,6 +77,41 @@ export function GuideViewer({
   // Step refs for intersection observer
   const stepRefs = useRef<Map<number, HTMLElement>>(new Map());
 
+  // --- Progress saving (P2.2.13) ---
+  const {
+    savedProgress,
+    showResumeBanner,
+    saveProgress,
+    clearProgress,
+    dismissBanner,
+  } = useGuideProgress(userId, guideId);
+
+  // --- Step bookmarking (P2.2.14) ---
+  const { isBookmarked, toggleBookmark } = useStepBookmarks();
+
+  const renderBookmarkButton = useCallback(
+    (step: GuideStep) => {
+      if (!guideId || !articleNumber) return null;
+      return (
+        <BookmarkButton
+          stepNumber={step.stepNumber}
+          isBookmarked={isBookmarked(guideId, step.stepNumber)}
+          onToggle={() =>
+            toggleBookmark({
+              guideId,
+              stepNumber: step.stepNumber,
+              stepTitle: step.title,
+              guideTitle: title,
+              articleNumber,
+              productName: productName || "Product",
+            })
+          }
+        />
+      );
+    },
+    [guideId, articleNumber, productName, title, isBookmarked, toggleBookmark]
+  );
+
   // --- Responsive detection ---
   useEffect(() => {
     const checkSize = () => {
@@ -70,6 +123,56 @@ export function GuideViewer({
     window.addEventListener("resize", checkSize);
     return () => window.removeEventListener("resize", checkSize);
   }, []);
+
+  // --- Auto-save progress on step changes (P2.2.13) ---
+  useEffect(() => {
+    saveProgress(activeStepNumber, mobileStepIndex);
+  }, [activeStepNumber, mobileStepIndex, saveProgress]);
+
+  // --- Resume handler: scroll to saved step ---
+  const handleResume = useCallback(() => {
+    if (!savedProgress) return;
+
+    if (isMobile) {
+      const targetIdx = savedProgress.mobileStepIndex;
+      if (targetIdx >= 0 && targetIdx < steps.length) {
+        setMobileStepIndex(targetIdx);
+      }
+    } else {
+      const targetStep = steps.find(
+        (s) => s.stepNumber === savedProgress.stepNumber
+      );
+      if (targetStep) {
+        document
+          .getElementById(`step-${targetStep.stepNumber}`)
+          ?.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+    // Mark steps before the saved step as completed
+    setCompletedSteps((prev) => {
+      const next = new Set(prev);
+      for (const s of steps) {
+        if (s.stepNumber < savedProgress.stepNumber) {
+          next.add(s.stepNumber);
+        }
+      }
+      return next;
+    });
+    dismissBanner();
+  }, [savedProgress, isMobile, steps, dismissBanner]);
+
+  // --- Start Over handler ---
+  const handleStartOver = useCallback(() => {
+    clearProgress();
+    if (isMobile) {
+      setMobileStepIndex(0);
+    } else {
+      document
+        .getElementById(`step-${steps[0]?.stepNumber}`)
+        ?.scrollIntoView({ behavior: "smooth" });
+    }
+    setCompletedSteps(new Set());
+  }, [clearProgress, isMobile, steps]);
 
   // --- Scrollspy (desktop/tablet) via Intersection Observer ---
   useEffect(() => {
@@ -239,6 +342,17 @@ export function GuideViewer({
     ? mobileStepIndex === steps.length - 1
     : activeStepNumber === steps[steps.length - 1]?.stepNumber;
 
+  // --- Engagement tracking (P0.3.2) ---
+  useGuideTracking({
+    guideId: guideId ?? null,
+    articleNumber: articleNumber ?? "",
+    totalSteps: steps.length,
+    activeStepNumber: isMobile
+      ? steps[mobileStepIndex]?.stepNumber ?? 1
+      : activeStepNumber,
+    isComplete,
+  });
+
   // --- Lightbox handler ---
   const openLightbox = useCallback((url: string, alt: string) => {
     setLightbox({ url, alt });
@@ -284,9 +398,24 @@ export function GuideViewer({
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        {/* Show completion screen at the end */}
-        {mobileStepIndex === steps.length - 1 &&
-          mobileCompletedSteps.size === steps.length - 1 ? null : null}
+        {/* Resume banner (P2.2.13) */}
+        {showResumeBanner && savedProgress && (
+          <div className="px-4 pt-2">
+            <ResumeBanner
+              stepNumber={savedProgress.stepNumber}
+              onResume={handleResume}
+              onStartOver={handleStartOver}
+            />
+          </div>
+        )}
+
+        {aiGenerated && mobileStepIndex === 0 && (
+          <div className="px-4 pt-1">
+            <Badge variant="outline" className="border-blue-300 text-blue-600 dark:border-blue-600 dark:text-blue-400 text-[10px]">
+              AI-Generated Guide
+            </Badge>
+          </div>
+        )}
 
         <MobileStepCard
           step={currentStep}
@@ -301,6 +430,7 @@ export function GuideViewer({
             )
           }
           onImageClick={openLightbox}
+          bookmarkAction={renderBookmarkButton(currentStep)}
         />
 
         {/* Mobile TOC floating button + sheet */}
@@ -332,6 +462,17 @@ export function GuideViewer({
         {/* Progress bar at top */}
         <ProgressBar percent={progressPercent} />
 
+        {/* Resume banner (P2.2.13) */}
+        {showResumeBanner && savedProgress && (
+          <div className="px-4 pt-4">
+            <ResumeBanner
+              stepNumber={savedProgress.stepNumber}
+              onResume={handleResume}
+              onStartOver={handleStartOver}
+            />
+          </div>
+        )}
+
         {/* Guide header */}
         <div className="px-4 py-6">
           <h2>{title}</h2>
@@ -341,6 +482,11 @@ export function GuideViewer({
             </p>
           )}
           <div className="mt-3 flex flex-wrap gap-2">
+            {aiGenerated && (
+              <Badge variant="outline" className="border-blue-300 text-blue-600 dark:border-blue-600 dark:text-blue-400">
+                AI-Generated
+              </Badge>
+            )}
             <Badge variant="outline" className="capitalize">
               {difficulty}
             </Badge>
@@ -363,6 +509,7 @@ export function GuideViewer({
                 ref={setStepRef(step.stepNumber)}
                 step={step}
                 totalSteps={steps.length}
+                bookmarkAction={renderBookmarkButton(step)}
               />
             ))}
 
@@ -431,6 +578,17 @@ export function GuideViewer({
       {/* Progress bar at top */}
       <ProgressBar percent={progressPercent} />
 
+      {/* Resume banner (P2.2.13) */}
+      {showResumeBanner && savedProgress && (
+        <div className="px-6 pt-4">
+          <ResumeBanner
+            stepNumber={savedProgress.stepNumber}
+            onResume={handleResume}
+            onStartOver={handleStartOver}
+          />
+        </div>
+      )}
+
       {/* Guide header */}
       <div className="px-6 py-6">
         <h2>{title}</h2>
@@ -440,6 +598,11 @@ export function GuideViewer({
           </p>
         )}
         <div className="mt-3 flex flex-wrap gap-2">
+          {aiGenerated && (
+            <Badge variant="outline" className="border-blue-300 text-blue-600 dark:border-blue-600 dark:text-blue-400">
+              AI-Generated
+            </Badge>
+          )}
           <Badge variant="outline" className="capitalize">
             {difficulty}
           </Badge>
@@ -472,6 +635,7 @@ export function GuideViewer({
               ref={setStepRef(step.stepNumber)}
               step={step}
               totalSteps={steps.length}
+              bookmarkAction={renderBookmarkButton(step)}
             />
           ))}
 

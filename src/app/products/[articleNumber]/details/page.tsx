@@ -5,10 +5,9 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isProductSaved } from "@/lib/actions/saved-products";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { ProductImageGallery } from "@/components/product-image-gallery";
 import { SaveProductButton } from "@/components/save-product-button";
+import { ProductDetailTabs } from "@/components/product-detail-tabs";
 import { ProductJsonLd, BreadcrumbJsonLd } from "@/components/json-ld";
 
 // ISR: revalidate product detail pages every 24 hours
@@ -91,6 +90,7 @@ export default async function ProductDetailsPage({
       product_depth: true,
       product_length: true,
       product_weight: true,
+      guide_status: true,
       package_width: true,
       package_height: true,
       package_length: true,
@@ -101,6 +101,27 @@ export default async function ProductDetailsPage({
   });
 
   if (!product) return notFound();
+
+  // Fetch related products: same category, exclude current, limit 8
+  const relatedProducts = product.category_path
+    ? await prisma.product.findMany({
+        where: {
+          category_path: { contains: product.category_path.split("/").slice(0, 3).join("/"), mode: "insensitive" },
+          article_number: { not: articleNumber },
+        },
+        select: {
+          article_number: true,
+          product_name: true,
+          product_type: true,
+          price_current: true,
+          guide_status: true,
+          images: { take: 1, orderBy: { sort_order: "asc" }, select: { url: true } },
+          assemblyGuide: { select: { published: true } },
+        },
+        orderBy: { avg_rating: "desc" },
+        take: 8,
+      })
+    : [];
 
   const session = await auth();
   const saved = session ? await isProductSaved(product.id) : false;
@@ -118,14 +139,14 @@ export default async function ProductDetailsPage({
     { label: "Depth", value: product.product_depth },
     { label: "Length", value: product.product_length },
     { label: "Weight", value: product.product_weight },
-  ].filter((d) => d.value);
+  ].filter((d): d is { label: string; value: string } => d.value != null);
 
   const packageDims = [
     { label: "Width", value: product.package_width },
     { label: "Height", value: product.package_height },
     { label: "Length", value: product.package_length },
     { label: "Weight", value: product.package_weight },
-  ].filter((d) => d.value);
+  ].filter((d): d is { label: string; value: string } => d.value != null);
 
   const baseUrl = "https://guid.how";
   const detailsUrl = `${baseUrl}/products/${product.article_number}/details`;
@@ -170,8 +191,43 @@ export default async function ProductDetailsPage({
         <span className="text-foreground">Details</span>
       </nav>
 
+      {/* Guide in Progress banner (P1.5.13) */}
+      {(product.guide_status === "queued" || product.guide_status === "generating") && (
+        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 p-4 flex items-center gap-3">
+          <div className="h-5 w-5 shrink-0 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" />
+          <div>
+            <p className="text-sm font-medium text-amber-900 dark:text-amber-200">
+              Assembly guide being generated
+            </p>
+            <p className="text-xs text-amber-700 dark:text-amber-400">
+              {product.guide_status === "queued"
+                ? "This product is queued for AI guide generation. Check back shortly."
+                : "Our AI is currently creating a step-by-step assembly guide for this product."}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Guide in Review banner */}
+      {product.guide_status === "in_review" && (
+        <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30 p-4 flex items-center gap-3">
+          <div className="h-5 w-5 shrink-0 rounded-full border-2 border-blue-400 flex items-center justify-center">
+            <div className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-blue-900 dark:text-blue-200">
+              Assembly guide under review
+            </p>
+            <p className="text-xs text-blue-700 dark:text-blue-400">
+              A guide has been generated and is being reviewed for quality. It will be available soon.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Hero: Images + Key Product Info */}
       <div className="grid gap-8 md:grid-cols-2">
-        {/* Images */}
+        {/* Image Gallery */}
         <div>
           <ProductImageGallery
             images={product.images}
@@ -179,7 +235,7 @@ export default async function ProductDetailsPage({
           />
         </div>
 
-        {/* Details */}
+        {/* Product Header */}
         <div>
           <p className="text-sm text-muted-foreground font-mono">
             {product.article_number}
@@ -227,141 +283,34 @@ export default async function ProductDetailsPage({
               </Badge>
             )}
           </div>
-
-          {product.description && (
-            <>
-              <Separator className="my-6" />
-              <div>
-                <h2 className="mb-2 font-semibold">Description</h2>
-                <p className="text-sm text-muted-foreground whitespace-pre-line">
-                  {product.description}
-                </p>
-              </div>
-            </>
-          )}
-
-          {/* Documents */}
-          {(assemblyDocs.length > 0 || careDocs.length > 0) && (
-            <>
-              <Separator className="my-6" />
-              <div>
-                <h2 className="mb-3 font-semibold">Documents</h2>
-                <div className="flex flex-wrap gap-2">
-                  {assemblyDocs.map((doc) => (
-                    <Button
-                      key={doc.id}
-                      variant="outline"
-                      size="sm"
-                      asChild
-                    >
-                      <a
-                        href={doc.source_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Assembly Instructions (PDF)
-                      </a>
-                    </Button>
-                  ))}
-                  {careDocs.map((doc) => (
-                    <Button
-                      key={doc.id}
-                      variant="outline"
-                      size="sm"
-                      asChild
-                    >
-                      <a
-                        href={doc.source_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Care Instructions (PDF)
-                      </a>
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* Dimensions */}
-          {dimensions.length > 0 && (
-            <>
-              <Separator className="my-6" />
-              <div>
-                <h2 className="mb-3 font-semibold">Product Dimensions</h2>
-                <dl className="grid grid-cols-2 gap-2 text-sm">
-                  {dimensions.map((d) => (
-                    <div key={d.label}>
-                      <dt className="text-muted-foreground">{d.label}</dt>
-                      <dd className="font-medium">{d.value}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </div>
-            </>
-          )}
-
-          {packageDims.length > 0 && (
-            <>
-              <Separator className="my-6" />
-              <div>
-                <h2 className="mb-3 font-semibold">Package Dimensions</h2>
-                <dl className="grid grid-cols-2 gap-2 text-sm">
-                  {packageDims.map((d) => (
-                    <div key={d.label}>
-                      <dt className="text-muted-foreground">{d.label}</dt>
-                      <dd className="font-medium">{d.value}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </div>
-            </>
-          )}
-
-          {/* Additional Info */}
-          {(product.materials ||
-            product.care_instructions ||
-            product.good_to_know) && (
-            <>
-              <Separator className="my-6" />
-              {product.materials && (
-                <div className="mb-4">
-                  <h2 className="mb-2 font-semibold">Materials</h2>
-                  <p className="text-sm text-muted-foreground whitespace-pre-line">
-                    {product.materials}
-                  </p>
-                </div>
-              )}
-              {product.care_instructions && (
-                <div className="mb-4">
-                  <h2 className="mb-2 font-semibold">Care Instructions</h2>
-                  <p className="text-sm text-muted-foreground whitespace-pre-line">
-                    {product.care_instructions}
-                  </p>
-                </div>
-              )}
-              {product.good_to_know && (
-                <div className="mb-4">
-                  <h2 className="mb-2 font-semibold">Good to Know</h2>
-                  <p className="text-sm text-muted-foreground whitespace-pre-line">
-                    {product.good_to_know}
-                  </p>
-                </div>
-              )}
-            </>
-          )}
-
-          {product.category_path && (
-            <>
-              <Separator className="my-6" />
-              <p className="text-xs text-muted-foreground">
-                {product.category_path}
-              </p>
-            </>
-          )}
         </div>
       </div>
+
+      {/* Tabbed Content: Overview | Documents | Related Products */}
+      <ProductDetailTabs
+        description={product.description}
+        materials={product.materials}
+        careInstructions={product.care_instructions}
+        goodToKnow={product.good_to_know}
+        categoryPath={product.category_path}
+        articleNumber={product.article_number}
+        color={product.color}
+        designer={product.designer}
+        assemblyRequired={product.assembly_required}
+        dimensions={dimensions}
+        packageDims={packageDims}
+        assemblyDocs={assemblyDocs}
+        careDocs={careDocs}
+        relatedProducts={relatedProducts.map((p) => ({
+          articleNumber: p.article_number,
+          name: p.product_name,
+          productType: p.product_type,
+          price: p.price_current,
+          imageUrl: p.images[0]?.url ?? null,
+          hasGuide: p.guide_status === "published" || p.assemblyGuide?.published === true,
+          guideComingSoon: !p.assemblyGuide?.published && (p.guide_status === "queued" || p.guide_status === "generating"),
+        }))}
+      />
     </main>
   );
 }

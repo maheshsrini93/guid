@@ -184,7 +184,7 @@ export default async function AIGenerateReviewPage({
           {pdfUrl ? (
             <div className="rounded-lg border overflow-hidden bg-muted/30">
               <iframe
-                src={pdfUrl}
+                src={`/api/pdf-proxy?url=${encodeURIComponent(pdfUrl)}`}
                 className="w-full h-[600px]"
                 title="Assembly PDF"
               />

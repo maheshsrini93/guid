@@ -5,6 +5,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { Search, Clock, ExternalLink } from "lucide-react";
+import {
+  trackSearchQuery,
+  trackSearchAutocomplete,
+  trackSearchDiscovery,
+} from "@/lib/search-tracking";
+import { isValidImageUrl } from "@/lib/image-utils";
 
 interface SearchResult {
   articleNumber: string;
@@ -119,26 +125,43 @@ export function SearchInput() {
 
   // Navigate on search submit
   const handleSearch = useCallback(
-    (query: string) => {
+    (query: string, discoveryMethod?: "text" | "article_number" | "url" | "recent") => {
       if (!query.trim()) return;
       saveRecentSearch(query.trim());
+      trackSearchQuery(query.trim(), results.length, detectedType);
+      if (discoveryMethod) {
+        trackSearchDiscovery(discoveryMethod);
+      }
       const params = new URLSearchParams(searchParams.toString());
       params.set("q", query.trim());
       params.delete("page");
       router.push(`/products?${params.toString()}`);
       setShowDropdown(false);
     },
-    [router, searchParams]
+    [router, searchParams, results.length, detectedType]
   );
 
   // Navigate directly to a product
   const handleSelectProduct = useCallback(
-    (articleNumber: string) => {
+    (articleNumber: string, resultPosition?: number) => {
       saveRecentSearch(value.trim());
+      trackSearchAutocomplete(
+        value.trim(),
+        articleNumber,
+        resultPosition ?? 0,
+        detectedType
+      );
+      if (detectedType === "url") {
+        trackSearchDiscovery("url");
+      } else if (detectedType === "article_number") {
+        trackSearchDiscovery("article_number");
+      } else {
+        trackSearchDiscovery("text");
+      }
       setShowDropdown(false);
       router.push(`/products/${articleNumber}`);
     },
-    [router, value]
+    [router, value, detectedType]
   );
 
   const handleKeyDown = useCallback(
@@ -146,9 +169,10 @@ export function SearchInput() {
       if (e.key === "Enter") {
         // URL detection: redirect directly
         if (detectedType === "url" && results.length > 0) {
-          handleSelectProduct(results[0].articleNumber);
+          handleSelectProduct(results[0].articleNumber, 0);
         } else {
-          handleSearch(value);
+          const method = detectedType === "article_number" ? "article_number" : "text";
+          handleSearch(value, method);
         }
       } else if (e.key === "Escape") {
         setShowDropdown(false);
@@ -209,10 +233,10 @@ export function SearchInput() {
                 <button
                   key={s}
                   type="button"
-                  className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-accent cursor-pointer text-left"
+                  className="flex w-full min-h-[44px] items-center gap-2 px-3 py-2.5 text-sm hover:bg-accent cursor-pointer text-left"
                   onClick={() => {
                     setValue(s);
-                    handleSearch(s);
+                    handleSearch(s, "recent");
                   }}
                 >
                   <Clock className="h-3.5 w-3.5 text-muted-foreground" />
@@ -224,14 +248,14 @@ export function SearchInput() {
 
           {/* Autocomplete results */}
           {showResults &&
-            results.map((r) => (
+            results.map((r, idx) => (
               <button
                 key={r.articleNumber}
                 type="button"
-                className="flex w-full items-center gap-3 px-3 py-2 hover:bg-accent cursor-pointer text-left"
-                onClick={() => handleSelectProduct(r.articleNumber)}
+                className="flex w-full min-h-[44px] items-center gap-3 px-3 py-2.5 hover:bg-accent cursor-pointer text-left"
+                onClick={() => handleSelectProduct(r.articleNumber, idx)}
               >
-                {r.imageUrl ? (
+                {isValidImageUrl(r.imageUrl) ? (
                   <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded bg-muted">
                     <Image
                       src={r.imageUrl}

@@ -54,9 +54,9 @@ export function ProductFilters({ categories }: ProductFiltersProps) {
       {/* Category */}
       <div>
         <h4 className="mb-2 text-sm font-medium">Category</h4>
-        <div className="max-h-48 space-y-1.5 overflow-y-auto">
+        <div className="max-h-48 space-y-0 overflow-y-auto">
           {categories.map((cat) => (
-            <div key={cat} className="flex items-center gap-2">
+            <div key={cat} className="flex min-h-[44px] items-center gap-2 py-1">
               <Checkbox
                 id={`cat-${cat}`}
                 checked={searchParams.get("category") === cat}
@@ -84,7 +84,7 @@ export function ProductFilters({ categories }: ProductFiltersProps) {
           <Input
             type="number"
             placeholder="Min"
-            className="h-8 text-sm"
+            className="h-11 sm:h-8 text-sm"
             defaultValue={searchParams.get("minPrice") ?? ""}
             onBlur={(e) => updateParam("minPrice", e.target.value || null)}
             onKeyDown={(e) => {
@@ -97,7 +97,7 @@ export function ProductFilters({ categories }: ProductFiltersProps) {
           <Input
             type="number"
             placeholder="Max"
-            className="h-8 text-sm"
+            className="h-11 sm:h-8 text-sm"
             defaultValue={searchParams.get("maxPrice") ?? ""}
             onBlur={(e) => updateParam("maxPrice", e.target.value || null)}
             onKeyDown={(e) => {
@@ -114,9 +114,9 @@ export function ProductFilters({ categories }: ProductFiltersProps) {
       {/* Rating */}
       <div>
         <h4 className="mb-2 text-sm font-medium">Minimum Rating</h4>
-        <div className="space-y-1.5">
+        <div className="space-y-0">
           {[4, 3, 2, 1].map((rating) => (
-            <div key={rating} className="flex items-center gap-2">
+            <div key={rating} className="flex min-h-[44px] items-center gap-2 py-1">
               <Checkbox
                 id={`rating-${rating}`}
                 checked={searchParams.get("minRating") === String(rating)}
@@ -140,8 +140,8 @@ export function ProductFilters({ categories }: ProductFiltersProps) {
       {/* Assembly */}
       <div>
         <h4 className="mb-2 text-sm font-medium">Assembly</h4>
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2">
+        <div className="space-y-0">
+          <div className="flex min-h-[44px] items-center gap-2 py-1">
             <Checkbox
               id="assembly-required"
               checked={searchParams.get("assembly") === "true"}
@@ -156,7 +156,7 @@ export function ProductFilters({ categories }: ProductFiltersProps) {
               Assembly required
             </Label>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex min-h-[44px] items-center gap-2 py-1">
             <Checkbox
               id="assembly-docs"
               checked={searchParams.get("hasAssemblyDocs") === "true"}
