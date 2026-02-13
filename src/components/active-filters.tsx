@@ -34,6 +34,9 @@ export function ActiveFilters() {
   if (searchParams.get("hasAssemblyDocs") === "true") {
     filters.push({ key: "hasAssemblyDocs", label: "Has instructions" });
   }
+  if (searchParams.get("new") === "true") {
+    filters.push({ key: "new", label: "New products" });
+  }
 
   if (filters.length === 0) return null;
 

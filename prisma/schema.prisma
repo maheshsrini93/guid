@@ -279,3 +279,42 @@ model AIGenerationConfig {
 
   @@map("ai_generation_configs")
 }
+
+// ─── Catalog Sync (Phase 1.5) ───
+
+model CatalogSyncLog {
+  id               String   @id @default(cuid())
+  retailer         String   @default("ikea")
+  newProducts      Int      @default(0)
+  updatedProducts  Int      @default(0)
+  delistedProducts Int      @default(0)
+  jobsQueued       Int      @default(0)
+  pdfUpdates       Int      @default(0)
+  errors           Int      @default(0)
+  errorDetails     Json?
+  duration         Int?     // ms
+  triggeredBy      String   @default("cron") // cron | manual
+  createdAt        DateTime @default(now())
+
+  @@index([createdAt])
+  @@map("catalog_sync_logs")
+}
+
+// ─── Search Analytics ───
+
+model SearchEvent {
+  id          String   @id @default(cuid())
+  eventType   String   // search_query, search_autocomplete, search_zero_results, search_discovery
+  query       String?
+  method      String?  // text, article_number, url, recent, barcode
+  resultCount Int?
+  clickedId   Int?     // product ID if user clicked a result
+  sessionId   String?  // anonymous session tracking
+  userId      String?
+  createdAt   DateTime @default(now())
+
+  @@index([eventType])
+  @@index([createdAt])
+  @@index([query])
+  @@map("search_events")
+}

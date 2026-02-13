@@ -36,7 +36,8 @@ export function ProductFilters({ categories }: ProductFiltersProps) {
     searchParams.has("maxPrice") ||
     searchParams.has("minRating") ||
     searchParams.has("assembly") ||
-    searchParams.has("hasAssemblyDocs");
+    searchParams.has("hasAssemblyDocs") ||
+    searchParams.has("new");
 
   return (
     <div className="space-y-6">
@@ -47,6 +48,27 @@ export function ProductFilters({ categories }: ProductFiltersProps) {
             Clear all
           </Button>
         )}
+      </div>
+
+      <Separator />
+
+      {/* New Products */}
+      <div>
+        <div className="flex min-h-[44px] items-center gap-2 py-1">
+          <Checkbox
+            id="new-products"
+            checked={searchParams.get("new") === "true"}
+            onCheckedChange={(checked) =>
+              updateParam("new", checked ? "true" : null)
+            }
+          />
+          <Label
+            htmlFor="new-products"
+            className="text-sm font-normal cursor-pointer"
+          >
+            New Products
+          </Label>
+        </div>
       </div>
 
       <Separator />

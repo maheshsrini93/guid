@@ -26,6 +26,7 @@ interface RelatedProduct {
   imageUrl: string | null;
   hasGuide: boolean;
   guideComingSoon: boolean;
+  isNew: boolean;
 }
 
 interface ProductDetailTabsProps {
@@ -133,6 +134,11 @@ function RelatedProductsCarousel({ products }: { products: RelatedProduct[] }) {
                 <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
                   No image
                 </div>
+              )}
+              {product.isNew && (
+                <span className="absolute top-2 left-2 inline-flex items-center rounded-full bg-amber-500 px-2 py-0.5 text-xs font-medium text-white">
+                  New
+                </span>
               )}
               {product.hasGuide && (
                 <span className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-green-600 px-2 py-0.5 text-xs font-medium text-white">

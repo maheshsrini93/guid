@@ -8,6 +8,7 @@ export interface ProductFilterParams {
   minRating?: string;
   assembly?: string; // "true" | "false"
   hasAssemblyDocs?: string; // "true"
+  new?: string; // "true"
   sort?: string;
   page?: string;
 }
@@ -30,6 +31,10 @@ export function buildProductWhere(
   const conditions: Prisma.ProductWhereInput[] = [];
 
   // 1. Boolean/equality filters (most selective, indexed)
+  if (params.new === "true") {
+    conditions.push({ is_new: true });
+  }
+
   if (params.assembly === "true") {
     conditions.push({ assembly_required: true });
   } else if (params.assembly === "false") {

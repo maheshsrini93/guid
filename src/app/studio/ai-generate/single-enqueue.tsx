@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { enqueueProductAction } from "@/lib/actions/queue-actions";
+import { manualProductScrape } from "@/lib/actions/catalog-sync";
 
 /**
  * Search for a product by name or article number, then enqueue for AI generation.
@@ -50,6 +51,25 @@ export function SingleEnqueueSearch() {
       } catch {
         setError("Search failed");
       }
+    });
+  }
+
+  function handleScrape(articleNumber: string) {
+    setError(null);
+    setSuccess(null);
+
+    startTransition(async () => {
+      const res = await manualProductScrape(articleNumber);
+      if (!res.success) {
+        setError(res.error);
+        return;
+      }
+      if (res.product) {
+        setSuccess(`Product found: ${res.product.name || res.product.articleNumber}. Last scraped timestamp updated.`);
+      } else {
+        setSuccess(res.message || "Queued for scraping.");
+      }
+      router.refresh();
     });
   }
 
@@ -127,24 +147,37 @@ export function SingleEnqueueSearch() {
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   {!product.hasAssemblyDoc && (
-                    <Badge variant="outline" className="text-[10px]">
-                      No PDF
-                    </Badge>
+                    <>
+                      <Badge variant="outline" className="text-[10px]">
+                        No PDF
+                      </Badge>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 text-xs cursor-pointer"
+                        disabled={isPending}
+                        onClick={() => handleScrape(product.article_number)}
+                      >
+                        Scrape
+                      </Button>
+                    </>
                   )}
                   {product.guide_status && product.guide_status !== "none" && (
                     <Badge variant="secondary" className="text-[10px] capitalize">
                       {product.guide_status}
                     </Badge>
                   )}
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-7 text-xs cursor-pointer"
-                    disabled={!canEnqueue || isPending}
-                    onClick={() => handleEnqueue(product.id, product.product_name)}
-                  >
-                    {canEnqueue ? "Generate" : "N/A"}
-                  </Button>
+                  {product.hasAssemblyDoc && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs cursor-pointer"
+                      disabled={!canEnqueue || isPending}
+                      onClick={() => handleEnqueue(product.id, product.product_name)}
+                    >
+                      {canEnqueue ? "Generate" : "N/A"}
+                    </Button>
+                  )}
                 </div>
               </div>
             );

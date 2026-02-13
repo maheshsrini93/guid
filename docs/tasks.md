@@ -77,18 +77,18 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P1.5.1 | todo | Build monthly catalog sync | Vercel Cron or Inngest function that runs once per month (e.g., 1st of each month) per retailer. Performs a full catalog diff against the existing Product table to detect all new products. Also triggerable manually from Studio. | P1.4.3 | P1.5.2, P1.5.6, P1.5.7, P1.5.8, P1.5.11, P1.5.21 |
-| P1.5.2 | todo | Implement catalog diff logic | Each retailer adapter implements `detectNewProducts()` that compares the retailer's current catalog against the DB and returns products not yet present. Uses sitemaps, RSS feeds, or full category scraping. | P1.5.1 | P1.5.3 |
-| P1.5.3 | todo | Add new product auto-detection | When sync inserts a new product, check for assembly PDF in ProductDocuments. If PDF exists, auto-create `AIGenerationJob` with `priority: high` and `triggeredBy: auto_sync`. | P1.5.2, P1.5.5, P1.5.7 | P1.5.9 |
+| P1.5.1 | done | Build monthly catalog sync | Vercel Cron or Inngest function that runs once per month (e.g., 1st of each month) per retailer. Performs a full catalog diff against the existing Product table to detect all new products. Also triggerable manually from Studio. | P1.4.3 | P1.5.2, P1.5.6, P1.5.7, P1.5.8, P1.5.11, P1.5.21 |
+| P1.5.2 | done | Implement catalog diff logic | Each retailer adapter implements `detectNewProducts()` that compares the retailer's current catalog against the DB and returns products not yet present. Uses sitemaps, RSS feeds, or full category scraping. | P1.5.1 | P1.5.3 |
+| P1.5.3 | done | Add new product auto-detection | When sync inserts a new product, check for assembly PDF in ProductDocuments. If PDF exists, auto-create `AIGenerationJob` with `priority: high` and `triggeredBy: auto_sync`. | P1.5.2, P1.5.5, P1.5.7 | P1.5.9 |
 | P1.5.4 | done | Implement auto-publish rules | After pilot quality baselines are set: guides >= 90% confidence auto-publish immediately; 70-89% auto-publish with "AI-Generated" badge and flagged for review; < 70% enter review queue only. Thresholds configurable in `AIGenerationConfig`. | P1.4.4 | — |
 | P1.5.5 | done | Add guideStatus field to Product | Enum: none/queued/generating/in_review/published/no_source_material. Track pipeline state per product. (Completed as part of P1.6.3 — Extend Product model.) | — | P1.5.3, P1.5.13, P1.5.20, P2.0.1 |
-| P1.5.6 | todo | Add firstDetectedAt/lastScrapedAt/isNew fields | Track when product was first found, last scraped, and whether it's new (< 30 days since detection). | P1.5.1 | P1.5.10, P1.5.12 |
+| P1.5.6 | done | Add firstDetectedAt/lastScrapedAt/isNew fields | Track when product was first found, last scraped, and whether it's new (< 30 days since detection). | P1.5.1 | P1.5.10, P1.5.12 |
 | P1.5.7 | done | Add priority/triggeredBy to AIGenerationJob | Priority: high/normal/low. TriggeredBy: manual/auto_sync/batch. New products from monthly sync get high priority. (Completed as part of P1.6.1 — AIGenerationJob model already includes these fields.) | P1.5.1 | P1.5.3 |
-| P1.5.8 | todo | Handle assembly PDF updates | During monthly sync, detect when a product's assembly PDF has changed (hash comparison). Auto-queue regeneration job. Version the old guide. | P1.5.1 | — |
-| P1.5.9 | todo | Handle product delisting | During monthly sync, detect products no longer in retailer catalog. Mark as `discontinued: true`. Keep guides live. Show "This product has been discontinued" notice on product page. | P1.5.3 | — |
-| P1.5.10 | todo | Build catalog sync dashboard in Studio | New dashboard section: last sync date per retailer, new products this month, pending generation, auto-published count, review queue depth, time-to-guide distribution, failed scrapes, sync history log. | P1.5.6 | P1.7.4 |
-| P1.5.11 | todo | Add scraper error handling & retry | Failed scrapes retry with exponential backoff within the sync run. Persistent failures send webhook alert (Slack/email). Individual product failures don't block the batch. | P1.5.1 | — |
-| P1.5.12 | todo | Add "New" badge to product cards | Show "New" pill badge on products where `isNew: true` (first 30 days after detection). Amber pill, subtle pulse on first view. | P1.5.6 | — |
+| P1.5.8 | done | Handle assembly PDF updates | During monthly sync, detect when a product's assembly PDF has changed (hash comparison). Auto-queue regeneration job. Version the old guide. | P1.5.1 | — |
+| P1.5.9 | done | Handle product delisting | During monthly sync, detect products no longer in retailer catalog. Mark as `discontinued: true`. Keep guides live. Show "This product has been discontinued" notice on product page. | P1.5.3 | — |
+| P1.5.10 | done | Build catalog sync dashboard in Studio | New dashboard section: last sync date per retailer, new products this month, pending generation, auto-published count, review queue depth, time-to-guide distribution, failed scrapes, sync history log. | P1.5.6 | P1.7.4 |
+| P1.5.11 | done | Add scraper error handling & retry | Failed scrapes retry with exponential backoff within the sync run. Persistent failures send webhook alert (Slack/email). Individual product failures don't block the batch. | P1.5.1 | — |
+| P1.5.12 | done | Add "New" badge to product cards | Show "New" pill badge on products where `isNew: true` (first 30 days after detection). Amber pill, subtle pulse on first view. | P1.5.6 | — |
 | P1.5.13 | done | Add "Guide in Progress" state | Product detail page shows "Guide being generated — check back shortly" with progress indicator when `guideStatus` is queued/generating. | P1.5.5 | — |
 | P1.5.14 | todo | Build "Submit a New Guide" CTA | For products with `guideStatus: no_source_material`, show a prominent CTA card on the product detail page inviting users to contribute assembly knowledge. Do NOT show "Guide Coming Soon" — without source material, guides depend on community input. | — | P1.5.15 |
 | P1.5.15 | todo | Build guide submission form | `/products/[articleNumber]/submit-guide` page: text instructions input, photo upload (drag-and-drop + camera on mobile, stored in Supabase Storage), video link fields, external resource link fields, optional tool list, estimated time, and difficulty rating. At least one content type required. | P1.5.14 | P1.5.16 |
@@ -97,8 +97,8 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 | P1.5.18 | todo | Build "Generate from submission" action | Server action that takes an approved GuideSubmission, feeds user text/photos into the AI pipeline to structure into a proper guide with formatted steps. Admin can edit before publishing. | P1.5.16, P1.5.17 | P1.5.19 |
 | P1.5.19 | todo | Add "Community Contributed" badge | Purple outline pill badge shown on guides created from user submissions. Include attribution to the original submitter. | P1.5.18 | — |
 | P1.5.20 | todo | Add submission_received to guideStatus | Update Product guideStatus to include `submission_received` for products where a user has submitted guide content. | P1.5.16 | — |
-| P1.5.21 | todo | Add post-sync admin notification | After each monthly sync completes, send summary email/webhook: new products detected, guides queued, auto-published count, items in review queue, any scraper failures. | P1.5.1 | — |
-| P1.5.22 | todo | Add manual single-product scrape | Studio action: admin can trigger a scrape + AI generation for a specific product URL without waiting for the next monthly sync (handles "user needs this product now" requests). | — | — |
+| P1.5.21 | done | Add post-sync admin notification | After each monthly sync completes, send summary email/webhook: new products detected, guides queued, auto-published count, items in review queue, any scraper failures. | P1.5.1 | — |
+| P1.5.22 | done | Add manual single-product scrape | Studio action: admin can trigger a scrape + AI generation for a specific product URL without waiting for the next monthly sync (handles "user needs this product now" requests). | — | — |
 
 ### 1.6 Database Changes
 
@@ -116,7 +116,7 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 | P1.7.1 | done | /studio/ai-generate dashboard | AI generation dashboard: start jobs, view queue, batch controls | P1.4.1 | — |
 | P1.7.2 | done | /studio/ai-generate/[jobId] review | Single job review: side-by-side PDF vs guide, edit, approve/reject | P1.3.3 | — |
 | P1.7.3 | done | /studio/ai-config management | Prompt template management, model configuration, version history | P1.6.2 | — |
-| P1.7.4 | todo | /studio/catalog-sync dashboard | Monthly catalog sync dashboard: last sync dates, new products per cycle, time-to-guide metrics, scraper health, sync history log, manual sync trigger | P1.5.10 | — |
+| P1.7.4 | done | /studio/catalog-sync dashboard | Monthly catalog sync dashboard: last sync dates, new products per cycle, time-to-guide metrics, scraper health, sync history log, manual sync trigger | P1.5.10 | — |
 
 ---
 
@@ -178,7 +178,7 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 | P2.3.5 | done | Add zero-result handling | When no products match: "No products found for '[query]'" with suggestions: similar products (fuzzy match), category browsing links, "Request this product" link. | — | — |
 | P2.3.6 | todo | Add barcode/QR scanner | Camera button in search bar, scan barcode -> extract article number -> search (mobile only, requires camera permission) | — | — |
 | P2.3.7 | todo | Add photo-to-text OCR | Camera button: photograph product label -> OCR extracts name/number -> search | — | — |
-| P2.3.8 | todo | Add search analytics | Track popular queries, zero-result queries, click-through rates. Identify content gaps for catalog expansion. | — | — |
+| P2.3.8 | done | Add search analytics | Track popular queries, zero-result queries, click-through rates. Identify content gaps for catalog expansion. | — | — |
 
 ### 2.4 Product Detail Layout (/products/[articleNumber]/details)
 

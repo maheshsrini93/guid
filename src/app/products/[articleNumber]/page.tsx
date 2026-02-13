@@ -16,6 +16,7 @@ import {
   HowToJsonLd,
   BreadcrumbJsonLd,
 } from "@/components/json-ld";
+import { AlertTriangle } from "lucide-react";
 
 // Dynamic imports for heavy client components — code-split into separate chunks
 const GuideViewer = dynamic(
@@ -168,6 +169,7 @@ export default async function ProductPage({
       package_length: true,
       package_weight: true,
       guide_status: true,
+      discontinued: true,
       images: { orderBy: { sort_order: "asc" }, select: { id: true, url: true, alt_text: true, sort_order: true } },
       documents: { select: { id: true, document_type: true, source_url: true } },
       assemblyGuide: {
@@ -267,6 +269,16 @@ export default async function ProductPage({
           </span>
         </nav>
 
+        {/* Discontinued notice */}
+        {product.discontinued && (
+          <div className="mb-6 rounded-lg border border-muted-foreground/30 bg-muted p-4 flex items-center gap-3">
+            <AlertTriangle className="h-5 w-5 shrink-0 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">
+              This product has been discontinued and may no longer be available.
+            </p>
+          </div>
+        )}
+
         {/* Accessible h1 for the guide-first view */}
         <h1 className="sr-only">
           How to Assemble {product.product_name || "Product"} — Step-by-Step Guide
@@ -362,6 +374,16 @@ export default async function ProductPage({
           {product.product_name || product.article_number}
         </span>
       </nav>
+
+      {/* Discontinued notice (P1.5.9) */}
+      {product.discontinued && (
+        <div className="mb-6 rounded-lg border border-muted-foreground/30 bg-muted p-4 flex items-center gap-3">
+          <AlertTriangle className="h-5 w-5 shrink-0 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">
+            This product has been discontinued and may no longer be available.
+          </p>
+        </div>
+      )}
 
       {/* Guide in Progress banner (P1.5.13) */}
       {(product.guide_status === "queued" || product.guide_status === "generating") && (

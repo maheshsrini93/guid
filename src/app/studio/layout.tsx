@@ -54,6 +54,18 @@ export default async function StudioLayout({
           >
             AI Config
           </Link>
+          <Link
+            href="/studio/catalog-sync"
+            className="block rounded-md px-3 py-2 text-sm hover:bg-accent"
+          >
+            Catalog Sync
+          </Link>
+          <Link
+            href="/studio/analytics/search"
+            className="block rounded-md px-3 py-2 text-sm hover:bg-accent"
+          >
+            Search Analytics
+          </Link>
         </nav>
         <div className="mt-8 border-t pt-4">
           <p className="text-xs text-muted-foreground truncate">

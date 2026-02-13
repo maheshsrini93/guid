@@ -9,6 +9,7 @@ import { ProductImageGallery } from "@/components/product-image-gallery";
 import { SaveProductButton } from "@/components/save-product-button";
 import { ProductDetailTabs } from "@/components/product-detail-tabs";
 import { ProductJsonLd, BreadcrumbJsonLd } from "@/components/json-ld";
+import { AlertTriangle } from "lucide-react";
 
 // ISR: revalidate product detail pages every 24 hours
 export const revalidate = 86400;
@@ -91,6 +92,7 @@ export default async function ProductDetailsPage({
       product_length: true,
       product_weight: true,
       guide_status: true,
+      discontinued: true,
       package_width: true,
       package_height: true,
       package_length: true,
@@ -115,6 +117,7 @@ export default async function ProductDetailsPage({
           product_type: true,
           price_current: true,
           guide_status: true,
+          is_new: true,
           images: { take: 1, orderBy: { sort_order: "asc" }, select: { url: true } },
           assemblyGuide: { select: { published: true } },
         },
@@ -190,6 +193,16 @@ export default async function ProductDetailsPage({
         <span>/</span>
         <span className="text-foreground">Details</span>
       </nav>
+
+      {/* Discontinued notice (P1.5.9) */}
+      {product.discontinued && (
+        <div className="mb-6 rounded-lg border border-muted-foreground/30 bg-muted p-4 flex items-center gap-3">
+          <AlertTriangle className="h-5 w-5 shrink-0 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">
+            This product has been discontinued and may no longer be available.
+          </p>
+        </div>
+      )}
 
       {/* Guide in Progress banner (P1.5.13) */}
       {(product.guide_status === "queued" || product.guide_status === "generating") && (
@@ -309,6 +322,7 @@ export default async function ProductDetailsPage({
           imageUrl: p.images[0]?.url ?? null,
           hasGuide: p.guide_status === "published" || p.assemblyGuide?.published === true,
           guideComingSoon: !p.assemblyGuide?.published && (p.guide_status === "queued" || p.guide_status === "generating"),
+          isNew: p.is_new ?? false,
         }))}
       />
     </main>

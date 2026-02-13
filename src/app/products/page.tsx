@@ -80,6 +80,7 @@ export default async function ProductsPage({
         price_current: true,
         assembly_required: true,
         guide_status: true,
+        is_new: true,
         images: { take: 1, orderBy: { sort_order: "asc" }, select: { url: true } },
         assemblyGuide: { select: { published: true } },
       },
@@ -175,6 +176,11 @@ export default async function ProductsPage({
                         loading={index < 4 ? "eager" : "lazy"}
                         priority={index < 4}
                       />
+                      {product.is_new && (
+                        <span className="absolute top-2 left-2 inline-flex items-center rounded-full bg-amber-500 px-2 py-0.5 text-xs font-medium text-white">
+                          New
+                        </span>
+                      )}
                       {(product.guide_status === "published" || product.assemblyGuide?.published) && (
                         <span className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-green-600 px-2 py-0.5 text-xs font-medium text-white">
                           <Check className="h-3 w-3" />
@@ -191,6 +197,11 @@ export default async function ProductsPage({
                   ) : (
                     <div className="relative mb-3 flex aspect-square w-full items-center justify-center rounded-md bg-gray-100 dark:bg-muted text-gray-400 text-sm">
                       No image
+                      {product.is_new && (
+                        <span className="absolute top-2 left-2 inline-flex items-center rounded-full bg-amber-500 px-2 py-0.5 text-xs font-medium text-white">
+                          New
+                        </span>
+                      )}
                       {(product.guide_status === "published" || product.assemblyGuide?.published) && (
                         <span className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-green-600 px-2 py-0.5 text-xs font-medium text-white">
                           <Check className="h-3 w-3" />
