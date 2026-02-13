@@ -16,6 +16,8 @@ export interface GuideData {
   timeMinutes: number | null;
   tools: string | null;
   aiGenerated?: boolean;
+  communityContributed?: boolean;
+  contributorName?: string | null;
   steps: GuideStep[];
 }
 

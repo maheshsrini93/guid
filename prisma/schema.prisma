@@ -73,7 +73,7 @@ model Product {
   updated_at              DateTime          @default(now()) @db.Timestamptz(6)
 
   // Phase 1: AI Generation pipeline fields
-  guide_status            String            @default("none") // none/queued/generating/in_review/published/no_source_material
+  guide_status            String            @default("none") // none/queued/generating/in_review/published/no_source_material/submission_received
   first_detected_at       DateTime?         @db.Timestamptz(6)
   last_scraped_at         DateTime?         @db.Timestamptz(6)
   is_new                  Boolean           @default(false)
@@ -84,6 +84,7 @@ model Product {
   savedBy                 SavedProduct[]
   assemblyGuide           AssemblyGuide?
   aiGenerationJobs        AIGenerationJob[]
+  guideSubmissions        GuideSubmission[]
 
   @@index([article_number], map: "idx_products_article")
   @@index([source_retailer], map: "idx_products_retailer")
@@ -152,7 +153,8 @@ model User {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
   sessions       Session[]
-  savedProducts  SavedProduct[]
+  savedProducts    SavedProduct[]
+  guideSubmissions GuideSubmission[]
 
   @@map("users")
 }
@@ -235,6 +237,7 @@ model AIGenerationJob {
   maxAttempts     Int         @default(3)
   lastError       String?
   autoPublished   Boolean     @default(false)
+  submissionId    String?
   startedAt       DateTime?
   createdAt       DateTime    @default(now())
   completedAt     DateTime?
@@ -317,4 +320,32 @@ model SearchEvent {
   @@index([createdAt])
   @@index([query])
   @@map("search_events")
+}
+
+// ─── Community Guide Submissions (Phase 1.5) ───
+
+model GuideSubmission {
+  id            String    @id @default(cuid())
+  productId     Int
+  userId        String
+  status        String    @default("pending") // pending/approved/rejected/needs_info/processing
+  textContent   String?
+  photos        Json?     // Array of photo URLs (Supabase Storage)
+  videoLinks    Json?     // Array of video URLs
+  externalLinks Json?     // Array of external resource URLs
+  toolsList     String?
+  estimatedTime Int?      // minutes
+  difficulty    String?   // easy/medium/hard
+  reviewedBy    String?
+  reviewNotes   String?
+  reviewedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  product       Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([userId])
+  @@index([status])
+  @@map("guide_submissions")
 }

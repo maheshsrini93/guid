@@ -14,7 +14,7 @@ import { BookmarkButton } from "./bookmark-button";
 import { useGuideProgress } from "./use-guide-progress";
 import { useStepBookmarks } from "./use-step-bookmarks";
 import { Badge } from "@/components/ui/badge";
-import { List } from "lucide-react";
+import { List, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -46,6 +46,8 @@ export function GuideViewer({
   timeMinutes,
   tools,
   aiGenerated,
+  communityContributed,
+  contributorName,
   steps,
   sidebarExtra,
   guideId,
@@ -409,11 +411,26 @@ export function GuideViewer({
           </div>
         )}
 
-        {aiGenerated && mobileStepIndex === 0 && (
-          <div className="px-4 pt-1">
-            <Badge variant="outline" className="border-blue-300 text-blue-600 dark:border-blue-600 dark:text-blue-400 text-[10px]">
-              AI-Generated Guide
-            </Badge>
+        {(aiGenerated || communityContributed) && mobileStepIndex === 0 && (
+          <div className="px-4 pt-1 flex flex-wrap items-center gap-2">
+            {communityContributed && (
+              <div>
+                <Badge variant="outline" className="border-purple-300 text-purple-700 dark:border-purple-700 dark:text-purple-300 text-[10px]">
+                  <Users className="h-3 w-3 mr-1" />
+                  Community Contributed
+                </Badge>
+                {contributorName && (
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Contributed by {contributorName}
+                  </p>
+                )}
+              </div>
+            )}
+            {aiGenerated && (
+              <Badge variant="outline" className="border-blue-300 text-blue-600 dark:border-blue-600 dark:text-blue-400 text-[10px]">
+                AI-Generated Guide
+              </Badge>
+            )}
           </div>
         )}
 
@@ -482,6 +499,12 @@ export function GuideViewer({
             </p>
           )}
           <div className="mt-3 flex flex-wrap gap-2">
+            {communityContributed && (
+              <Badge variant="outline" className="border-purple-300 text-purple-700 dark:border-purple-700 dark:text-purple-300">
+                <Users className="h-3 w-3 mr-1" />
+                Community Contributed
+              </Badge>
+            )}
             {aiGenerated && (
               <Badge variant="outline" className="border-blue-300 text-blue-600 dark:border-blue-600 dark:text-blue-400">
                 AI-Generated
@@ -497,6 +520,11 @@ export function GuideViewer({
               <Badge variant="secondary">Tools: {tools}</Badge>
             )}
           </div>
+          {communityContributed && contributorName && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              Contributed by {contributorName}
+            </p>
+          )}
         </div>
 
         {/* Two-column layout */}
@@ -598,6 +626,12 @@ export function GuideViewer({
           </p>
         )}
         <div className="mt-3 flex flex-wrap gap-2">
+          {communityContributed && (
+            <Badge variant="outline" className="border-purple-300 text-purple-700 dark:border-purple-700 dark:text-purple-300">
+              <Users className="h-3 w-3 mr-1" />
+              Community Contributed
+            </Badge>
+          )}
           {aiGenerated && (
             <Badge variant="outline" className="border-blue-300 text-blue-600 dark:border-blue-600 dark:text-blue-400">
               AI-Generated
@@ -613,6 +647,11 @@ export function GuideViewer({
             <Badge variant="secondary">Tools: {tools}</Badge>
           )}
         </div>
+        {communityContributed && contributorName && (
+          <p className="mt-1 text-xs text-muted-foreground">
+            Contributed by {contributorName}
+          </p>
+        )}
       </div>
 
       {/* Three-column layout */}

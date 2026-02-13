@@ -16,7 +16,7 @@ import {
   HowToJsonLd,
   BreadcrumbJsonLd,
 } from "@/components/json-ld";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, PenLine, Users } from "lucide-react";
 
 // Dynamic imports for heavy client components — code-split into separate chunks
 const GuideViewer = dynamic(
@@ -419,6 +419,21 @@ export default async function ProductPage({
         </div>
       )}
 
+      {/* Community Submission Received banner (P1.5.20) */}
+      {product.guide_status === "submission_received" && (
+        <div className="mb-6 rounded-lg border border-purple-200 bg-purple-50 dark:border-purple-800 dark:bg-purple-950/30 p-4 flex items-center gap-3">
+          <Users className="h-5 w-5 shrink-0 text-purple-600 dark:text-purple-400" />
+          <div>
+            <p className="text-sm font-medium text-purple-900 dark:text-purple-200">
+              Community guide submission received
+            </p>
+            <p className="text-xs text-purple-700 dark:text-purple-400">
+              A community member has contributed assembly knowledge for this product. It&apos;s being reviewed.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="grid gap-8 md:grid-cols-2">
         {/* Images */}
         <div>
@@ -490,6 +505,40 @@ export default async function ProductPage({
                 </p>
               </div>
             </>
+          )}
+
+          {/* Submit a Guide CTA (P1.5.14) — show when no guide pipeline is active */}
+          {(product.guide_status === "no_source_material" || product.guide_status === "none" || !product.guide_status) &&
+            !product.assemblyGuide?.published &&
+            !product.discontinued && (
+              <>
+                <Separator className="my-6" />
+                {session ? (
+                  <div className="rounded-lg border-2 border-dashed border-muted-foreground/30 p-6 text-center">
+                    <PenLine className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                    <h3 className="font-semibold text-lg">Know how to assemble this?</h3>
+                    <p className="text-sm text-muted-foreground mt-1 mb-4">
+                      Share your assembly knowledge to help others build this product.
+                    </p>
+                    <Button asChild>
+                      <Link href={`/products/${product.article_number}/submit-guide`} className="cursor-pointer">
+                        Submit a Guide
+                      </Link>
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="rounded-lg border-2 border-dashed border-muted-foreground/30 p-6 text-center">
+                    <PenLine className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                    <h3 className="font-semibold text-lg">Know how to assemble this?</h3>
+                    <p className="text-sm text-muted-foreground mt-1 mb-4">
+                      Sign in to share your assembly knowledge and help others.
+                    </p>
+                    <Button variant="outline" asChild>
+                      <Link href="/login" className="cursor-pointer">Sign in to contribute</Link>
+                    </Button>
+                  </div>
+                )}
+              </>
           )}
 
           {/* Documents */}
