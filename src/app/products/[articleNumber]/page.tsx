@@ -21,7 +21,7 @@ import { AlertTriangle, PenLine, Users } from "lucide-react";
 // Dynamic imports for heavy client components — code-split into separate chunks
 const GuideViewer = dynamic(
   () => import("@/components/guide-viewer").then((mod) => mod.GuideViewer),
-  { loading: () => <div className="animate-pulse rounded-lg bg-muted h-96" /> }
+  { loading: () => <div className="motion-safe:animate-pulse rounded-lg bg-muted h-96" /> }
 );
 
 const AssemblyGuideViewer = dynamic(
@@ -29,7 +29,7 @@ const AssemblyGuideViewer = dynamic(
     import("@/components/assembly-guide-viewer").then(
       (mod) => mod.AssemblyGuideViewer
     ),
-  { loading: () => <div className="animate-pulse rounded-lg bg-muted h-48" /> }
+  { loading: () => <div className="motion-safe:animate-pulse rounded-lg bg-muted h-48" /> }
 );
 
 // ISR: revalidate individual product/guide pages every 24 hours
@@ -195,6 +195,11 @@ export default async function ProductPage({
           },
         },
       },
+      guideSubmissions: {
+        where: { status: "processing" },
+        take: 1,
+        select: { user: { select: { name: true } } },
+      },
     },
   });
 
@@ -292,6 +297,8 @@ export default async function ProductPage({
           timeMinutes={product.assemblyGuide.timeMinutes}
           tools={product.assemblyGuide.tools}
           aiGenerated={product.assemblyGuide.aiGenerated}
+          communityContributed={product.guideSubmissions.length > 0}
+          contributorName={product.guideSubmissions[0]?.user?.name}
           steps={product.assemblyGuide.steps}
           guideId={product.assemblyGuide.id}
           userId={guideUserId}

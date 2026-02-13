@@ -238,6 +238,7 @@ model AIGenerationJob {
   lastError       String?
   autoPublished   Boolean     @default(false)
   submissionId    String?
+  submission      GuideSubmission? @relation(fields: [submissionId], references: [id], onDelete: SetNull)
   startedAt       DateTime?
   createdAt       DateTime    @default(now())
   completedAt     DateTime?
@@ -341,8 +342,9 @@ model GuideSubmission {
   reviewedAt    DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  product       Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product            Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  aiGenerationJobs   AIGenerationJob[]
 
   @@index([productId])
   @@index([userId])

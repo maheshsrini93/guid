@@ -21,38 +21,59 @@ export function SubmissionActions({
   status,
 }: SubmissionActionsProps) {
   const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState("");
   const [notesInput, setNotesInput] = useState("");
   const [showNotesFor, setShowNotesFor] = useState<
     "reject" | "info" | null
   >(null);
 
   function handleApprove() {
+    setError("");
     startTransition(async () => {
-      await approveSubmission(submissionId);
+      try {
+        await approveSubmission(submissionId);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to approve");
+      }
     });
   }
 
   function handleReApprove() {
+    setError("");
     startTransition(async () => {
-      await reApproveSubmission(submissionId);
+      try {
+        await reApproveSubmission(submissionId);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to re-approve");
+      }
     });
   }
 
   function handleReject() {
     if (!notesInput.trim()) return;
+    setError("");
     startTransition(async () => {
-      await rejectSubmission(submissionId, notesInput.trim());
-      setShowNotesFor(null);
-      setNotesInput("");
+      try {
+        await rejectSubmission(submissionId, notesInput.trim());
+        setShowNotesFor(null);
+        setNotesInput("");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to reject");
+      }
     });
   }
 
   function handleRequestInfo() {
     if (!notesInput.trim()) return;
+    setError("");
     startTransition(async () => {
-      await requestMoreInfo(submissionId, notesInput.trim());
-      setShowNotesFor(null);
-      setNotesInput("");
+      try {
+        await requestMoreInfo(submissionId, notesInput.trim());
+        setShowNotesFor(null);
+        setNotesInput("");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to send request");
+      }
     });
   }
 
@@ -65,9 +86,14 @@ export function SubmissionActions({
     );
   }
 
+  const errorBanner = error ? (
+    <p className="text-sm text-destructive" role="alert">{error}</p>
+  ) : null;
+
   if (status === "pending") {
     return (
       <div className="space-y-2">
+        {errorBanner}
         <div className="flex items-center gap-2">
           <Button
             size="sm"
@@ -141,34 +167,45 @@ export function SubmissionActions({
 
   if (status === "approved") {
     return (
-      <Button
-        size="sm"
-        variant="outline"
-        onClick={() => {
-          startTransition(async () => {
-            await generateFromSubmission(submissionId);
-          });
-        }}
-        className="cursor-pointer"
-      >
-        <Sparkles className="h-3.5 w-3.5 mr-1" />
-        Generate Guide
-      </Button>
+      <div className="space-y-2">
+        {errorBanner}
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => {
+            setError("");
+            startTransition(async () => {
+              try {
+                await generateFromSubmission(submissionId);
+              } catch (err) {
+                setError(err instanceof Error ? err.message : "Failed to generate");
+              }
+            });
+          }}
+          className="cursor-pointer"
+        >
+          <Sparkles className="h-3.5 w-3.5 mr-1" />
+          Generate Guide
+        </Button>
+      </div>
     );
   }
 
   // rejected or needs_info — allow re-approval
   if (status === "rejected" || status === "needs_info") {
     return (
-      <Button
-        size="sm"
-        variant="outline"
-        onClick={handleReApprove}
-        className="cursor-pointer"
-      >
-        <Check className="h-3.5 w-3.5 mr-1" />
-        Re-approve
-      </Button>
+      <div className="space-y-2">
+        {errorBanner}
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={handleReApprove}
+          className="cursor-pointer"
+        >
+          <Check className="h-3.5 w-3.5 mr-1" />
+          Re-approve
+        </Button>
+      </div>
     );
   }
 

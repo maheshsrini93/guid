@@ -34,6 +34,7 @@ const submitGuideSchema = z.object({
 });
 
 const submissionIdSchema = z.string().min(1).max(100);
+const reviewNotesSchema = z.string().min(1, "Notes required").max(5000);
 
 // ─── User Actions ───
 
@@ -68,35 +69,39 @@ export async function submitGuideSubmission(data: {
     throw new Error("You already have a pending submission for this product");
   }
 
-  const submission = await prisma.guideSubmission.create({
-    data: {
-      productId: parsed.productId,
-      userId: user.id,
-      textContent: parsed.textContent,
-      videoLinks:
-        parsed.videoLinks && parsed.videoLinks.length > 0
-          ? JSON.parse(JSON.stringify(parsed.videoLinks))
-          : undefined,
-      externalLinks:
-        parsed.externalLinks && parsed.externalLinks.length > 0
-          ? JSON.parse(JSON.stringify(parsed.externalLinks))
-          : undefined,
-      toolsList: parsed.toolsList || undefined,
-      estimatedTime: parsed.estimatedTime || undefined,
-      difficulty: parsed.difficulty || undefined,
-    },
-  });
-
-  // Update product guide_status if it was none or no_source_material
-  if (
+  const shouldUpdateStatus =
     product.guide_status === "none" ||
-    product.guide_status === "no_source_material"
-  ) {
-    await prisma.product.update({
-      where: { id: parsed.productId },
-      data: { guide_status: "submission_received" },
-    });
-  }
+    product.guide_status === "no_source_material";
+
+  const submissionData = {
+    productId: parsed.productId,
+    userId: user.id,
+    textContent: parsed.textContent,
+    videoLinks:
+      parsed.videoLinks && parsed.videoLinks.length > 0
+        ? JSON.parse(JSON.stringify(parsed.videoLinks))
+        : undefined,
+    externalLinks:
+      parsed.externalLinks && parsed.externalLinks.length > 0
+        ? JSON.parse(JSON.stringify(parsed.externalLinks))
+        : undefined,
+    toolsList: parsed.toolsList || undefined,
+    estimatedTime: parsed.estimatedTime || undefined,
+    difficulty: parsed.difficulty || undefined,
+  };
+
+  // Use transaction to atomically create submission + update product status
+  const results = await prisma.$transaction([
+    prisma.guideSubmission.create({ data: submissionData }),
+    ...(shouldUpdateStatus
+      ? [prisma.product.update({
+          where: { id: parsed.productId },
+          data: { guide_status: "submission_received" },
+        })]
+      : []),
+  ]);
+
+  const submission = results[0];
 
   revalidatePath(`/products`);
   revalidatePath(`/studio/submissions`);
@@ -108,9 +113,10 @@ export async function submitGuideSubmission(data: {
 
 export async function approveSubmission(id: string) {
   const user = await requireAdmin();
+  const validId = submissionIdSchema.parse(id);
 
   await prisma.guideSubmission.update({
-    where: { id },
+    where: { id: validId },
     data: {
       status: "approved",
       reviewedBy: user.id,
@@ -123,13 +129,15 @@ export async function approveSubmission(id: string) {
 
 export async function rejectSubmission(id: string, notes: string) {
   const user = await requireAdmin();
+  const validId = submissionIdSchema.parse(id);
+  const validNotes = reviewNotesSchema.parse(notes);
 
   await prisma.guideSubmission.update({
-    where: { id },
+    where: { id: validId },
     data: {
       status: "rejected",
       reviewedBy: user.id,
-      reviewNotes: notes,
+      reviewNotes: validNotes,
       reviewedAt: new Date(),
     },
   });
@@ -139,13 +147,15 @@ export async function rejectSubmission(id: string, notes: string) {
 
 export async function requestMoreInfo(id: string, notes: string) {
   const user = await requireAdmin();
+  const validId = submissionIdSchema.parse(id);
+  const validNotes = reviewNotesSchema.parse(notes);
 
   await prisma.guideSubmission.update({
-    where: { id },
+    where: { id: validId },
     data: {
       status: "needs_info",
       reviewedBy: user.id,
-      reviewNotes: notes,
+      reviewNotes: validNotes,
       reviewedAt: new Date(),
     },
   });
@@ -155,9 +165,10 @@ export async function requestMoreInfo(id: string, notes: string) {
 
 export async function reApproveSubmission(id: string) {
   const user = await requireAdmin();
+  const validId = submissionIdSchema.parse(id);
 
   await prisma.guideSubmission.update({
-    where: { id },
+    where: { id: validId },
     data: {
       status: "approved",
       reviewedBy: user.id,
@@ -187,12 +198,6 @@ export async function generateFromSubmission(submissionId: string) {
     throw new Error("Only approved submissions can be used for generation");
   }
 
-  // Update submission status to processing
-  await prisma.guideSubmission.update({
-    where: { id: validId },
-    data: { status: "processing" },
-  });
-
   // Build raw output from submission content
   const rawOutput = {
     source: "community_submission",
@@ -206,23 +211,27 @@ export async function generateFromSubmission(submissionId: string) {
     difficulty: submission.difficulty,
   };
 
-  // Create AI generation job linked to this submission
-  const job = await prisma.aIGenerationJob.create({
-    data: {
-      productId: submission.productId,
-      status: "queued",
-      priority: "normal",
-      triggeredBy: "manual",
-      submissionId: submission.id,
-      rawOutput: JSON.parse(JSON.stringify(rawOutput)),
-    },
-  });
-
-  // Update product guide_status
-  await prisma.product.update({
-    where: { id: submission.productId },
-    data: { guide_status: "queued" },
-  });
+  // Atomically update submission, create job, and update product status
+  const [, job] = await prisma.$transaction([
+    prisma.guideSubmission.update({
+      where: { id: validId },
+      data: { status: "processing" },
+    }),
+    prisma.aIGenerationJob.create({
+      data: {
+        productId: submission.productId,
+        status: "queued",
+        priority: "normal",
+        triggeredBy: "manual",
+        submissionId: submission.id,
+        rawOutput: JSON.parse(JSON.stringify(rawOutput)),
+      },
+    }),
+    prisma.product.update({
+      where: { id: submission.productId },
+      data: { guide_status: "queued" },
+    }),
+  ]);
 
   revalidatePath("/studio/submissions");
   revalidatePath("/studio/ai-generate");

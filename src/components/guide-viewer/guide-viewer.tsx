@@ -637,9 +637,11 @@ export function GuideViewer({
               AI-Generated
             </Badge>
           )}
-          <Badge variant="outline" className="capitalize">
-            {difficulty}
-          </Badge>
+          {difficulty && (
+            <Badge variant="outline" className="capitalize">
+              {difficulty}
+            </Badge>
+          )}
           {timeMinutes && (
             <Badge variant="secondary">{timeMinutes} min</Badge>
           )}

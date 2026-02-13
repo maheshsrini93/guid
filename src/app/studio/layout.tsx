@@ -26,49 +26,49 @@ export default async function StudioLayout({
         <nav className="space-y-1">
           <Link
             href="/studio"
-            className="block rounded-md px-3 py-2 text-sm hover:bg-accent"
+            className="block rounded-md px-3 py-2 text-sm hover:bg-accent cursor-pointer"
           >
             Dashboard
           </Link>
           <Link
             href="/studio/products"
-            className="block rounded-md px-3 py-2 text-sm hover:bg-accent"
+            className="block rounded-md px-3 py-2 text-sm hover:bg-accent cursor-pointer"
           >
             Products
           </Link>
           <Link
             href="/studio/guides"
-            className="block rounded-md px-3 py-2 text-sm hover:bg-accent"
+            className="block rounded-md px-3 py-2 text-sm hover:bg-accent cursor-pointer"
           >
             Guides
           </Link>
           <Link
             href="/studio/submissions"
-            className="block rounded-md px-3 py-2 text-sm hover:bg-accent"
+            className="block rounded-md px-3 py-2 text-sm hover:bg-accent cursor-pointer"
           >
             Submissions
           </Link>
           <Link
             href="/studio/ai-generate"
-            className="block rounded-md px-3 py-2 text-sm hover:bg-accent"
+            className="block rounded-md px-3 py-2 text-sm hover:bg-accent cursor-pointer"
           >
             AI Generate
           </Link>
           <Link
             href="/studio/ai-config"
-            className="block rounded-md px-3 py-2 text-sm hover:bg-accent"
+            className="block rounded-md px-3 py-2 text-sm hover:bg-accent cursor-pointer"
           >
             AI Config
           </Link>
           <Link
             href="/studio/catalog-sync"
-            className="block rounded-md px-3 py-2 text-sm hover:bg-accent"
+            className="block rounded-md px-3 py-2 text-sm hover:bg-accent cursor-pointer"
           >
             Catalog Sync
           </Link>
           <Link
             href="/studio/analytics/search"
-            className="block rounded-md px-3 py-2 text-sm hover:bg-accent"
+            className="block rounded-md px-3 py-2 text-sm hover:bg-accent cursor-pointer"
           >
             Search Analytics
           </Link>
