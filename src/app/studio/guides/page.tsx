@@ -5,11 +5,16 @@ import { Button } from "@/components/ui/button";
 
 export default async function StudioGuidesPage() {
   const guides = await prisma.assemblyGuide.findMany({
-    include: {
+    select: {
+      id: true,
+      title: true,
+      published: true,
+      updatedAt: true,
       product: { select: { product_name: true, article_number: true } },
       _count: { select: { steps: true } },
     },
     orderBy: { updatedAt: "desc" },
+    take: 100,
   });
 
   return (

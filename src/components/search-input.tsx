@@ -1,35 +1,271 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
 import { Input } from "@/components/ui/input";
+import { Search, Clock, ExternalLink } from "lucide-react";
+
+interface SearchResult {
+  articleNumber: string;
+  name: string | null;
+  type: string | null;
+  price: number | null;
+  imageUrl: string | null;
+}
+
+interface SearchResponse {
+  results: SearchResult[];
+  detectedType?: "article_number" | "url" | "text";
+  extractedArticleNumber?: string;
+}
+
+const RECENT_SEARCHES_KEY = "guid-recent-searches";
+const MAX_RECENT = 5;
+
+function getRecentSearches(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const stored = localStorage.getItem(RECENT_SEARCHES_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveRecentSearch(query: string) {
+  if (typeof window === "undefined" || !query.trim()) return;
+  try {
+    const recent = getRecentSearches().filter((s) => s !== query);
+    recent.unshift(query);
+    localStorage.setItem(
+      RECENT_SEARCHES_KEY,
+      JSON.stringify(recent.slice(0, MAX_RECENT))
+    );
+  } catch {
+    // localStorage may be unavailable
+  }
+}
 
 export function SearchInput() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [value, setValue] = useState(searchParams.get("q") ?? "");
+  const [results, setResults] = useState<SearchResult[]>([]);
+  const [detectedType, setDetectedType] = useState<string | null>(null);
+  const [extractedArticle, setExtractedArticle] = useState<string | null>(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
+  // Load recent searches on focus
+  const handleFocus = useCallback(() => {
+    setRecentSearches(getRecentSearches());
+    setShowDropdown(true);
+  }, []);
+
+  // Close dropdown on outside click
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (value) {
-        params.set("q", value);
-      } else {
-        params.delete("q");
+    function handleClickOutside(e: MouseEvent) {
+      if (
+        wrapperRef.current &&
+        !wrapperRef.current.contains(e.target as Node)
+      ) {
+        setShowDropdown(false);
       }
-      params.delete("page"); // Reset to page 1 on new search
-      router.push(`/products?${params.toString()}`);
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Debounced autocomplete fetch
+  useEffect(() => {
+    if (!value || value.length < 2) {
+      setResults([]);
+      setDetectedType(null);
+      setExtractedArticle(null);
+      return;
+    }
+
+    const timeout = setTimeout(async () => {
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `/api/search?q=${encodeURIComponent(value)}`,
+          { signal: controller.signal }
+        );
+        if (res.ok) {
+          const data: SearchResponse = await res.json();
+          setResults(data.results);
+          setDetectedType(data.detectedType ?? null);
+          setExtractedArticle(data.extractedArticleNumber ?? null);
+          setShowDropdown(true);
+        }
+      } catch {
+        // aborted or network error
+      } finally {
+        setLoading(false);
+      }
     }, 300);
 
     return () => clearTimeout(timeout);
-  }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [value]);
+
+  // Navigate on search submit
+  const handleSearch = useCallback(
+    (query: string) => {
+      if (!query.trim()) return;
+      saveRecentSearch(query.trim());
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("q", query.trim());
+      params.delete("page");
+      router.push(`/products?${params.toString()}`);
+      setShowDropdown(false);
+    },
+    [router, searchParams]
+  );
+
+  // Navigate directly to a product
+  const handleSelectProduct = useCallback(
+    (articleNumber: string) => {
+      saveRecentSearch(value.trim());
+      setShowDropdown(false);
+      router.push(`/products/${articleNumber}`);
+    },
+    [router, value]
+  );
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") {
+        // URL detection: redirect directly
+        if (detectedType === "url" && results.length > 0) {
+          handleSelectProduct(results[0].articleNumber);
+        } else {
+          handleSearch(value);
+        }
+      } else if (e.key === "Escape") {
+        setShowDropdown(false);
+      }
+    },
+    [value, detectedType, results, handleSearch, handleSelectProduct]
+  );
+
+  const showRecent =
+    showDropdown && !value && recentSearches.length > 0;
+  const showResults = showDropdown && value.length >= 2 && results.length > 0;
+  const showNoResults =
+    showDropdown && value.length >= 2 && results.length === 0 && !loading;
 
   return (
-    <Input
-      placeholder="Search products..."
-      value={value}
-      onChange={(e) => setValue(e.target.value)}
-      className="w-full sm:w-80"
-    />
+    <div ref={wrapperRef} className="relative w-full sm:w-80">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Search products, article numbers, or paste URL..."
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onFocus={handleFocus}
+          onKeyDown={handleKeyDown}
+          className="pl-9"
+          aria-label="Search products"
+          aria-expanded={showDropdown}
+          role="combobox"
+          aria-autocomplete="list"
+        />
+      </div>
+
+      {/* Dropdown */}
+      {(showRecent || showResults || showNoResults) && (
+        <div className="absolute top-full left-0 right-0 z-50 mt-1 rounded-lg border bg-popover shadow-lg overflow-hidden max-h-[70vh] overflow-y-auto">
+          {/* URL detection banner */}
+          {detectedType === "url" && extractedArticle && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-primary/10 text-sm">
+              <ExternalLink className="h-4 w-4 text-primary" />
+              <span>Detected product link — article {extractedArticle}</span>
+            </div>
+          )}
+
+          {/* Article number detection banner */}
+          {detectedType === "article_number" && results.length > 0 && (
+            <div className="px-3 py-2 bg-primary/10 text-sm">
+              Exact article number match
+            </div>
+          )}
+
+          {/* Recent searches */}
+          {showRecent && (
+            <>
+              <div className="px-3 py-2 text-xs font-medium text-muted-foreground">
+                Recent Searches
+              </div>
+              {recentSearches.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-accent cursor-pointer text-left"
+                  onClick={() => {
+                    setValue(s);
+                    handleSearch(s);
+                  }}
+                >
+                  <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                  {s}
+                </button>
+              ))}
+            </>
+          )}
+
+          {/* Autocomplete results */}
+          {showResults &&
+            results.map((r) => (
+              <button
+                key={r.articleNumber}
+                type="button"
+                className="flex w-full items-center gap-3 px-3 py-2 hover:bg-accent cursor-pointer text-left"
+                onClick={() => handleSelectProduct(r.articleNumber)}
+              >
+                {r.imageUrl ? (
+                  <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded bg-muted">
+                    <Image
+                      src={r.imageUrl}
+                      alt={r.name || "Product"}
+                      fill
+                      sizes="40px"
+                      className="object-contain"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-muted text-xs text-muted-foreground">
+                    ?
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium truncate">
+                    {r.name || "Unknown"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {r.articleNumber}
+                    {r.price != null && ` — $${r.price.toFixed(2)}`}
+                  </p>
+                </div>
+              </button>
+            ))}
+
+          {/* No results */}
+          {showNoResults && (
+            <div className="px-3 py-4 text-center text-sm text-muted-foreground">
+              No products found for &ldquo;{value}&rdquo;
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

@@ -30,11 +30,68 @@ export type RotationDirection = "clockwise" | "counter_clockwise" | "none";
 /** Complexity classification for illustration routing */
 export type StepComplexity = "simple" | "complex";
 
+// ─── Raw Visual Extraction Types (Pass 1 output) ───
+
+/** An action depicted on a PDF page */
+export interface VisualAction {
+  actionType: string; // e.g., "insert", "attach", "rotate", "tighten", "align", "flip"
+  subject: string; // what is being moved/acted on (e.g., "Side panel (A)")
+  target: string; // where it goes or what it interacts with (e.g., "Pre-drilled holes in base panel (B)")
+  direction?: string; // movement direction if shown (e.g., "push downward", "slide left-to-right")
+}
+
+/** Fastener detail observed on a PDF page */
+export interface FastenerDetail {
+  type: string; // e.g., "cam lock", "wooden dowel", "screw", "bolt", "nail"
+  partId?: string; // part number if visible
+  rotation: RotationDirection; // rotation shown in diagram
+  notes?: string; // e.g., "quarter-turn to lock", "do not overtighten"
+}
+
+/** Arrow or direction annotation on a PDF page */
+export interface ArrowAnnotation {
+  direction: string; // e.g., "downward", "clockwise", "toward viewer", "left-to-right"
+  label?: string; // text label near the arrow if any
+  indicatesMotion: boolean; // true if arrow shows assembly motion, false if just a callout pointer
+}
+
+/** Raw visual extraction for a single step/panel from one PDF page */
+export interface RawStepExtraction {
+  stepNumber: number; // step number shown in diagram, 0 for parts/tools pages
+  rawDescription: string; // factual observation of what is shown (not narrative prose)
+  partsShown: PartReference[]; // parts visible on this page for this step
+  toolsShown: ToolReference[]; // tools shown/implied
+  actions: VisualAction[]; // actions depicted
+  spatialDetails: {
+    orientation?: string; // e.g., "Product laid on side, back panel facing up"
+    alignmentNotes?: string; // e.g., "Holes in panel A align with holes in panel B edge"
+  };
+  arrows: ArrowAnnotation[];
+  fasteners: FastenerDetail[];
+  annotations: string[]; // other text/symbols visible (e.g., "x4", "click sound icon", "two-person icon")
+  warnings: string[]; // safety/caution icons or text observed
+  complexity: StepComplexity;
+  confidence: Confidence;
+}
+
+/** Full raw extraction output for one PDF page (Pass 1 result) */
+export interface RawPageExtraction {
+  steps: RawStepExtraction[];
+  pageIndicators: {
+    arrowCount: number;
+    hasHingeOrRotation: boolean;
+    hasFastenerAmbiguity: boolean;
+    isPartsPage: boolean;
+  };
+}
+
+// ─── Generated Step (final output, populated by Pass 2) ───
+
 /** A single generated assembly step */
 export interface GeneratedStep {
   stepNumber: number;
   title: string;
-  instruction: string;
+  instruction: string; // narrative instruction text (populated by Pass 2, factual summary by default)
   parts: PartReference[];
   tools: ToolReference[];
   callouts: StepCallout[];
@@ -42,6 +99,7 @@ export interface GeneratedStep {
   complexity: StepComplexity;
   confidence: Confidence;
   sourcePdfPage: number; // which PDF page this step came from
+  rawExtraction?: RawStepExtraction; // raw visual data from Pass 1 (consumed by Pass 2)
   illustrationPrompt?: string; // prompt to generate the illustration
   illustrationUrl?: string; // populated after illustration generation
 }
@@ -89,7 +147,10 @@ export type QualityFlagCode =
   | "sequence_gap" // step numbers aren't sequential
   | "duplicate_step" // near-identical steps detected
   | "no_warnings" // safety-critical product with no warnings
-  | "orientation_uncertain"; // AI unsure about part orientation
+  | "orientation_uncertain" // AI unsure about part orientation
+  | "illustration_missing" // step has no illustration when illustrations were expected
+  | "high_low_confidence_ratio" // too many low-confidence steps in the guide
+  | "part_sequence_error"; // step references a part not introduced in prior steps
 
 /** Metadata about the generation process itself */
 export interface GenerationMetadata {

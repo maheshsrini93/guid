@@ -36,8 +36,13 @@ export default async function StudioProductsPage({
   const [products, total] = await Promise.all([
     prisma.product.findMany({
       where,
-      include: {
-        documents: { where: { document_type: "assembly" } },
+      select: {
+        id: true,
+        article_number: true,
+        product_name: true,
+        product_type: true,
+        price_current: true,
+        documents: { where: { document_type: "assembly" }, select: { id: true } },
         _count: { select: { images: true, documents: true } },
       },
       orderBy: { article_number: "asc" },
@@ -91,8 +96,8 @@ export default async function StudioProductsPage({
         ))}
       </div>
 
-      <div className="rounded-lg border">
-        <table className="w-full text-sm">
+      <div className="rounded-lg border overflow-x-auto">
+        <table className="w-full text-sm min-w-[600px]">
           <thead>
             <tr className="border-b bg-gray-50 text-left">
               <th className="px-4 py-3 font-medium">Article #</th>

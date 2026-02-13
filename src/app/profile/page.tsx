@@ -27,14 +27,21 @@ export default async function ProfilePage() {
 
   const savedProducts = await prisma.savedProduct.findMany({
     where: { userId: session.user!.id },
-    include: {
+    select: {
+      id: true,
       product: {
-        include: {
-          images: { take: 1, orderBy: { sort_order: "asc" } },
+        select: {
+          id: true,
+          article_number: true,
+          product_name: true,
+          product_type: true,
+          price_current: true,
+          images: { take: 1, orderBy: { sort_order: "asc" }, select: { url: true } },
         },
       },
     },
     orderBy: { createdAt: "desc" },
+    take: 50,
   });
 
   return (

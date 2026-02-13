@@ -13,6 +13,7 @@ interface ImageWithFallbackProps {
   sizes?: string;
   className?: string;
   priority?: boolean;
+  loading?: "lazy" | "eager";
 }
 
 export function ImageWithFallback({
@@ -24,9 +25,10 @@ export function ImageWithFallback({
   sizes,
   className,
   priority,
+  loading: loadingProp,
 }: ImageWithFallbackProps) {
   const [error, setError] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   if (error) {
     return (
@@ -50,11 +52,12 @@ export function ImageWithFallback({
       fill={fill}
       sizes={sizes}
       priority={priority}
+      loading={loadingProp}
       className={cn(
         className,
-        loading && "animate-pulse bg-gray-100"
+        isLoading && "animate-pulse bg-gray-100"
       )}
-      onLoad={() => setLoading(false)}
+      onLoad={() => setIsLoading(false)}
       onError={() => setError(true)}
     />
   );

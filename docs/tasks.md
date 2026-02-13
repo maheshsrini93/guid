@@ -43,25 +43,25 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 | P1.2.1 | done | Build single-product generation endpoint | Server action: takes a product ID -> fetches PDF -> runs vision analysis -> returns structured guide data | P1.1.1, P1.1.2, P1.1.3, P1.1.4, P1.1.5 | P1.2.4, P1.2.6 |
 | P1.2.2 | done | Implement step extraction logic | AI prompt that analyzes each PDF page and extracts: step number, instruction text, tools needed, parts referenced, warnings, screw directions | P1.1.1, P1.1.2, P1.1.4, P1.1.5 | P1.2.4 |
 | P1.2.3 | done | Add confidence scoring | Each step gets a confidence score based on model certainty; flag low-confidence steps | P1.1.1, P1.1.2, P1.1.4, P1.1.5 | P1.2.4, P1.2.8 |
-| P1.2.4 | todo | Refactor step extraction to raw visual facts | Refactor `STEP_EXTRACTION_PROMPT` in `generate-guide.ts` to focus on raw visual extraction only: parts shown, actions depicted, spatial relationships, arrow directions, fastener types, annotations. Output factual structured JSON per page, not narrative prose. This prepares the pipeline for the continuity refinement pass. | P1.2.1, P1.2.2, P1.2.3 | P1.2.5 |
-| P1.2.5 | todo | Implement continuity refinement pass | After per-page visual extraction, add a second LLM pass (Flash text-only, no vision) that takes the full ordered sequence of extracted steps and generates human-readable instruction text with proper continuity. The pass must: (1) write each step's instruction with awareness of all prior steps, (2) detect and merge steps split across PDF pages, (3) add transition language between major assembly phases, (4) resolve forward/backward references ("Use the same Allen key from Step 2"), (5) maintain consistent part terminology throughout, and (6) reiterate safety warnings when relevant actions repeat. See implementation-plan.md "Step Continuity" section for full architecture rationale. | P1.2.4 | P1.2.8, P1.3.1 |
-| P1.2.6 | todo | Build illustration generation | Integrate Nano Banana (`gemini-2.5-flash-image`) for simple steps and Nano Banana Pro (`gemini-3-pro-image-preview`) for complex steps. Auto-classify step complexity based on part count and spatial relationships. | P1.2.1 | P1.2.7 |
-| P1.2.7 | todo | Implement illustration model routing | Cost-efficiency logic: route simple steps (single part, straightforward action) to Nano Banana (cheaper/faster), complex steps (exploded views, multi-part, fine annotations) to Nano Banana Pro (higher fidelity, ~$0.134/image) | P1.2.6 | P1.3.1 |
-| P1.2.8 | todo | Create quality check automation | Verify: step count matches PDF pages, all parts referenced, logical step sequence, no missing tools | P1.2.3, P1.2.5 | P1.3.1 |
+| P1.2.4 | done | Refactor step extraction to raw visual facts | Refactor `STEP_EXTRACTION_PROMPT` in `generate-guide.ts` to focus on raw visual extraction only: parts shown, actions depicted, spatial relationships, arrow directions, fastener types, annotations. Output factual structured JSON per page, not narrative prose. This prepares the pipeline for the continuity refinement pass. | P1.2.1, P1.2.2, P1.2.3 | P1.2.5 |
+| P1.2.5 | done | Implement continuity refinement pass | After per-page visual extraction, add a second LLM pass (Flash text-only, no vision) that takes the full ordered sequence of extracted steps and generates human-readable instruction text with proper continuity. The pass must: (1) write each step's instruction with awareness of all prior steps, (2) detect and merge steps split across PDF pages, (3) add transition language between major assembly phases, (4) resolve forward/backward references ("Use the same Allen key from Step 2"), (5) maintain consistent part terminology throughout, and (6) reiterate safety warnings when relevant actions repeat. See implementation-plan.md "Step Continuity" section for full architecture rationale. | P1.2.4 | P1.2.8, P1.3.1 |
+| P1.2.6 | done | Build illustration generation | Integrate Nano Banana (`gemini-2.5-flash-image`) for simple steps and Nano Banana Pro (`gemini-3-pro-image-preview`) for complex steps. Auto-classify step complexity based on part count and spatial relationships. | P1.2.1 | P1.2.7 |
+| P1.2.7 | done | Implement illustration model routing | Cost-efficiency logic: route simple steps (single part, straightforward action) to Nano Banana (cheaper/faster), complex steps (exploded views, multi-part, fine annotations) to Nano Banana Pro (higher fidelity, ~$0.134/image) | P1.2.6 | P1.3.1 |
+| P1.2.8 | done | Create quality check automation | Verify: step count matches PDF pages, all parts referenced, logical step sequence, no missing tools | P1.2.3, P1.2.5 | P1.3.1 |
 
 ### 1.3 Pilot & Refinement
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P1.3.1 | todo | Select pilot products | Pick one product from each category: bookshelf, desk, bed frame, wardrobe, storage unit | P1.2.5, P1.2.7, P1.2.8 | P1.3.2 |
-| P1.3.2 | todo | Generate pilot guides | Run generation pipeline on all pilot products | P1.3.1 | P1.3.3, P1.3.6, P1.3.7 |
-| P1.3.3 | todo | Build review UI in Studio | Side-by-side view: original PDF (left) vs AI-generated guide (right), per step | P1.3.2 | P1.3.4, P1.7.2 |
-| P1.3.4 | todo | Add inline editing on review screen | Admin can edit instruction text, flag illustrations for regeneration, add notes | P1.3.3 | P1.3.5 |
+| P1.3.1 | done | Select pilot products | Pick one product from each category: bookshelf, desk, bed frame, wardrobe, storage unit | P1.2.5, P1.2.7, P1.2.8 | P1.3.2 |
+| P1.3.2 | done | Generate pilot guides | Run generation pipeline on all pilot products | P1.3.1 | P1.3.3, P1.3.6, P1.3.7 |
+| P1.3.3 | done | Build review UI in Studio | Side-by-side view: original PDF (left) vs AI-generated guide (right), per step | P1.3.2 | P1.3.4, P1.7.2 |
+| P1.3.4 | done | Add inline editing on review screen | Admin can edit instruction text, flag illustrations for regeneration, add notes | P1.3.3 | P1.3.5 |
 | P1.3.5 | todo | Implement feedback loop | Store reviewer corrections and notes; use them to refine prompts | P1.3.4 | P1.3.8 |
 | P1.3.6 | todo | Integrate instruction writing guidelines | Apply the product owner's instruction writing requirements to the text generation prompts. Ensure output meets vocabulary, structure, and accessibility standards for non-native English speakers. | P1.0.1, P1.3.2 | P1.3.8 |
 | P1.3.7 | todo | Integrate illustration guidelines | Apply the product owner's illustration creation requirements to the Nano Banana / Nano Banana Pro image generation prompts. Ensure output meets style, annotation, and consistency standards. | P1.0.2, P1.3.2 | P1.3.8 |
 | P1.3.8 | todo | Iterate on prompts | Based on pilot review feedback, improve extraction accuracy for problem areas (cam locks, part orientation, screw direction) | P1.3.5, P1.3.6, P1.3.7 | P1.3.9 |
-| P1.3.9 | todo | Define quality gate | Set minimum confidence threshold and review pass rate required before batch processing | P1.3.8 | P1.4.1 |
+| P1.3.9 | done | Define quality gate | Set minimum confidence threshold and review pass rate required before batch processing | P1.3.8 | P1.4.1 |
 
 ### 1.4 Batch Processing
 
@@ -114,7 +114,7 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
 | P1.7.1 | todo | /studio/ai-generate dashboard | AI generation dashboard: start jobs, view queue, batch controls | P1.4.1 | — |
-| P1.7.2 | todo | /studio/ai-generate/[jobId] review | Single job review: side-by-side PDF vs guide, edit, approve/reject | P1.3.3 | — |
+| P1.7.2 | done | /studio/ai-generate/[jobId] review | Single job review: side-by-side PDF vs guide, edit, approve/reject | P1.3.3 | — |
 | P1.7.3 | todo | /studio/ai-config management | Prompt template management, model configuration, version history | P1.6.2 | — |
 | P1.7.4 | todo | /studio/catalog-sync dashboard | Monthly catalog sync dashboard: last sync dates, new products per cycle, time-to-guide metrics, scraper health, sync history log, manual sync trigger | P1.5.10 | — |
 
@@ -126,56 +126,56 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P2.0.1 | todo | Guide-first routing on /products/[articleNumber] | When a product has a published guide (`guideStatus: published`), render the guide viewer as the primary view instead of the product detail page. When no published guide exists (queued, generating, in_review, no_source_material, none), fall back to the current product detail page. Use the Product model's `guideStatus` field for routing decisions. | — | P2.0.2, P2.0.3, P2.0.6, P2.0.7, P2.2.1 |
-| P2.0.2 | todo | Create /products/[articleNumber]/details route | Move the current product detail page (images, specs, ratings, documents, metadata, assembly PDF download) to this sub-route. This page is always accessible regardless of guide status. Linked from the guide viewer's Product Info Card. | P2.0.1 | P2.4.1 |
-| P2.0.3 | todo | Build Product Info Card for guide viewer | Compact card below the sticky illustration panel in the guide viewer's right column. Shows: product thumbnail (48px), product name, article number (JetBrains Mono), price, one key dimension, and a "View details ->" link to `/products/[articleNumber]/details`. Entire card clickable. On mobile, replaced by a small info icon in the guide header. | P2.0.1 | — |
-| P2.0.4 | todo | Add guide availability status badges | Product cards in search results and browse grid show guide status: green `Check` badge ("Guide Available") for published guides, amber `Loader2` badge ("Guide In Progress") for queued/generating, no badge for products without guides. Badge positioned top-right of card image area. | — | — |
-| P2.0.5 | todo | Update homepage hero to guide-centric messaging | Change homepage hero text to "Find step-by-step instructions for any product" or similar guide-centric copy. Emphasize finding guides and work instructions over browsing a product catalog. Keep "Browse Products" as the navigation label. | — | — |
-| P2.0.6 | todo | Update SEO meta tags for guide-first landing | When a guide exists, `/products/[articleNumber]` meta tags should be optimized for guide content: title "How to Assemble [Product] — Step-by-Step Guide | Guid", description focusing on the guide's step count, tools, and difficulty. When no guide exists, keep current product-focused meta tags. | P2.0.1 | — |
-| P2.0.7 | todo | Update internal navigation links | Audit all internal links that point to `/products/[articleNumber]` to ensure they work correctly with the new guide-first routing. Update breadcrumbs on the guide view and details page. | P2.0.1 | — |
+| P2.0.1 | done | Guide-first routing on /products/[articleNumber] | When a product has a published guide (`guideStatus: published`), render the guide viewer as the primary view instead of the product detail page. When no published guide exists (queued, generating, in_review, no_source_material, none), fall back to the current product detail page. Use the Product model's `guideStatus` field for routing decisions. | — | P2.0.2, P2.0.3, P2.0.6, P2.0.7, P2.2.1 |
+| P2.0.2 | done | Create /products/[articleNumber]/details route | Move the current product detail page (images, specs, ratings, documents, metadata, assembly PDF download) to this sub-route. This page is always accessible regardless of guide status. Linked from the guide viewer's Product Info Card. | P2.0.1 | P2.4.1 |
+| P2.0.3 | done | Build Product Info Card for guide viewer | Compact card below the sticky illustration panel in the guide viewer's right column. Shows: product thumbnail (48px), product name, article number (JetBrains Mono), price, one key dimension, and a "View details ->" link to `/products/[articleNumber]/details`. Entire card clickable. On mobile, replaced by a small info icon in the guide header. | P2.0.1 | — |
+| P2.0.4 | done | Add guide availability status badges | Product cards in search results and browse grid show guide status: green `Check` badge ("Guide Available") for published guides, amber `Loader2` badge ("Guide In Progress") for queued/generating, no badge for products without guides. Badge positioned top-right of card image area. | — | — |
+| P2.0.5 | done | Update homepage hero to guide-centric messaging | Change homepage hero text to "Find step-by-step instructions for any product" or similar guide-centric copy. Emphasize finding guides and work instructions over browsing a product catalog. Keep "Browse Products" as the navigation label. | — | — |
+| P2.0.6 | done | Update SEO meta tags for guide-first landing | When a guide exists, `/products/[articleNumber]` meta tags should be optimized for guide content: title "How to Assemble [Product] — Step-by-Step Guide | Guid", description focusing on the guide's step count, tools, and difficulty. When no guide exists, keep current product-focused meta tags. | P2.0.1 | — |
+| P2.0.7 | done | Update internal navigation links | Audit all internal links that point to `/products/[articleNumber]` to ensure they work correctly with the new guide-first routing. Update breadcrumbs on the guide view and details page. | P2.0.1 | — |
 
 ### 2.1 Design System Update
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P2.1.1 | todo | Migrate fonts to IBM Plex Sans + JetBrains Mono | Replace Geist Sans/Mono with IBM Plex Sans (primary) and JetBrains Mono (technical) via `next/font/google`. Update Tailwind fontFamily config. Update all components that reference font-family. | — | P2.1.4, P2.2.1 |
-| P2.1.2 | todo | Update color palette | Replace default neutral theme with amber/orange brand colors per design-guidelines.md. Add all tokens including `--background`, `--foreground`, `--card`, `--card-foreground`, `--border`, `--input`, `--ring`. Include hex fallbacks for older browsers. | — | P2.1.3, P2.1.5, P2.2.1 |
-| P2.1.3 | todo | Update CSS variables for light + dark mode | Set full oklch token mapping in globals.css for both `:root` and `.dark` classes. All 17 tokens must have both light and dark values per design-guidelines.md. | P2.1.2 | P2.1.6 |
-| P2.1.4 | todo | Audit typography | Ensure all pages follow the type scale (H1-H4, Body, Caption, Mono). Guide instructions use Body size with 1.7 line-height, max-width 72ch. Part numbers and measurements use JetBrains Mono. Apply fluid type scale with `clamp()` for headings. | P2.1.1 | — |
-| P2.1.5 | todo | Update button styles | Amber primary, warm gray secondary, per design guidelines. Add all interactive states (hover, active, focus-visible, disabled, loading). Add button sizes (sm, default, lg). Ensure 44px minimum touch targets. | P2.1.2 | — |
-| P2.1.6 | todo | Add dark mode toggle | Implement theme switcher with full warm dark palette per design-guidelines.md. Deep warm charcoal background, amber remains vibrant. | P2.1.3 | — |
-| P2.1.7 | todo | Add z-index, shadow, border-radius scales | Define CSS custom properties for the z-index scale (base through chat), shadow scale (sm through xl), and border-radius scale per design-guidelines.md. | — | — |
-| P2.1.8 | todo | Add accessibility foundations | Add skip links ("Skip to main content"), visible focus rings on all interactive elements, `prefers-reduced-motion` CSS override, `aria-label` on all icon-only buttons. Verify all color token pairings meet WCAG AA 4.5:1 contrast minimum. | — | — |
+| P2.1.1 | done | Migrate fonts to IBM Plex Sans + JetBrains Mono | Replace Geist Sans/Mono with IBM Plex Sans (primary) and JetBrains Mono (technical) via `next/font/google`. Update Tailwind fontFamily config. Update all components that reference font-family. | — | P2.1.4, P2.2.1 |
+| P2.1.2 | done | Update color palette | Replace default neutral theme with amber/orange brand colors per design-guidelines.md. Add all tokens including `--background`, `--foreground`, `--card`, `--card-foreground`, `--border`, `--input`, `--ring`. Include hex fallbacks for older browsers. | — | P2.1.3, P2.1.5, P2.2.1 |
+| P2.1.3 | done | Update CSS variables for light + dark mode | Set full oklch token mapping in globals.css for both `:root` and `.dark` classes. All 17 tokens must have both light and dark values per design-guidelines.md. | P2.1.2 | P2.1.6 |
+| P2.1.4 | done | Audit typography | Ensure all pages follow the type scale (H1-H4, Body, Caption, Mono). Guide instructions use Body size with 1.7 line-height, max-width 72ch. Part numbers and measurements use JetBrains Mono. Apply fluid type scale with `clamp()` for headings. | P2.1.1 | — |
+| P2.1.5 | done | Update button styles | Amber primary, warm gray secondary, per design guidelines. Add all interactive states (hover, active, focus-visible, disabled, loading). Add button sizes (sm, default, lg). Ensure 44px minimum touch targets. | P2.1.2 | — |
+| P2.1.6 | done | Add dark mode toggle | Implement theme switcher with full warm dark palette per design-guidelines.md. Deep warm charcoal background, amber remains vibrant. | P2.1.3 | — |
+| P2.1.7 | done | Add z-index, shadow, border-radius scales | Define CSS custom properties for the z-index scale (base through chat), shadow scale (sm through xl), and border-radius scale per design-guidelines.md. | — | — |
+| P2.1.8 | done | Add accessibility foundations | Add skip links ("Skip to main content"), visible focus rings on all interactive elements, `prefers-reduced-motion` CSS override, `aria-label` on all icon-only buttons. Verify all color token pairings meet WCAG AA 4.5:1 contrast minimum. | — | — |
 
 ### 2.2 Guide Viewer UX — Three-Column Docs Layout
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P2.2.1 | todo | Build three-column desktop layout | Implement the three-column guide viewer for >= 1024px: TOC sidebar (220px, sticky), work instructions (flex-grow, all steps on one scrollable page), illustration panel (380px, sticky). Max container width 1440px. Each step is a `<section>` with `aria-labelledby`. | P2.0.1, P2.1.1, P2.1.2 | P2.2.2, P2.2.3, P2.2.5, P2.2.7, P2.2.8, P2.2.9 |
-| P2.2.2 | todo | Implement scrollspy for TOC | Use Intersection Observer to track which step the user is currently viewing. Highlight the corresponding TOC item with amber left border, `--primary` text, font-weight 600. Completed steps show muted text + checkmark. Upcoming steps show normal weight. | P2.2.1 | P2.2.12, P2.2.13, P2.2.14, P2.2.15 |
-| P2.2.3 | todo | Build sticky illustration panel | Right panel fixed to viewport (`position: sticky`, `top: header-height + 1rem`). Displays illustration for the current step (via scrollspy). Crossfade transition (200ms ease-out) when swapping. If current step has no illustration, persist previous step's illustration. | P2.2.1 | P2.2.4 |
-| P2.2.4 | todo | Add click-to-zoom lightbox | Clicking an illustration opens a full-screen lightbox overlay (`z-modal`). Pinch-to-zoom on touch, scroll-wheel zoom on desktop. Close with Escape key or click-outside. | P2.2.3 | — |
-| P2.2.5 | todo | Build step instruction rendering | Render all steps on a single page with step headers (number in JetBrains Mono amber circle + title in H3), Body text at 1.7 line-height, max-width 72ch, `gap-12` between steps, `scroll-margin-top` for correct scrollspy landing. | P2.2.1 | P2.2.6 |
-| P2.2.6 | todo | Add tip/warning/info callouts | Styled callout boxes: Tip (yellow bg, Lightbulb icon), Warning (red bg, AlertTriangle icon), Info (blue bg, Info icon). Left border 3px colored, `rounded-lg`, `p-4`. | P2.2.5 | — |
-| P2.2.7 | todo | Add progress bar | Thin amber bar at top of guide page showing % of steps scrolled past. Smooth width animation (300ms ease-out). Amber fill, muted track. | P2.2.1 | — |
-| P2.2.8 | todo | Build tablet two-column layout | For 640-1024px: instructions (~60% width) + sticky illustration (~40%). TOC accessible via floating button that opens a Sheet (slide-in from left). | P2.2.1 | — |
-| P2.2.9 | todo | Build mobile step-by-step cards | For < 640px: one step per screen as a full-width card. Layout: progress bar (top), illustration (full-width 4:3), step header, instruction text, callouts, navigation buttons ("Previous" outline + "Next Step" primary, 48px height). | P2.2.1 | P2.2.10, P2.2.11, P2.7.2 |
-| P2.2.10 | todo | Add mobile swipe navigation | Swipe left for next step, swipe right for previous. 200ms slide transition with fade. Haptic feedback via `navigator.vibrate` if supported. | P2.2.9 | — |
-| P2.2.11 | todo | Add mobile TOC bottom sheet | Floating button (bottom-right, `List` icon) opens bottom sheet listing all steps with completion states. Tap any step to jump directly. | P2.2.9 | — |
-| P2.2.12 | todo | Add completion screen | At end of guide: "Guide Complete" heading, total steps, rating prompt (5-star, 48px touch targets), social share buttons (ghost style), sign-up CTA for anonymous users. Subtle checkmark animation (respects `prefers-reduced-motion`). | P2.2.2 | — |
+| P2.2.1 | done | Build three-column desktop layout | Implement the three-column guide viewer for >= 1024px: TOC sidebar (220px, sticky), work instructions (flex-grow, all steps on one scrollable page), illustration panel (380px, sticky). Max container width 1440px. Each step is a `<section>` with `aria-labelledby`. | P2.0.1, P2.1.1, P2.1.2 | P2.2.2, P2.2.3, P2.2.5, P2.2.7, P2.2.8, P2.2.9 |
+| P2.2.2 | done | Implement scrollspy for TOC | Use Intersection Observer to track which step the user is currently viewing. Highlight the corresponding TOC item with amber left border, `--primary` text, font-weight 600. Completed steps show muted text + checkmark. Upcoming steps show normal weight. | P2.2.1 | P2.2.12, P2.2.13, P2.2.14, P2.2.15 |
+| P2.2.3 | done | Build sticky illustration panel | Right panel fixed to viewport (`position: sticky`, `top: header-height + 1rem`). Displays illustration for the current step (via scrollspy). Crossfade transition (200ms ease-out) when swapping. If current step has no illustration, persist previous step's illustration. | P2.2.1 | P2.2.4 |
+| P2.2.4 | done | Add click-to-zoom lightbox | Clicking an illustration opens a full-screen lightbox overlay (`z-modal`). Pinch-to-zoom on touch, scroll-wheel zoom on desktop. Close with Escape key or click-outside. | P2.2.3 | — |
+| P2.2.5 | done | Build step instruction rendering | Render all steps on a single page with step headers (number in JetBrains Mono amber circle + title in H3), Body text at 1.7 line-height, max-width 72ch, `gap-12` between steps, `scroll-margin-top` for correct scrollspy landing. | P2.2.1 | P2.2.6 |
+| P2.2.6 | done | Add tip/warning/info callouts | Styled callout boxes: Tip (yellow bg, Lightbulb icon), Warning (red bg, AlertTriangle icon), Info (blue bg, Info icon). Left border 3px colored, `rounded-lg`, `p-4`. | P2.2.5 | — |
+| P2.2.7 | done | Add progress bar | Thin amber bar at top of guide page showing % of steps scrolled past. Smooth width animation (300ms ease-out). Amber fill, muted track. | P2.2.1 | — |
+| P2.2.8 | done | Build tablet two-column layout | For 640-1024px: instructions (~60% width) + sticky illustration (~40%). TOC accessible via floating button that opens a Sheet (slide-in from left). | P2.2.1 | — |
+| P2.2.9 | done | Build mobile step-by-step cards | For < 640px: one step per screen as a full-width card. Layout: progress bar (top), illustration (full-width 4:3), step header, instruction text, callouts, navigation buttons ("Previous" outline + "Next Step" primary, 48px height). | P2.2.1 | P2.2.10, P2.2.11, P2.7.2 |
+| P2.2.10 | done | Add mobile swipe navigation | Swipe left for next step, swipe right for previous. 200ms slide transition with fade. Haptic feedback via `navigator.vibrate` if supported. | P2.2.9 | — |
+| P2.2.11 | done | Add mobile TOC bottom sheet | Floating button (bottom-right, `List` icon) opens bottom sheet listing all steps with completion states. Tap any step to jump directly. | P2.2.9 | — |
+| P2.2.12 | done | Add completion screen | At end of guide: "Guide Complete" heading, total steps, rating prompt (5-star, 48px touch targets), social share buttons (ghost style), sign-up CTA for anonymous users. Subtle checkmark animation (respects `prefers-reduced-motion`). | P2.2.2 | — |
 | P2.2.13 | todo | Add progress saving | For signed-in users, auto-save current scroll position / step number. On return: banner with "Welcome back! Continue from Step 14?" with "Resume" (primary) and "Start Over" (ghost) buttons. | P2.2.2 | — |
 | P2.2.14 | todo | Add step bookmarking | Save specific steps across different guides for quick reference. Useful for pro installers who bookmark tricky steps across products. | P2.2.2 | — |
-| P2.2.15 | todo | Add keyboard navigation | Arrow keys (left/right) for step navigation on desktop. Home/End jump to first/last step. Proper focus management and `aria-current="step"` on active TOC item. | P2.2.2 | — |
+| P2.2.15 | done | Add keyboard navigation | Arrow keys (left/right) for step navigation on desktop. Home/End jump to first/last step. Proper focus management and `aria-current="step"` on active TOC item. | P2.2.2 | — |
 
 ### 2.3 Search & Discovery
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P2.3.1 | todo | Add search autocomplete | As user types (debounced 300ms), show top 5 matching products below search bar with thumbnail, name, article number. Click to navigate directly. | — | — |
-| P2.3.2 | todo | Add article number detection | If search input is numbers-only (e.g., "702.758.14"), prioritize exact `article_number` match as top result. | — | — |
-| P2.3.3 | todo | Add URL paste detection | If search input contains "http" or "ikea.com", extract article number from URL, redirect to product page. Show toast: "Detected IKEA product link — redirecting..." | — | — |
-| P2.3.4 | todo | Add recent searches | Show user's last 5 searches when search input is focused. localStorage for anonymous users, database for signed-in users. | — | — |
-| P2.3.5 | todo | Add zero-result handling | When no products match: "No products found for '[query]'" with suggestions: similar products (fuzzy match), category browsing links, "Request this product" link. | — | — |
+| P2.3.1 | done | Add search autocomplete | As user types (debounced 300ms), show top 5 matching products below search bar with thumbnail, name, article number. Click to navigate directly. | — | — |
+| P2.3.2 | done | Add article number detection | If search input is numbers-only (e.g., "702.758.14"), prioritize exact `article_number` match as top result. | — | — |
+| P2.3.3 | done | Add URL paste detection | If search input contains "http" or "ikea.com", extract article number from URL, redirect to product page. Show toast: "Detected IKEA product link — redirecting..." | — | — |
+| P2.3.4 | done | Add recent searches | Show user's last 5 searches when search input is focused. localStorage for anonymous users, database for signed-in users. | — | — |
+| P2.3.5 | done | Add zero-result handling | When no products match: "No products found for '[query]'" with suggestions: similar products (fuzzy match), category browsing links, "Request this product" link. | — | — |
 | P2.3.6 | todo | Add barcode/QR scanner | Camera button in search bar, scan barcode -> extract article number -> search (mobile only, requires camera permission) | — | — |
 | P2.3.7 | todo | Add photo-to-text OCR | Camera button: photograph product label -> OCR extracts name/number -> search | — | — |
 | P2.3.8 | todo | Add search analytics | Track popular queries, zero-result queries, click-through rates. Identify content gaps for catalog expansion. | — | — |
@@ -193,33 +193,33 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P2.5.1 | todo | Optimize image loading | Configure `next/image` with responsive `sizes` prop, serve 320w/640w/960w/1280w srcset. Blur-up placeholders for perceived performance. | — | — |
-| P2.5.2 | todo | Add lazy loading | All below-the-fold images use `loading="lazy"`. Only first 4 product cards and primary product image load eagerly. | — | — |
-| P2.5.3 | todo | Profile and optimize database queries | Enable Prisma query logging, identify slow queries (target: all product list queries under 200ms). Add composite indexes for `(category, current_price)`, `(category, average_rating)`, `(product_type, guide_status)`. | — | — |
+| P2.5.1 | done | Optimize image loading | Configure `next/image` with responsive `sizes` prop, serve 320w/640w/960w/1280w srcset. Blur-up placeholders for perceived performance. | — | — |
+| P2.5.2 | done | Add lazy loading | All below-the-fold images use `loading="lazy"`. Only first 4 product cards and primary product image load eagerly. | — | — |
+| P2.5.3 | done | Profile and optimize database queries | Enable Prisma query logging, identify slow queries (target: all product list queries under 200ms). Add composite indexes for `(category, current_price)`, `(category, average_rating)`, `(product_type, guide_status)`. | — | — |
 | P2.5.4 | todo | Optimize filter query builder | Review `product-filters.ts` for N+1 queries, unnecessary JOINs, suboptimal WHERE clause ordering. Ensure most selective filter applied first. | — | — |
-| P2.5.5 | todo | Implement ISR | Incremental Static Regeneration for product detail pages (`revalidate: 86400`). Pre-generate top 100 most-viewed product pages at build time. | — | — |
-| P2.5.6 | todo | Add edge caching | Cache product list API responses (`s-maxage=3600, stale-while-revalidate=86400`). Cache completed assembly guide data aggressively. | — | — |
-| P2.5.7 | todo | Add skeleton loading states | Skeleton screens with shimmer animation on product grid (card-shaped placeholders), product detail (image + text blocks), guide viewer (progress bar + instruction), and search results. | — | — |
+| P2.5.5 | done | Implement ISR | Incremental Static Regeneration for product detail pages (`revalidate: 86400`). Pre-generate top 100 most-viewed product pages at build time. | — | — |
+| P2.5.6 | done | Add edge caching | Cache product list API responses (`s-maxage=3600, stale-while-revalidate=86400`). Cache completed assembly guide data aggressively. | — | — |
+| P2.5.7 | done | Add skeleton loading states | Skeleton screens with shimmer animation on product grid (card-shaped placeholders), product detail (image + text blocks), guide viewer (progress bar + instruction), and search results. | — | — |
 
 ### 2.6 SEO
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P2.6.1 | todo | Add JSON-LD structured data | Product schema on product detail pages (name, image, brand, sku, offers). HowTo schema on guide pages (steps, tools, totalTime). BreadcrumbList on all pages. Organization schema on homepage. | — | — |
-| P2.6.2 | todo | Generate dynamic sitemap | Auto-generated `sitemap.xml` with all product and guide pages. Split into category-based sitemaps with sitemap index for 12,000+ URLs. Reference in `robots.txt`. | — | — |
-| P2.6.3 | todo | Add Open Graph meta tags | Per-page `og:title`, `og:description`, `og:image` (product's primary image), `og:url`. Enables rich previews on Facebook, LinkedIn. | — | — |
-| P2.6.4 | todo | Add Twitter Card meta tags | `twitter:card` (summary_large_image), `twitter:title`, `twitter:description`, `twitter:image`. | — | — |
-| P2.6.5 | todo | Add canonical URLs | Every page declares canonical URL to prevent duplicate content (especially with filter/sort URL params). | — | — |
-| P2.6.6 | todo | Audit heading hierarchy | Every page has exactly one H1, proper H1->H2->H3 hierarchy, no skipped levels. | — | — |
-| P2.6.7 | todo | Write unique meta per page | Unique `<title>` and `<meta description>` for every page. Products: "[Product] — Assembly Guide | Guid". Guides: "How to Assemble [Product] — Step-by-Step | Guid". | — | — |
+| P2.6.1 | done | Add JSON-LD structured data | Product schema on product detail pages (name, image, brand, sku, offers). HowTo schema on guide pages (steps, tools, totalTime). BreadcrumbList on all pages. Organization schema on homepage. | — | — |
+| P2.6.2 | done | Generate dynamic sitemap | Auto-generated `sitemap.xml` with all product and guide pages. Split into category-based sitemaps with sitemap index for 12,000+ URLs. Reference in `robots.txt`. | — | — |
+| P2.6.3 | done | Add Open Graph meta tags | Per-page `og:title`, `og:description`, `og:image` (product's primary image), `og:url`. Enables rich previews on Facebook, LinkedIn. | — | — |
+| P2.6.4 | done | Add Twitter Card meta tags | `twitter:card` (summary_large_image), `twitter:title`, `twitter:description`, `twitter:image`. | — | — |
+| P2.6.5 | done | Add canonical URLs | Every page declares canonical URL to prevent duplicate content (especially with filter/sort URL params). | — | — |
+| P2.6.6 | done | Audit heading hierarchy | Every page has exactly one H1, proper H1->H2->H3 hierarchy, no skipped levels. | — | — |
+| P2.6.7 | done | Write unique meta per page | Unique `<title>` and `<meta description>` for every page. Products: "[Product] — Assembly Guide | Guid". Guides: "How to Assemble [Product] — Step-by-Step | Guid". | — | — |
 
 ### 2.7 Mobile Optimization
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P2.7.1 | todo | Full responsive audit | Test all pages at 375px (iPhone SE), 390px (iPhone 14/15), 768px (iPad), 1024px, 1280px. Fix all layout breakage. | — | — |
-| P2.7.2 | todo | Mobile guide viewer audit | Verify mobile step-by-step card layout (built in 2.2) works at 375px and 390px. Illustration above text, 48px navigation buttons, swipe working. Bottom sheet TOC accessible. | P2.2.9 | — |
-| P2.7.3 | todo | Mobile search overlay | Full-screen search experience with recent searches, trending products, keyboard-optimized input. | — | — |
+| P2.7.1 | done | Full responsive audit | Test all pages at 375px (iPhone SE), 390px (iPhone 14/15), 768px (iPad), 1024px, 1280px. Fix all layout breakage. | — | — |
+| P2.7.2 | done | Mobile guide viewer audit | Verify mobile step-by-step card layout (built in 2.2) works at 375px and 390px. Illustration above text, 48px navigation buttons, swipe working. Bottom sheet TOC accessible. | P2.2.9 | — |
+| P2.7.3 | done | Mobile search overlay | Full-screen search experience with recent searches, trending products, keyboard-optimized input. | — | — |
 | P2.7.4 | todo | Touch targets audit | All interactive elements meet 44px minimum. Increase padding on buttons, links, filter chips. | — | — |
 | P2.7.5 | todo | Bottom sheet patterns | Use slide-up bottom sheets on mobile for filter menus, sort options, step jump instead of dropdown menus. | — | — |
 | P2.7.6 | todo | Pull-to-refresh | On product list and guide pages for native-app feel. | — | — |
@@ -446,22 +446,22 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 |----|--------|------|-------------|---------|--------|
 | P0.1.1 | todo | Set up Vercel deployment | Connect repo, configure environment variables, deploy | — | P0.1.2 |
 | P0.1.2 | todo | Set up preview deployments | Auto-deploy PRs to preview URLs | P0.1.1 | — |
-| P0.1.3 | todo | Add error tracking (Sentry) | Sentry integration for runtime error monitoring | — | — |
-| P0.1.4 | todo | Set up CI (GitHub Actions) | GitHub Actions: lint, type check, build on every PR | — | — |
+| P0.1.3 | done | Add error tracking (Sentry) | Sentry integration for runtime error monitoring | — | — |
+| P0.1.4 | done | Set up CI (GitHub Actions) | GitHub Actions: lint, type check, build on every PR | — | — |
 
 ### Security
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P0.2.1 | todo | Audit auth flow | Review NextAuth config for vulnerabilities | — | — |
-| P0.2.2 | todo | Add rate limiting | Rate limit API routes (auth, search, AI generation) | — | — |
-| P0.2.3 | todo | Validate all inputs | Server-side validation on all API routes and server actions | — | — |
-| P0.2.4 | todo | Secure AI API keys | Ensure API keys are only in server-side env, never exposed to client | — | — |
+| P0.2.1 | done | Audit auth flow | Review NextAuth config for vulnerabilities | — | — |
+| P0.2.2 | done | Add rate limiting | Rate limit API routes (auth, search, AI generation) | — | — |
+| P0.2.3 | done | Validate all inputs | Server-side validation on all API routes and server actions | — | — |
+| P0.2.4 | done | Secure AI API keys | Ensure API keys are only in server-side env, never exposed to client | — | — |
 
 ### Analytics
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P0.3.1 | todo | Add Vercel Analytics | Page views, performance metrics | — | — |
+| P0.3.1 | done | Add Vercel Analytics | Page views, performance metrics | — | — |
 | P0.3.2 | todo | Track guide engagement | Steps viewed, completion rate, time per step, drop-off points | — | — |
 | P0.3.3 | todo | Track search patterns | What users search for, zero-result queries, discovery method usage | — | — |

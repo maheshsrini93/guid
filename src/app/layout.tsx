@@ -1,21 +1,49 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { HeaderNav } from "@/components/header-nav";
+import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const ibmPlexSans = IBM_Plex_Sans({
+  variable: "--font-ibm-plex-sans",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
   subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Guid — Product guides for everything",
-  description: "Step-by-step assembly, setup, and troubleshooting guides for any product.",
+  metadataBase: new URL("https://guid.how"),
+  title: {
+    default: "Guid — Product guides for everything",
+    template: "%s | Guid",
+  },
+  description:
+    "Step-by-step assembly, setup, and troubleshooting guides for any product.",
+  openGraph: {
+    type: "website",
+    siteName: "Guid",
+    title: "Guid — Product guides for everything",
+    description:
+      "Step-by-step assembly, setup, and troubleshooting guides for any product.",
+    url: "https://guid.how",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Guid — Product guides for everything",
+    description:
+      "Step-by-step assembly, setup, and troubleshooting guides for any product.",
+  },
+  alternates: {
+    canonical: "https://guid.how",
+  },
 };
 
 export default function RootLayout({
@@ -24,12 +52,25 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${ibmPlexSans.variable} ${jetbrainsMono.variable} antialiased`}
       >
-        <HeaderNav />
-        {children}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <a href="#main-content" className="skip-link">
+            Skip to main content
+          </a>
+          <HeaderNav />
+          <main id="main-content">
+            {children}
+          </main>
+          <Analytics />
+        </ThemeProvider>
       </body>
     </html>
   );

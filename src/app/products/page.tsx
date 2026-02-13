@@ -1,6 +1,8 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { Check, Loader2 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,6 +17,28 @@ import {
   buildProductWhere,
   getSortOrderBy,
 } from "@/lib/product-filters";
+
+export const metadata: Metadata = {
+  title: "Browse Products",
+  description:
+    "Search and browse thousands of products with step-by-step assembly guides. Filter by category, price, rating, and more.",
+  alternates: { canonical: "https://guid.how/products" },
+  openGraph: {
+    title: "Browse Products",
+    description:
+      "Search and browse thousands of products with step-by-step assembly guides.",
+    url: "https://guid.how/products",
+  },
+  twitter: {
+    card: "summary",
+    title: "Browse Products",
+    description:
+      "Search and browse thousands of products with step-by-step assembly guides.",
+  },
+};
+
+// ISR: revalidate the product list every hour
+export const revalidate = 3600;
 
 const PAGE_SIZE = 24;
 
@@ -46,7 +70,17 @@ export default async function ProductsPage({
   const [products, total, categories] = await Promise.all([
     prisma.product.findMany({
       where,
-      include: { images: { take: 1, orderBy: { sort_order: "asc" } } },
+      select: {
+        id: true,
+        article_number: true,
+        product_name: true,
+        product_type: true,
+        price_current: true,
+        assembly_required: true,
+        guide_status: true,
+        images: { take: 1, orderBy: { sort_order: "asc" }, select: { url: true } },
+        assemblyGuide: { select: { published: true } },
+      },
       orderBy,
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
@@ -77,7 +111,7 @@ export default async function ProductsPage({
             {total.toLocaleString()} products
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Suspense>
             <SearchInput />
           </Suspense>
@@ -117,25 +151,51 @@ export default async function ProductsPage({
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {products.map((product) => (
+              {products.map((product, index) => (
                 <Link
                   key={product.id}
                   href={`/products/${product.article_number}`}
                   className="group rounded-lg border p-4 transition-shadow hover:shadow-md"
                 >
                   {product.images[0] ? (
-                    <div className="relative mb-3 aspect-square w-full rounded-md bg-gray-50 overflow-hidden">
+                    <div className="relative mb-3 aspect-square w-full rounded-md bg-gray-50 dark:bg-muted overflow-hidden">
                       <Image
                         src={product.images[0].url}
                         alt={product.product_name || "Product"}
                         fill
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         className="object-contain"
+                        loading={index < 4 ? "eager" : "lazy"}
+                        priority={index < 4}
                       />
+                      {(product.guide_status === "published" || product.assemblyGuide?.published) && (
+                        <span className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-green-600 px-2 py-0.5 text-xs font-medium text-white">
+                          <Check className="h-3 w-3" />
+                          Guide
+                        </span>
+                      )}
+                      {!product.assemblyGuide?.published && (product.guide_status === "queued" || product.guide_status === "generating") && (
+                        <span className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-amber-500 px-2 py-0.5 text-xs font-medium text-white">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          Coming Soon
+                        </span>
+                      )}
                     </div>
                   ) : (
-                    <div className="mb-3 flex aspect-square w-full items-center justify-center rounded-md bg-gray-100 text-gray-400 text-sm">
+                    <div className="relative mb-3 flex aspect-square w-full items-center justify-center rounded-md bg-gray-100 dark:bg-muted text-gray-400 text-sm">
                       No image
+                      {(product.guide_status === "published" || product.assemblyGuide?.published) && (
+                        <span className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-green-600 px-2 py-0.5 text-xs font-medium text-white">
+                          <Check className="h-3 w-3" />
+                          Guide
+                        </span>
+                      )}
+                      {!product.assemblyGuide?.published && (product.guide_status === "queued" || product.guide_status === "generating") && (
+                        <span className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-amber-500 px-2 py-0.5 text-xs font-medium text-white">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          Coming Soon
+                        </span>
+                      )}
                     </div>
                   )}
                   <h2 className="font-medium group-hover:underline line-clamp-1">

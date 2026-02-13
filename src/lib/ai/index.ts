@@ -8,3 +8,19 @@ export { CostTracker, calculateCost, MODEL_PRICING } from "./cost-tracker";
 export type { CostEntry, ModelPricing } from "./cost-tracker";
 export { generateGuideForProduct } from "./generate-guide";
 export type { GenerateGuideOptions } from "./generate-guide";
+export { runQualityChecks, classifyQualityGate, DEFAULT_QUALITY_GATE } from "./quality-checker";
+export type { QualityGateThresholds, QualityGateDecision, QualityCheckResult, QualityCheckConfig } from "./quality-checker";
+export {
+  classifyComplexityForIllustration,
+  selectIllustrationModel,
+  buildIllustrationPrompt,
+  generateStepIllustration,
+  generateIllustrationsForGuide,
+} from "./illustration-generator";
+export type {
+  IllustrationResult,
+  IllustrationOptions,
+  IllustrationBatchResult,
+} from "./illustration-generator";
+export { selectPilotProducts } from "./pilot-products";
+export type { PilotProduct, PilotSelection } from "./pilot-products";

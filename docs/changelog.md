@@ -6,6 +6,25 @@ All notable changes to the project documentation (`docs/`) are logged here. Newe
 
 | # | Date | Change | Phase | Docs Affected |
 |---|------|--------|-------|---------------|
+| 40 | 2026-02-12 | P2.5.5-P2.5.6 + P2.6.6 + P2.7.2-P2.7.3: ISR (revalidate 1h list / 24h detail), Cache-Control on search API, heading hierarchy audit (h1 on login/register/guide-first), search dropdown max-height for mobile | 2.5, 2.6, 2.7 | products/page.tsx, products/[articleNumber]/page.tsx, details/page.tsx, api/search/route.ts, login/page.tsx, register/page.tsx, search-input.tsx, tasks |
+| 39 | 2026-02-12 | P2.5.1-P2.5.3 + P2.7.1: Performance optimization — replaced include with select on all Prisma queries, dynamic imports for GuideViewer/AssemblyGuideViewer, image loading prop on ImageWithFallback, lazy thumbnails, responsive fixes (flex-wrap on stats/search, table overflow, studio min-width) | 2.5, 2.7 | products/[articleNumber]/page.tsx, details/page.tsx, products/page.tsx, studio/products/page.tsx, studio/guides/page.tsx, profile/page.tsx, image-with-fallback.tsx, product-image-gallery.tsx, page.tsx, tasks |
+| 38 | 2026-02-12 | P1.3.3 + P1.3.4 + P1.7.2: Studio Review UI — job list, side-by-side review, inline editing, approve/reject | 1.3, 1.7 | studio/ai-generate/page.tsx, studio/ai-generate/[jobId]/, actions/ai-generation.ts, studio/layout.tsx, tasks |
+| 37 | 2026-02-12 | P2.0.4 + P2.0.5: Guide availability badges on product cards (green/amber), homepage hero update with guide-centric messaging and search bar | 2.0 | products/page.tsx, page.tsx, tasks |
+| 36 | 2026-02-12 | Search improvements, performance, and analytics: autocomplete API, article number/URL detection, recent searches, lazy loading, skeleton states, Vercel Analytics | 2.3, 2.5, 0.3 | api/search/route.ts, search-input.tsx, product-card-skeleton.tsx, product-detail-skeleton.tsx, loading.tsx files, layout.tsx, products/page.tsx, tasks |
+| 35 | 2026-02-12 | P1.3.9: Added QualityGateThresholds interface and classifyQualityGate() function to quality-checker.ts (auto_publish/review/hold routing) | P1 | ai/quality-checker.ts, ai/index.ts, tasks |
+| 34 | 2026-02-12 | P1.3.2: Created scripts/generate-pilots.ts for batch pilot guide generation with full result logging | P1 | scripts/generate-pilots.ts, tasks |
+| 33 | 2026-02-12 | P1.3.1: Created pilot-products.ts with category-based product selection and scripts/select-pilots.ts runner script | P1 | ai/pilot-products.ts, scripts/select-pilots.ts, tasks |
+| 32 | 2026-02-12 | P1.2.8 enhancement: Enhanced quality-checker.ts with 3 new checks (illustration coverage, confidence distribution, part sequence validation) and added 3 new QualityFlagCode values to types.ts | P1 | ai/quality-checker.ts, ai/types.ts, tasks |
+| 31 | 2026-02-12 | Guide viewer: three-column layout, scrollspy, illustrations, callouts, mobile cards, swipe, lightbox, keyboard nav, completion | 2.2 | guide-viewer/*, products/[articleNumber]/page.tsx, tasks |
+| 30 | 2026-02-12 | Infrastructure, security, and SEO: CI/CD, Sentry, rate limiting, Zod validation, JSON-LD, sitemap, OG/Twitter, canonical URLs | 0, 2.6 | ci.yml, sentry configs, next.config.ts, rate-limit.ts, actions/*, register route, json-ld.tsx, sitemap.ts, robots.ts, layout.tsx, product pages, tasks |
+| 29 | 2026-02-12 | Select pilot products for AI guide generation | 1.3 | ai/pilot-products.ts, ai/index.ts, tasks |
+| 28 | 2026-02-12 | Design system foundation: fonts, colors, dark mode, buttons, typography, accessibility | 2.1 | globals.css, layout.tsx, button.tsx, header-nav.tsx, theme-provider.tsx, theme-toggle.tsx, tasks |
+| 27 | 2026-02-12 | Implement guide-first routing, details route, Product Info Card, SEO meta tags, nav link audit | 2.0 | products/[articleNumber]/page.tsx, products/[articleNumber]/details/page.tsx, product-info-card.tsx, tasks |
+| 26 | 2026-02-12 | Create quality check automation module | 1.2 | ai/quality-checker.ts, ai/generate-guide.ts, ai/index.ts, tasks |
+| 25 | 2026-02-12 | Implement illustration model routing in pipeline | 1.2 | ai/generate-guide.ts, tasks |
+| 24 | 2026-02-12 | Build illustration generation module | 1.2 | ai/illustration-generator.ts, ai/index.ts, tasks |
+| 23 | 2026-02-12 | Implement continuity refinement pass (Pass 2) | 1.2 | ai/generate-guide.ts, tasks |
+| 22 | 2026-02-12 | Refactor step extraction to raw visual facts (Pass 1) | 1.2 | ai/types.ts, ai/generate-guide.ts, tasks |
 | 21 | 2026-02-12 | Restructure tasks.md with unique IDs, dependencies, and table format | — | tasks |
 | 20 | 2026-02-12 | Two-pass pipeline architecture for step continuity | 1.2 | implementation-plan, tasks |
 | 19 | 2026-02-12 | Single-product generation endpoint, step extraction, confidence scoring | 1.2 | ai/generate-guide.ts, actions/ai-generation.ts, tasks |
@@ -27,6 +46,525 @@ All notable changes to the project documentation (`docs/`) are logged here. Newe
 | 3 | 2026-02-11 | Sync #2: Nano Banana models + Phase 1 blockers + proactive chatbot + mobile apps | 1–6 | implementation-plan, master-plan, user-journeys, tasks |
 | 2 | 2026-02-11 | Sync #1: AI troubleshooting assistant + target users + key scenarios | 3 | master-plan, implementation-plan, user-journeys, tasks |
 | 1 | 2026-02-11 | Initial creation — all 5 project docs via guided Q&A | — | master-plan, implementation-plan, design-guidelines, user-journeys, tasks |
+
+---
+
+## 2026-02-12 — Studio Review UI for AI-Generated Guides (P1.3.3, P1.3.4, P1.7.2)
+
+**Summary:** Built the full Studio review workflow for AI-generated guides: a job list page with status filters, a side-by-side review screen showing original PDF vs generated steps, inline step editing, and approve/reject actions that create AssemblyGuide records.
+
+### Tasks Completed
+
+| ID | Task |
+|----|------|
+| P1.7.2 | `/studio/ai-generate` — job list page with status filters |
+| P1.3.3 | `/studio/ai-generate/[jobId]` — side-by-side review screen |
+| P1.3.4 | Inline editing on review screen + approve/reject actions |
+
+### Files Created
+
+#### `src/app/studio/ai-generate/page.tsx`
+- Job list with status filter tabs (All, Needs Review, Queued, Processing, Approved, Failed) with counts
+- Table showing product name, article number, status badge, confidence score (color-coded), model, creation date
+- Pagination support
+- Review/View action links
+
+#### `src/app/studio/ai-generate/[jobId]/page.tsx`
+- Side-by-side layout: embedded PDF viewer (iframe) on left, generated steps on right
+- Stats overview: confidence, step count, model, quality flag count
+- Quality flags display with severity coloring (error/warning/info)
+- Guide metadata (title, description, difficulty, time, tools)
+
+#### `src/app/studio/ai-generate/[jobId]/review-actions.tsx`
+- Client component with Approve & Publish and Reject buttons
+- Reject flow with textarea for notes
+- Uses `useTransition` for non-blocking server action calls
+- Redirects to job list after action
+
+#### `src/app/studio/ai-generate/[jobId]/step-review-card.tsx`
+- Client component for each step with inline editing
+- Shows: step number, title, instruction, confidence, complexity, callouts, parts, tools, source PDF page
+- Edit mode: editable title input and instruction textarea
+- Saves edits to `rawOutput` JSON via server action
+
+### Files Changed
+
+#### `src/lib/actions/ai-generation.ts`
+- **Added:** `approveGenerationJob(jobId)` — creates AssemblyGuide + AssemblySteps from rawOutput, updates job status to approved, sets product guide_status to "published"
+- **Added:** `rejectGenerationJob(jobId, notes)` — sets job status to failed with review notes, resets product guide_status to "none"
+- **Added:** `updateJobStep(jobId, stepNumber, updates)` — updates a step's title/instruction in the rawOutput JSON
+
+#### `src/app/studio/layout.tsx`
+- **Added:** "AI Generate" link in Studio sidebar navigation
+
+### `docs/tasks.md`
+- **Marked done:** P1.3.3, P1.3.4, P1.7.2
+
+---
+
+## 2026-02-12 — Guide Badges & Homepage Hero (P2.0.4, P2.0.5)
+
+**Summary:** Added guide availability status badges to product cards in the browse grid, and updated the homepage hero with guide-centric messaging, a prominent search bar, and product/guide count stats.
+
+### P2.0.4 — Guide Availability Status Badges
+- **Modified:** `src/app/products/page.tsx` — Added `guide_status` and `assemblyGuide` to the Prisma query (optimized to `select`). Product cards now show:
+  - **Green badge** ("Guide" with Check icon) — for products with `guide_status: "published"` or a published `assemblyGuide`
+  - **Amber badge** ("Coming Soon" with spinning Loader2 icon) — for products with `guide_status: "queued"` or `"generating"` that don't yet have a published guide
+  - **No badge** — for products without guide activity
+- Badge positioned absolute top-right of image area, `rounded-full`, `px-2 py-0.5`, white text on colored background
+- Added dark mode background tokens (`dark:bg-muted`) for image containers
+
+### P2.0.5 — Homepage Hero Update
+- **Modified:** `src/app/page.tsx` — Converted to async server component. Updated hero:
+  - **Heading:** "Find step-by-step instructions for any product" (guide-centric)
+  - **Subheading:** "Assembly guides, setup walkthroughs, and troubleshooting help — all in one place."
+  - **Search bar:** Prominent `SearchInput` component centered below the heading
+  - **Stats row:** Product count (Package icon), published guide count (BookOpen icon, hidden if zero), "Free to use" (Wrench icon)
+  - **CTA buttons:** Kept "Browse Guides" (primary) + "Get Started" (outline)
+- Added `getStats()` function querying `prisma.product.count()` and `prisma.assemblyGuide.count({ where: { published: true } })`
+
+---
+
+## 2026-02-12 — Search Improvements, Performance, and Analytics (Waves 4-6)
+
+**Summary:** Implemented search autocomplete with article number detection, URL paste detection, and recent searches. Added performance optimizations: eager/lazy image loading, skeleton loading states for product grid and detail pages. Installed Vercel Analytics for page view and performance tracking.
+
+### Wave 4: Search Improvements
+
+#### P2.3.1 — Search Autocomplete
+- **Created:** `src/app/api/search/route.ts` — GET `/api/search?q=<query>` returns top 5 matching products with thumbnail, name, article number, price. Rate limited (60/min per IP).
+- **Rebuilt:** `src/components/search-input.tsx` — full autocomplete UI with debounced (300ms) API calls, dropdown results with product thumbnails, click-to-navigate, abort controller for stale requests, ARIA combobox attributes.
+
+#### P2.3.2 — Article Number Detection
+- **Added:** Numbers-only input (e.g., "702.758.14") triggers exact `article_number` match in the API, returned as `detectedType: "article_number"` with banner in dropdown.
+
+#### P2.3.3 — URL Paste Detection
+- **Added:** URLs containing "ikea.com" or "http" trigger article number extraction via regex patterns (xxx.xxx.xx, 8-digit, S-prefix). API returns `detectedType: "url"` with extracted article number banner.
+
+#### P2.3.4 — Recent Searches
+- **Added:** localStorage-based recent searches (last 5). Shown on input focus when empty. Click to re-search. Persists across sessions.
+
+#### P2.3.5 — Zero-Result Handling
+- **Added:** "No products found for '[query]'" message in autocomplete dropdown when API returns empty results.
+
+### Wave 5: Performance
+
+#### P2.5.1 + P2.5.2 — Image Loading Optimization
+- **Updated:** `src/app/products/page.tsx` — first 4 product card images load eagerly with `priority`, remaining load lazily with `loading="lazy"`. All already had responsive `sizes` props.
+
+#### P2.5.7 — Skeleton Loading States
+- **Created:** `src/components/product-card-skeleton.tsx` — `ProductCardSkeleton` (single card) and `ProductGridSkeleton` (grid of N cards) with shimmer animation.
+- **Created:** `src/components/product-detail-skeleton.tsx` — `ProductDetailSkeleton` with image gallery, breadcrumb, and detail placeholders.
+- **Created:** `src/app/products/loading.tsx` — Next.js loading boundary using `ProductGridSkeleton` + sidebar skeleton.
+- **Created:** `src/app/products/[articleNumber]/loading.tsx` — Next.js loading boundary using `ProductDetailSkeleton`.
+
+### Wave 6: Analytics
+
+#### P0.3.1 — Vercel Analytics
+- **Installed:** `@vercel/analytics`
+- **Updated:** `src/app/layout.tsx` — added `<Analytics />` component. Auto-tracks page views and Web Vitals on Vercel deployment.
+
+### `docs/tasks.md`
+- **Marked done:** P2.3.1, P2.3.2, P2.3.3, P2.3.4, P2.3.5, P2.5.1, P2.5.2, P2.5.7, P0.3.1
+
+---
+
+## 2026-02-12 — Guide Viewer UX (P2.2.1–P2.2.12, P2.2.15)
+
+**Summary:** Built the complete guide viewer UX — Guid's core feature. Implements the three-column docs-style layout on desktop, two-column on tablet, and step-by-step card navigation on mobile. Includes scrollspy TOC, sticky illustration panel with lightbox zoom, tip/warning/info callouts, progress bar, swipe navigation, mobile TOC bottom sheet, completion screen with rating, and full keyboard navigation.
+
+### New files created in `src/components/guide-viewer/`
+
+| File | Component | Task |
+|------|-----------|------|
+| `types.ts` | `GuideStep`, `GuideData`, `ProductInfo` types | — |
+| `guide-viewer.tsx` | `GuideViewer` — main orchestrator with responsive layouts, scrollspy, keyboard/swipe handling | P2.2.1, P2.2.2, P2.2.8, P2.2.10, P2.2.15 |
+| `toc-sidebar.tsx` | `TocSidebar` — scrollspy-driven TOC with step states and progress bar | P2.2.2 |
+| `illustration-panel.tsx` | `IllustrationPanel` — sticky panel with fallback to previous illustration, zoom hint | P2.2.3 |
+| `lightbox.tsx` | `Lightbox` — full-screen image overlay with Escape-to-close and backdrop click | P2.2.4 |
+| `step-section.tsx` | `StepSection` — individual step rendering with number badge, title, instruction, callouts | P2.2.5 |
+| `step-callout.tsx` | `StepCallout` — tip (yellow/Lightbulb), warning (red/AlertTriangle), info (blue/Info) | P2.2.6 |
+| `progress-bar.tsx` | `ProgressBar` — thin amber bar with smooth width animation | P2.2.7 |
+| `mobile-step-card.tsx` | `MobileStepCard` — one-step-per-screen card with illustration, nav buttons, progress | P2.2.9 |
+| `mobile-toc-sheet.tsx` | `MobileTocSheet` — floating List button + bottom Sheet with step list | P2.2.11 |
+| `completion-screen.tsx` | `CompletionScreen` — "Guide Complete" with 5-star rating and share buttons | P2.2.12 |
+| `index.ts` | Barrel exports for all components and types | — |
+
+### Layout breakpoints
+
+- **Desktop (>= 1024px):** Three columns — TOC sidebar (220px, sticky) | instructions (flex, all steps on scrollable page) | illustration panel (380px, sticky) + ProductInfoCard below
+- **Tablet (640–1024px):** Two columns — instructions (60%) | sticky illustration (40%). TOC via floating button + Sheet slide-in from left
+- **Mobile (< 640px):** Step-by-step cards with swipe navigation. Floating TOC button + bottom sheet. Full-height layout
+
+### Key features
+
+- **Scrollspy** via Intersection Observer tracks which step is in view; auto-marks prior steps as completed
+- **Keyboard navigation** — Arrow keys for step nav, Home/End for first/last, works on both desktop and mobile
+- **Swipe navigation** — Touch swipe left/right with 50px threshold, horizontal-dominant detection, haptic feedback via `navigator.vibrate`
+- **Lightbox** — Escape to close, click-outside to close, body scroll lock while open
+- **Illustration fallback** — When current step has no illustration, persists the most recent step's image
+- **`sidebarExtra` prop** — Allows parent to inject content (e.g. ProductInfoCard) into the sticky right column
+
+### Files changed
+
+- **`src/app/products/[articleNumber]/page.tsx`** — Replaced `AssemblyGuideViewer` with `GuideViewer` in the guide-first rendering path. ProductInfoCard now passed via `sidebarExtra` prop.
+
+### Tasks not done (require database changes)
+
+- **P2.2.13** (progress saving) — needs database model for saving scroll position per user per guide
+- **P2.2.14** (step bookmarking) — needs database model for bookmarked steps
+
+### `docs/tasks.md`
+
+- **Marked done:** P2.2.1, P2.2.2, P2.2.3, P2.2.4, P2.2.5, P2.2.6, P2.2.7, P2.2.8, P2.2.9, P2.2.10, P2.2.11, P2.2.12, P2.2.15
+
+---
+
+## 2026-02-12 — Infrastructure, Security & SEO: CI/CD, Sentry, Rate Limiting, Validation, Structured Data, Sitemap, Meta Tags
+
+**Summary:** Completed Waves 1-3 of the Polish agent's work: infrastructure setup (CI/CD with GitHub Actions, Sentry error tracking), full security audit and hardening (auth flow review, AI API key audit, rate limiting on auth endpoints, Zod validation on all server actions and API routes), and comprehensive SEO implementation (JSON-LD structured data, dynamic sitemap, robots.txt, Open Graph, Twitter Cards, canonical URLs, unique per-page meta).
+
+### Wave 1: Infrastructure
+
+#### P0.1.4 — CI/CD (GitHub Actions)
+- **Created:** `.github/workflows/ci.yml` — runs on push/PR to main: checkout, Node 20 setup with npm cache, `npm ci`, `npx prisma generate`, `npm run build`. Mock env vars for build-time (DATABASE_URL, NEXTAUTH_SECRET).
+
+#### P0.1.3 — Sentry Error Tracking
+- **Installed:** `@sentry/nextjs`
+- **Created:** `sentry.client.config.ts` — client-side Sentry with replay integration, sample rates (0.1 session, 1.0 error)
+- **Created:** `sentry.server.config.ts` — server-side Sentry with trace sampling
+- **Created:** `sentry.edge.config.ts` — edge runtime Sentry
+- **Created:** `instrumentation.ts` — Next.js instrumentation hook for server/edge Sentry init + `captureRequestError`
+- **Updated:** `next.config.ts` — wrapped with `withSentryConfig` (source map upload, Vercel monitors)
+- **Updated:** `.env.example` — added `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN`
+
+### Wave 2: Security
+
+#### P0.2.4 — AI API Key Audit
+- **Verified:** All AI files (`src/lib/ai/*`) are server-side only — no `"use client"` directives
+- **Verified:** API keys only accessed via `process.env` (never hardcoded, never imported in client components)
+- **Verified:** `.env.example` contains placeholder values only
+- **Verified:** `next.config.ts` doesn't expose secrets via `env` config
+
+#### P0.2.1 — Auth Flow Audit
+- **Verified:** JWT sessions with bcrypt password hashing (cost 12)
+- **Verified:** Proper admin role check in `src/app/studio/layout.tsx` (redirect on non-admin)
+- **Verified:** NextAuth v5 handles CSRF protection automatically
+- **Verified:** `signIn` page configured as `/login`
+
+#### P0.2.2 — Rate Limiting
+- **Created:** `src/lib/rate-limit.ts` — in-memory sliding window rate limiter with auto-cleanup
+  - Pre-configured limits: auth (10/min), register (3/min), general API (60/min), AI generation (5/min)
+  - `getClientIp()` helper supporting x-forwarded-for, x-real-ip headers
+  - Returns rate limit headers (Retry-After, X-RateLimit-Limit, X-RateLimit-Remaining)
+- **Updated:** `src/app/api/auth/register/route.ts` — applied 3/min rate limit per IP, added JSON parse error handling
+
+#### P0.2.3 — Input Validation (Zod)
+- **Installed:** `zod`
+- **Updated:** `src/lib/actions/guides.ts` — added Zod schemas for all 6 server actions (createGuide, updateGuide, deleteGuide, addStep, updateStep, deleteStep). Validates types, string lengths, enums, URLs.
+- **Updated:** `src/lib/actions/saved-products.ts` — added productId validation
+- **Updated:** `src/lib/actions/ai-generation.ts` — added schemas for productId, jobId, list options with enum validation for status
+- **Updated:** `src/app/api/auth/register/route.ts` — enhanced validation: email regex + length, password length range (6-128), name sanitization (trim + max 100), email normalization (lowercase + trim)
+
+### Wave 3: SEO
+
+#### P2.6.1 — JSON-LD Structured Data
+- **Created:** `src/components/json-ld.tsx` — reusable components:
+  - `OrganizationJsonLd` — homepage schema
+  - `BreadcrumbJsonLd` — breadcrumb schema for navigation
+  - `ProductJsonLd` — product schema with name, SKU, brand, offers, aggregate rating
+  - `HowToJsonLd` — guide schema with steps, tools, totalTime (ISO 8601 duration)
+- **Updated:** `src/app/page.tsx` — added Organization + Breadcrumb JSON-LD
+- **Updated:** `src/app/products/[articleNumber]/page.tsx` — added Product + HowTo + Breadcrumb JSON-LD (guide and fallback views)
+- **Updated:** `src/app/products/[articleNumber]/details/page.tsx` — added Product + Breadcrumb JSON-LD
+
+#### P2.6.2 — Dynamic Sitemap & Robots.txt
+- **Created:** `src/app/sitemap.ts` — auto-generated sitemap with static pages (home, products, login, register) + all product pages (up to 5000). Products with published guides get higher priority (0.8 vs 0.6) and weekly change frequency.
+- **Created:** `src/app/robots.ts` — allows product pages, blocks studio/api/auth pages. References sitemap.xml.
+
+#### P2.6.3 + P2.6.4 — Open Graph & Twitter Card Meta Tags
+- **Updated:** `src/app/layout.tsx` — root metadata with `metadataBase`, OG defaults (website type, siteName), Twitter defaults (summary_large_image)
+- **Updated:** Product page `generateMetadata` — per-product OG (title, description, image, url) and Twitter cards. Guide-first pages get article type, fallback gets website type.
+- **Updated:** Details page `generateMetadata` — same pattern with product images for OG
+- **Updated:** Products list page — added static OG and Twitter metadata
+
+#### P2.6.5 — Canonical URLs
+- **Updated:** Root layout metadata with `alternates.canonical`
+- **Updated:** All page-level `generateMetadata` functions to include `alternates.canonical` with full URL
+
+#### P2.6.7 — Unique Meta Per Page
+- **Products list:** "Browse Products" title + search description
+- **Product page (guide):** "How to Assemble [Name] — Step-by-Step Guide" + step count, difficulty, time, tools
+- **Product page (no guide):** "[Name]" + description or type
+- **Details page:** "[Name] — Product Details" + description or type
+
+### `docs/tasks.md`
+- **Marked done:** P0.1.3, P0.1.4, P0.2.1, P0.2.2, P0.2.3, P0.2.4, P2.6.1, P2.6.2, P2.6.3, P2.6.4, P2.6.5, P2.6.7
+
+---
+
+## 2026-02-12 — Select Pilot Products for AI Guide Generation
+
+**Summary:** Selected 5 pilot products from the database — one from each required category — for the AI guide generation pilot. All products have assembly PDFs, high ratings (4.6–5.0), and represent diverse assembly complexities. Created `src/lib/ai/pilot-products.ts` as the authoritative reference for pilot product IDs.
+
+### Selected Products
+
+| Category | Product | ID | Article # | Rating | Selection Rationale |
+|----------|---------|-----|-----------|--------|---------------------|
+| Bookshelf | KALLAX Shelf unit | 7647 | 80275887 | 4.7 | Iconic IKEA product, cam locks + wooden dowels — tests fastener extraction |
+| Desk | MICKE Desk | 5889 | 20244747 | 4.6 | Multiple sub-assemblies (drawer, cable management) — tests step merging |
+| Bed frame | IDANÄS Bed frame with storage | 8184 | 10459677 | 5.0 | Complex assembly (slats, drawers, headboard) — tests exploded views |
+| Wardrobe | KLEPPSTAD Open wardrobe | 7448 | 80441764 | 4.8 | Spatial orientation and vertical assembly sequences |
+| Storage unit | NORDLI 6-drawer dresser | 5410 | 10622070 | 5.0 | 6 identical drawers — tests repetitive step patterns and terminology consistency |
+
+### Files Created
+
+#### `src/lib/ai/pilot-products.ts`
+- **Added:** `PilotProduct` interface (id, articleNumber, name, category, rating, rationale)
+- **Added:** `PILOT_PRODUCTS` array with all 5 selected products and selection rationale
+- **Added:** `getPilotProductIds()` helper for batch processing
+
+#### `src/lib/ai/index.ts`
+- **Added:** Barrel exports for `PILOT_PRODUCTS`, `getPilotProductIds`, and `PilotProduct` type
+
+### `docs/tasks.md`
+- **Marked done:** P1.3.1 (Select pilot products)
+
+---
+
+## 2026-02-12 — Design System Foundation (P2.1.1–P2.1.8)
+
+**Summary:** Implemented all 8 tasks in the Phase 2.1 Design System Update. This establishes the full visual identity for Guid: amber/orange brand colors, IBM Plex Sans + JetBrains Mono fonts, complete light/dark mode token mapping, z-index/shadow scales, accessibility foundations, updated button component, fluid typography, and a dark mode toggle in the header.
+
+### P2.1.1 — Migrate fonts to IBM Plex Sans + JetBrains Mono
+- **`src/app/layout.tsx`** — Replaced `Geist` and `Geist_Mono` imports with `IBM_Plex_Sans` (weights 400, 500, 600, 700) and `JetBrains_Mono` (weights 400, 500, 700) from `next/font/google`. Added `display: "swap"` for better loading performance. Updated CSS variable names from `--font-geist-sans`/`--font-geist-mono` to `--font-ibm-plex-sans`/`--font-jetbrains-mono`.
+- **`src/app/globals.css`** — Updated `@theme inline` block to reference new variable names for `--font-sans` and `--font-mono`.
+
+### P2.1.2 — Update color palette to amber/orange brand tokens
+- **`src/app/globals.css`** `:root` — Replaced all 17 neutral gray oklch tokens with warm amber/orange brand tokens from design-guidelines.md. Key changes: `--primary` from dark gray to amber `oklch(0.75 0.18 55)`, `--background` to warm off-white `oklch(0.99 0.002 55)`, `--accent` to warm highlight `oklch(0.85 0.15 65)`, `--ring` to amber for focus states. Updated sidebar tokens to match warm palette.
+
+### P2.1.3 — CSS variables for light + dark mode
+- **`src/app/globals.css`** `.dark` — Replaced cold neutral dark tokens with warm charcoal tones per design-guidelines.md. `--background` is now `oklch(0.16 0.01 55)` (warm dark), `--primary` stays vibrant amber in dark mode, `--border` and `--input` use warm dark tones `oklch(0.30 0.01 55)`.
+
+### P2.1.7 — z-index, shadow, border-radius scales
+- **`src/app/globals.css`** `:root` — Added z-index scale as CSS custom properties (`--z-base` through `--z-chat`, values 0–70). Added shadow scale (`--shadow-sm` through `--shadow-xl` using oklch). Border radius scale was already present via `--radius` and computed `--radius-sm` through `--radius-4xl`.
+
+### P2.1.8 — Accessibility foundations
+- **`src/app/globals.css`** — Added `:focus-visible` base style (2px solid amber ring with 2px offset). Added `prefers-reduced-motion: reduce` media query that disables all animations, transitions, and smooth scrolling. Added `scroll-behavior: smooth` on html for TOC navigation. Added `.skip-link` class that's visually hidden until focused.
+- **`src/app/layout.tsx`** — Added skip link (`<a href="#main-content" class="skip-link">Skip to main content</a>`) as first focusable element. Wrapped `{children}` in `<main id="main-content">` for skip link target.
+
+### P2.1.5 — Update button styles
+- **`src/components/ui/button.tsx`** — Updated base styles: added `cursor-pointer`, `transition-colors duration-200 ease-out`, `disabled:cursor-not-allowed`, proper `focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`. Updated default variant to use amber primary with `font-semibold`, `hover:brightness-105`, `active:brightness-95`. Updated sizes: default `h-10` (40px), lg `h-12` (48px), icon `size-10`/`size-12` for 44px+ touch targets.
+
+### P2.1.4 — Typography audit
+- **`src/app/globals.css`** — Added fluid type scale using `clamp()` for h1–h4 in `@layer base`. Added body line-height 1.7 for readability. Added `.prose-guide` utility class (max-width 72ch, 1.7 line-height) for guide instruction content. Added `.text-body-sm` (14px/1.5) and `.text-caption` (12px/1.4/medium) utility classes.
+
+### P2.1.6 — Dark mode toggle
+- **Installed:** `next-themes` package
+- **`src/components/theme-provider.tsx`** (new) — Client component wrapping `next-themes` `ThemeProvider`.
+- **`src/components/theme-toggle.tsx`** (new) — Client component with Sun/Moon Lucide icons. Uses `useTheme()` hook, handles SSR with mounted check. Proper `aria-label` describing the action.
+- **`src/app/layout.tsx`** — Wrapped body content in `<ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>`. Added `suppressHydrationWarning` on `<html>`.
+- **`src/components/header-nav.tsx`** — Added `<ThemeToggle />` to the right side of the nav. Updated header to be sticky with `z-[var(--z-header)]`, `bg-background/95`, and `backdrop-blur-sm`. Updated all nav links with `cursor-pointer`, `transition-colors duration-200 ease-out`, and `hover:text-primary`.
+
+### `docs/tasks.md`
+- **Marked done:** P2.1.1, P2.1.2, P2.1.3, P2.1.4, P2.1.5, P2.1.6, P2.1.7, P2.1.8
+
+---
+
+## 2026-02-12 — Guide-First Routing, Details Route, Product Info Card, SEO Meta Tags, Navigation Audit
+
+**Summary:** Implemented 5 tasks from Phase 2.0 (Guide-First UX Architecture): guide-first routing on the product page, a dedicated product details route, a Product Info Card component for the guide viewer sidebar, guide-aware SEO meta tags via `generateMetadata`, and an internal navigation link audit with updated breadcrumbs.
+
+### Tasks Completed
+
+| ID | Task |
+|----|------|
+| P2.0.1 | Guide-first routing on `/products/[articleNumber]` |
+| P2.0.2 | Create `/products/[articleNumber]/details` route |
+| P2.0.3 | Build Product Info Card for guide viewer |
+| P2.0.6 | Update SEO meta tags for guide-first landing |
+| P2.0.7 | Update internal navigation links |
+
+### Files Created
+
+#### `src/app/products/[articleNumber]/details/page.tsx`
+- Full product detail page moved here from the main product route
+- Shows all product info: images, specs, ratings, documents, dimensions, materials, care instructions
+- Always accessible regardless of guide status
+- Breadcrumbs: Products > [Product Name] > Details
+- Has its own `generateMetadata` for product-focused SEO
+- Links back to main product route via breadcrumb
+
+#### `src/components/product-info-card.tsx`
+- Compact card for the guide viewer sidebar
+- Shows: 48px product thumbnail, product name, article number (monospace), price, one key dimension
+- "View details" link to `/products/[articleNumber]/details`
+- Entire card is a clickable `<Link>` with hover state
+
+### Files Changed
+
+#### `src/app/products/[articleNumber]/page.tsx`
+- **Added:** `generateMetadata` function (P2.0.6) — when `guide_status === "published"` and guide is published, returns guide-focused meta: title "How to Assemble [Product] — Step-by-Step Guide | Guid", description with step count, difficulty, time, and tools. Otherwise returns product-focused meta.
+- **Added:** Guide-first routing logic (P2.0.1) — checks `product.guide_status === "published"` AND `product.assemblyGuide?.published === true`. When true, renders `AssemblyGuideViewer` as the primary view with `ProductInfoCard` in a sidebar. When false, falls back to the full product detail page.
+- **Added:** Breadcrumbs on both guide view and fallback view: Products > [Product Name]
+- **Added:** `ProductInfoCard` import and rendering in guide-first sidebar
+
+### Navigation Link Audit (P2.0.7)
+
+Audited all internal links pointing to `/products/[articleNumber]`:
+- `src/app/products/page.tsx:123` — product grid cards. No change needed; guide-first routing handles these correctly.
+- `src/app/profile/page.tsx:76,96` — saved product links. No change needed; works with guide-first routing.
+- `src/app/studio/products/page.tsx:111` — studio catalog. No change needed; admins can navigate from guide view to details via breadcrumb.
+- Breadcrumbs updated on both guide view and details page with consistent navigation paths.
+
+### `docs/tasks.md`
+- **Marked done:** P2.0.1, P2.0.2, P2.0.3, P2.0.6, P2.0.7
+
+---
+
+## 2026-02-12 — Create Quality Check Automation Module
+
+**Summary:** Extracted and expanded the inline quality checks from `generate-guide.ts` into a dedicated, comprehensive quality checker module. The module runs 9 distinct checks and returns structured results including a quality gate pass/fail decision.
+
+### Files Created
+
+#### `src/lib/ai/quality-checker.ts`
+- **Added:** `QualityCheckConfig` — configurable thresholds (minStepConfidence: 0.7, minOverallConfidence: 0.6, maxExpectedSteps: 50, minExpectedSteps: 2).
+- **Added:** `QualityCheckResult` — structured result with flags array, overall confidence, quality gate boolean, and summary counts (errors/warnings/info).
+- **Added:** 9 quality check functions:
+  1. `checkLowConfidenceSteps` — flags steps below confidence threshold; error severity for < 0.5, warning for < 0.7
+  2. `checkStepCountVsPdfPages` — compares extracted step count against PDF page count with reasonable tolerance
+  3. `checkStepSequence` — verifies sequential step numbering after renumbering
+  4. `checkPartReferences` — flags if > 80% of parts only appear in one step in large guides (may indicate incomplete part tracking)
+  5. `checkToolCoverage` — flags guides with no tools identified; flags steps with screw/bolt/cam lock fasteners but no tools
+  6. `checkInstructionQuality` — flags empty or very short (< 20 chars) instructions
+  7. `checkDuplicateSteps` — detects steps with identical instruction text
+  8. `checkSafetyWarnings` — flags large guides with heavy-lift annotations but no warning callouts
+  9. `checkOrientationCoverage` — flags complex steps missing orientation data
+- **Added:** `runQualityChecks(steps, pdfPageCount, config?)` — orchestrates all 9 checks and returns aggregate result.
+
+### Files Changed
+
+#### `src/lib/ai/generate-guide.ts`
+- **Replaced:** Inline quality checks (section 8-9) with a call to `runQualityChecks()`. Reduced ~50 lines of inline checks to a single function call that returns the same `qualityFlags` array and `overallConfidence` score.
+- **Added:** Import of `runQualityChecks` from `quality-checker`.
+
+#### `src/lib/ai/index.ts`
+- **Added:** Barrel exports for `runQualityChecks`, `QualityCheckConfig`, and `QualityCheckResult`.
+
+### `docs/tasks.md`
+- **Marked done:** P1.2.8 (Create quality check automation)
+
+---
+
+## 2026-02-12 — Implement Illustration Model Routing in Pipeline
+
+**Summary:** Integrated the illustration generation module into the main `generateGuideForProduct()` pipeline with cost-efficiency routing. Each step's complexity is re-classified using the enhanced 7-criteria scoring system before illustration generation. Simple steps route to Nano Banana (cheaper/faster), complex steps to Nano Banana Pro (higher fidelity). Added pipeline options `skipIllustrations` and `illustrationDryRun` for testing and text-only generation.
+
+### Changes
+
+#### `src/lib/ai/generate-guide.ts`
+- **Added:** Import of `generateIllustrationsForGuide` and `classifyComplexityForIllustration` from illustration-generator.
+- **Added:** `skipIllustrations` and `illustrationDryRun` options to `GenerateGuideOptions`.
+- **Added:** Step 9.5 in the pipeline (after quality checks, before building final guide):
+  1. Re-classifies each step's complexity using the enhanced illustration-specific classifier
+  2. Runs batch illustration generation for all steps (unless `skipIllustrations` is set)
+  3. Attaches `illustrationPrompt` to each step
+  4. Logs illustration failures as quality flags on the guide
+- **Integration:** Illustration generation respects existing rate limits (Gemini provider limiter) and cost tracking (via shared `CostTracker`).
+
+### `docs/tasks.md`
+- **Marked done:** P1.2.7 (Implement illustration model routing)
+
+---
+
+## 2026-02-12 — Build Illustration Generation Module
+
+**Summary:** Created the illustration generation module that integrates Gemini's Nano Banana (`gemini-2.5-flash-image`) and Nano Banana Pro (`gemini-3-pro-image-preview`) models to generate isometric technical assembly illustrations for each guide step. Includes enhanced step complexity classification, automatic model routing, detailed prompt building from raw visual extraction data, and batch generation with error handling.
+
+### Files Created
+
+#### `src/lib/ai/illustration-generator.ts`
+- **Added:** `classifyComplexityForIllustration(step)` — Enhanced complexity classification using 7 weighted criteria from raw extraction data: part count + quantity (0-3), action count (0-2), spatial details (0-2), fastener variety (0-2), arrow count (0-2), rotation/hinge actions (0-2). Score ≥ 5 → "complex", otherwise "simple".
+- **Added:** `selectIllustrationModel(complexity)` — Routes simple steps to `ILLUSTRATION_MODEL_SIMPLE` env var (default: `gemini-2.5-flash-image`) and complex steps to `ILLUSTRATION_MODEL_COMPLEX` (default: `gemini-3-pro-image-preview`).
+- **Added:** `buildIllustrationPrompt(step, productName)` — Builds detailed illustration prompts from step data: isometric technical style preamble, product/step context, parts visible, tools in use, spatial orientation, alignment notes, actions depicted, directional arrows, fastener details, and complexity-specific guidance (exploded view for complex, simple angle for simple).
+- **Added:** `callGeminiImageGeneration(prompt, model, apiKey)` — Calls the Gemini `generateContent` API with `responseModalities: ["IMAGE", "TEXT"]` to generate images. Extracts the image `inlineData` part from the response, returns Buffer + mimeType.
+- **Added:** `generateStepIllustration(step, productName, costTracker, options)` — Generates a single illustration: classifies complexity, selects model, builds prompt, calls API, tracks cost. Supports `dryRun` mode (prompt only, no API call) and `modelOverride`.
+- **Added:** `generateIllustrationsForGuide(steps, productName, costTracker, options)` — Batch generation for all steps in a guide. Processes sequentially for rate limit compliance. Skips step 0 (parts overview). Continues on individual failures, collecting results and errors separately.
+
+### Files Changed
+
+#### `src/lib/ai/index.ts`
+- **Added:** Barrel exports for all public functions and types from `illustration-generator.ts`.
+
+### `docs/tasks.md`
+- **Marked done:** P1.2.6 (Build illustration generation)
+
+---
+
+## 2026-02-12 — Implement Continuity Refinement Pass (Pass 2)
+
+**Summary:** Implemented the second LLM pass in the two-pass AI guide generation pipeline. After Pass 1 extracts raw visual facts from each PDF page independently, Pass 2 takes the **complete ordered sequence** of steps and rewrites the instructions as flowing, context-aware narrative text. This pass uses Gemini Flash in text-only mode (no vision, no image input) — much cheaper than vision calls — and sees the entire guide at once, enabling global optimizations that per-page extraction cannot achieve.
+
+### What Pass 2 Does
+
+1. **Flowing instructions** — Each step's instruction is written with awareness of all prior steps: "Using the frame you assembled in Steps 1-3, now attach the shelf pins..."
+2. **Step merging** — Detects and merges steps split across PDF pages into single coherent steps, combining parts, tools, and callouts from the originals
+3. **Transition language** — Adds transition notes at major assembly phase boundaries: "With the frame assembled, you'll now install the shelving."
+4. **Cross-step references** — Resolves forward/backward references: "Use the same Allen key from Step 2", "these are the same cam locks used in Step 5"
+5. **Consistent terminology** — Ensures the same part is called the same name throughout (not "cam lock" in step 3 and "round metal fastener" in step 12)
+6. **Safety reiteration** — Re-warns when dangerous actions repeat in later steps
+
+### Changes
+
+#### `src/lib/ai/generate-guide.ts`
+- **Added:** `TextCompletionResponse` interface and `callGeminiText()` function — text-only Gemini API call (no image input) for Pass 2. Reads API key and model from env vars (same as primary vision provider).
+- **Added:** `CONTINUITY_REFINEMENT_PROMPT` — detailed prompt instructing the text model to rewrite raw visual extractions into flowing assembly instructions. Includes writing style rules (active voice, imperative mood, specific part refs, quantities, directions), merging detection, and JSON output format.
+- **Added:** `RefinedStep` and `ContinuityRefinementResult` interfaces — output schema for the refinement pass (originalStepNumbers, title, instruction, transitionNote).
+- **Added:** `parseRefinementJson()` — JSON parser with markdown fence stripping and validation for the refinement output.
+- **Added:** `deduplicateParts()` and `deduplicateTools()` helpers — used when merging steps to combine part/tool lists without duplicates.
+- **Added:** `runContinuityRefinement()` — orchestrates the Pass 2 call: serializes all raw step data, builds the prompt, calls Gemini text API, parses response, tracks costs. Gracefully falls back to factual instructions if parsing fails.
+- **Updated:** `generateGuideForProduct()` — added section 7.5 between step assembly and quality checks. Runs the continuity refinement pass, applies refined instructions back to steps (handling both single-step updates and merged steps), includes any steps missed by the refinement pass, and renumbers the final step sequence.
+- **Changed:** `assemblySteps` declaration from `const` to `let` to allow reassignment after refinement.
+
+### Cost Impact
+
+Pass 2 is text-only (no vision) — for a 20-step guide, the input is ~2K tokens of structured JSON + ~800 tokens of prompt. At Flash pricing ($0.15/1M input, $0.60/1M output), this costs ~$0.001 per guide — negligible compared to the ~$0.01-0.15 for 20 vision calls in Pass 1.
+
+### `docs/tasks.md`
+- **Marked done:** P1.2.5 (Implement continuity refinement pass)
+
+---
+
+## 2026-02-12 — Refactor Step Extraction to Raw Visual Facts (Pass 1)
+
+**Summary:** Refactored the AI vision extraction prompt and pipeline to focus on raw visual observation instead of narrative instruction writing. The prompt now asks the vision model to describe what it *sees* on each PDF page (parts, actions, spatial relationships, arrows, fasteners, annotations) rather than writing how-to instructions. This separates visual extraction (Pass 1) from instruction generation (Pass 2, next task P1.2.5), enabling the continuity refinement pass to write flowing, context-aware instructions with full sequence visibility.
+
+### Problem Solved
+The previous prompt asked the vision model to both extract visual data AND write narrative instructions in a single pass per page. This produced isolated, per-page instructions with no awareness of prior or subsequent steps — no cross-step references, inconsistent terminology, and no transition language.
+
+### Changes
+
+#### `src/lib/ai/types.ts`
+- **Added:** `VisualAction` interface — describes an action depicted (actionType, subject, target, direction)
+- **Added:** `FastenerDetail` interface — fastener type, partId, rotation direction, notes
+- **Added:** `ArrowAnnotation` interface — arrow direction, label, indicatesMotion flag
+- **Added:** `RawStepExtraction` interface — complete per-step raw visual data (rawDescription, partsShown, toolsShown, actions, spatialDetails, arrows, fasteners, annotations, warnings, complexity, confidence)
+- **Added:** `RawPageExtraction` interface — full page output with steps array and pageIndicators
+- **Updated:** `GeneratedStep` — added `rawExtraction?: RawStepExtraction` field (carries raw data for Pass 2 to consume)
+
+#### `src/lib/ai/generate-guide.ts`
+- **Rewritten:** `STEP_EXTRACTION_PROMPT` — now instructs the vision model to "report WHAT is shown, not explain HOW to do it." Outputs structured JSON with rawDescription, partsShown, toolsShown, actions, spatialDetails, arrows, fasteners, annotations, warnings per step. Includes a detailed example JSON response.
+- **Changed:** `PageAnalysisResult` — now aliased to `RawPageExtraction` from types.ts
+- **Updated:** `parseAnalysisJson()` — normalizes raw extraction fields with defaults, handles backward compatibility with old field names (instruction→rawDescription, parts→partsShown, tools→toolsShown)
+- **Added:** `deriveStepTitle()` — generates step titles from the primary action in raw extraction
+- **Added:** `buildFactualInstruction()` — builds a factual placeholder instruction from raw visual data (rawDescription + actions + fasteners + spatial details). This placeholder will be replaced by Pass 2.
+- **Added:** `deriveCallouts()` — converts raw warnings and fastener notes into typed callout objects
+- **Added:** `deriveScrewDirection()` — infers screw direction from fastener rotation data and arrow annotations
+- **Updated:** Step assembly (section 7) — now converts `RawStepExtraction` to `GeneratedStep` using the helper functions, attaching the raw extraction data for Pass 2 consumption
+
+### `docs/tasks.md`
+- **Marked done:** P1.2.4 (Refactor step extraction to raw visual facts)
 
 ---
 
