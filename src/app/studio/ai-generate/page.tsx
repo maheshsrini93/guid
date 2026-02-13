@@ -248,10 +248,10 @@ export default async function AIGeneratePage({
           <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Avg Confidence</p>
           <p className={`text-xl font-bold font-mono ${
             (avgConfidence ?? 0) >= 0.9
-              ? "text-green-600"
+              ? "text-green-600 dark:text-green-400"
               : (avgConfidence ?? 0) >= 0.7
-                ? "text-amber-600"
-                : "text-red-600"
+                ? "text-amber-600 dark:text-amber-400"
+                : "text-destructive"
           }`}>
             {avgConfidence != null
               ? `${(avgConfidence * 100).toFixed(0)}%`
@@ -260,7 +260,7 @@ export default async function AIGeneratePage({
         </div>
         <div className="rounded-lg border p-3">
           <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Failed</p>
-          <p className="text-xl font-bold font-mono text-red-600">{counts["failed"] || 0}</p>
+          <p className="text-xl font-bold font-mono text-destructive">{counts["failed"] || 0}</p>
         </div>
       </div>
 
@@ -301,10 +301,10 @@ export default async function AIGeneratePage({
                     <span className="text-xs">Success Rate</span>
                     <span className={`font-mono text-sm font-medium ${
                       (successRate ?? 0) >= 0.9
-                        ? "text-green-600"
+                        ? "text-green-600 dark:text-green-400"
                         : (successRate ?? 0) >= 0.7
-                          ? "text-amber-600"
-                          : "text-red-600"
+                          ? "text-amber-600 dark:text-amber-400"
+                          : "text-destructive"
                     }`}>
                       {successRate != null ? `${(successRate * 100).toFixed(0)}%` : "-"}
                     </span>
@@ -352,7 +352,7 @@ export default async function AIGeneratePage({
                           <div className="absolute bottom-0 w-full flex flex-col">
                             {day.failed > 0 && (
                               <div
-                                className="w-full bg-red-400 rounded-t-sm"
+                                className="w-full bg-red-400 dark:bg-red-500 rounded-t-sm"
                                 style={{ height: `${(failedPct / 100) * (height / 100) * 80}px` }}
                               />
                             )}
@@ -407,7 +407,7 @@ export default async function AIGeneratePage({
                       </p>
                       {failedReasons.slice(0, 5).map((reason, i) => (
                         <div key={i} className="flex items-start justify-between gap-2">
-                          <span className="text-xs text-red-600 truncate max-w-[180px]" title={reason.reviewNotes ?? ""}>
+                          <span className="text-xs text-destructive truncate max-w-[180px]" title={reason.reviewNotes ?? ""}>
                             {reason.reviewNotes
                               ? reason.reviewNotes.length > 40
                                 ? reason.reviewNotes.slice(0, 40) + "..."
@@ -557,10 +557,10 @@ export default async function AIGeneratePage({
                         <span
                           className={`font-mono text-xs font-medium ${
                             job.confidenceScore >= 0.9
-                              ? "text-green-600"
+                              ? "text-green-600 dark:text-green-400"
                               : job.confidenceScore >= 0.7
-                                ? "text-amber-600"
-                                : "text-red-600"
+                                ? "text-amber-600 dark:text-amber-400"
+                                : "text-destructive"
                           }`}
                         >
                           {(job.confidenceScore * 100).toFixed(0)}%

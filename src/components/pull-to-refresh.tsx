@@ -131,7 +131,7 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
           >
             <RefreshCw
               className={`h-4 w-4 text-primary ${
-                refreshing ? "animate-spin" : ""
+                refreshing ? "motion-safe:animate-spin" : ""
               }`}
               aria-hidden="true"
             />

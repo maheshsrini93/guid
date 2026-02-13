@@ -1,18 +1,22 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateGuideForProduct } from "@/lib/ai/generate-guide";
+import { auth } from "@/lib/auth";
 
 /**
  * POST /api/queue/process — Process the next queued AI generation job.
  *
- * Secured by CRON_SECRET header (for Vercel Cron) or allowed in dev.
+ * Secured by admin session (for Studio dashboard) or CRON_SECRET Bearer token (for Vercel Cron).
  * Each invocation processes at most one job.
  */
 export async function POST(request: Request) {
+  const session = await auth();
+  const isAdmin = (session?.user as unknown as { role: string })?.role === "admin";
   const authHeader = request.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
+  const hasCronSecret = cronSecret && authHeader === `Bearer ${cronSecret}`;
 
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  if (!isAdmin && !hasCronSecret) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -107,19 +111,20 @@ export async function POST(request: Request) {
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : "Unknown error";
 
-    await prisma.aIGenerationJob.update({
-      where: { id: claimed.id },
-      data: {
-        status: "failed",
-        reviewNotes: errorMsg,
-        completedAt: new Date(),
-      },
-    });
-
-    await prisma.product.update({
-      where: { id: claimed.productId },
-      data: { guide_status: "none" },
-    });
+    await prisma.$transaction([
+      prisma.aIGenerationJob.update({
+        where: { id: claimed.id },
+        data: {
+          status: "failed",
+          reviewNotes: errorMsg,
+          completedAt: new Date(),
+        },
+      }),
+      prisma.product.update({
+        where: { id: claimed.productId },
+        data: { guide_status: "none" },
+      }),
+    ]);
 
     return NextResponse.json({
       processed: true,
@@ -134,10 +139,13 @@ export async function POST(request: Request) {
  * GET /api/queue/process — Get queue stats (for polling from dashboard).
  */
 export async function GET(request: Request) {
+  const session = await auth();
+  const isAdmin = (session?.user as unknown as { role: string })?.role === "admin";
   const authHeader = request.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
+  const hasCronSecret = cronSecret && authHeader === `Bearer ${cronSecret}`;
 
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  if (!isAdmin && !hasCronSecret) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

@@ -89,10 +89,10 @@ export function StepReviewCard({
           <span
             className={`font-mono text-xs font-medium ${
               step.confidence >= 0.9
-                ? "text-green-600"
+                ? "text-green-600 dark:text-green-400"
                 : step.confidence >= 0.7
-                  ? "text-amber-600"
-                  : "text-red-600"
+                  ? "text-amber-600 dark:text-amber-400"
+                  : "text-destructive"
             }`}
           >
             {(step.confidence * 100).toFixed(0)}%
@@ -152,10 +152,10 @@ export function StepReviewCard({
               key={i}
               className={`text-xs rounded px-2 py-1 ${
                 c.type === "warning"
-                  ? "bg-red-50 text-red-700"
+                  ? "bg-destructive/10 text-destructive"
                   : c.type === "tip"
-                    ? "bg-amber-50 text-amber-700"
-                    : "bg-blue-50 text-blue-700"
+                    ? "bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400"
+                    : "bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400"
               }`}
             >
               <span className="font-medium capitalize">{c.type}:</span>{" "}
@@ -201,10 +201,10 @@ export function StepReviewCard({
 
       {/* Edit controls */}
       {error && (
-        <div className="mt-2 text-xs text-red-600">{error}</div>
+        <div className="mt-2 text-xs text-destructive">{error}</div>
       )}
       {savedMessage && (
-        <div className="mt-2 text-xs text-green-600">{savedMessage}</div>
+        <div className="mt-2 text-xs text-green-600 dark:text-green-400">{savedMessage}</div>
       )}
 
       {isEditable && (

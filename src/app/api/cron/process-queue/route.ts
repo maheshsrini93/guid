@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { generateGuideForProduct } from "@/lib/ai/generate-guide";
 import { getRateLimiter } from "@/lib/ai/rate-limiter";
 import { autoPublishOrRoute } from "@/lib/auto-publish";
+import { auth } from "@/lib/auth";
 
 /**
  * GET /api/cron/process-queue — Vercel Cron job that processes queued AI generation jobs.
@@ -10,18 +11,20 @@ import { autoPublishOrRoute } from "@/lib/auto-publish";
  * Runs every 5 minutes. Each invocation processes up to MAX_JOBS_PER_RUN jobs,
  * respecting rate limits and concurrency constraints.
  *
- * Secured by CRON_SECRET via Vercel's built-in authorization header.
+ * Secured by admin session (for Studio dashboard) or CRON_SECRET Bearer token (for Vercel Cron).
  */
 
 const MAX_JOBS_PER_RUN = 3;
 const MAX_CONCURRENT = 2;
 
 export async function GET(request: Request) {
-  // Verify cron secret
+  const session = await auth();
+  const isAdmin = (session?.user as unknown as { role: string })?.role === "admin";
   const authHeader = request.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
+  const hasCronSecret = cronSecret && authHeader === `Bearer ${cronSecret}`;
 
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  if (!isAdmin && !hasCronSecret) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

@@ -366,7 +366,7 @@ export default async function ProductPage({
       {/* Guide in Progress banner (P1.5.13) */}
       {(product.guide_status === "queued" || product.guide_status === "generating") && (
         <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 p-4 flex items-center gap-3">
-          <div className="h-5 w-5 shrink-0 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" />
+          <div className="h-5 w-5 shrink-0 motion-safe:animate-spin rounded-full border-2 border-amber-400 border-t-transparent" />
           <div>
             <p className="text-sm font-medium text-amber-900 dark:text-amber-200">
               Assembly guide being generated

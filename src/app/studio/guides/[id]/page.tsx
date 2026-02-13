@@ -156,7 +156,7 @@ export default async function GuideDetailPage({
                 {step.instruction}
               </p>
               {step.tip && (
-                <p className="mt-2 text-sm text-blue-600 bg-blue-50 rounded p-2">
+                <p className="mt-2 text-sm text-blue-600 dark:text-blue-400 bg-blue-500/10 dark:bg-blue-500/20 rounded p-2">
                   Tip: {step.tip}
                 </p>
               )}

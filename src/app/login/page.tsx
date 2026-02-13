@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export default function LoginPage() {
@@ -44,7 +45,9 @@ export default function LoginPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
+              <Label htmlFor="email" className="sr-only">Email</Label>
               <Input
+                id="email"
                 name="email"
                 type="email"
                 placeholder="Email"
@@ -53,7 +56,9 @@ export default function LoginPage() {
               />
             </div>
             <div>
+              <Label htmlFor="password" className="sr-only">Password</Label>
               <Input
+                id="password"
                 name="password"
                 type="password"
                 placeholder="Password"
@@ -61,7 +66,7 @@ export default function LoginPage() {
               />
             </div>
             {error && (
-              <p className="text-sm text-red-500">{error}</p>
+              <p className="text-sm text-destructive">{error}</p>
             )}
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Signing in..." : "Sign in"}

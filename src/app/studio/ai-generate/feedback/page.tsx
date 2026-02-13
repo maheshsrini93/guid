@@ -132,19 +132,19 @@ export default async function FeedbackPage() {
                     <span className="font-mono">{c.articleNumber}</span>
                   </p>
                   <div className="grid gap-2 sm:grid-cols-2 mt-2">
-                    <div className="rounded bg-red-50 p-2">
-                      <p className="text-[10px] font-medium text-red-800 mb-0.5">
+                    <div className="rounded bg-destructive/10 p-2">
+                      <p className="text-[10px] font-medium text-destructive mb-0.5">
                         Original (AI)
                       </p>
-                      <p className="text-xs text-red-700 line-clamp-3">
+                      <p className="text-xs text-destructive line-clamp-3">
                         {c.originalValue}
                       </p>
                     </div>
-                    <div className="rounded bg-green-50 p-2">
-                      <p className="text-[10px] font-medium text-green-800 mb-0.5">
+                    <div className="rounded bg-green-500/10 dark:bg-green-500/20 p-2">
+                      <p className="text-[10px] font-medium text-green-600 dark:text-green-400 mb-0.5">
                         Corrected (Human)
                       </p>
-                      <p className="text-xs text-green-700 line-clamp-3">
+                      <p className="text-xs text-green-600 dark:text-green-400 line-clamp-3">
                         {c.correctedValue}
                       </p>
                     </div>

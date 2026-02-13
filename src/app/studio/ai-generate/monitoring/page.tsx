@@ -138,14 +138,14 @@ export default async function MonitoringPage() {
     prisma.aIGenerationJob.count({
       where: {
         status: "approved",
-        reviewNotes: { contains: "Auto-published" },
+        autoPublished: true,
       },
     }),
 
     prisma.aIGenerationJob.count({
       where: {
         status: { in: ["approved", "review"] },
-        reviewNotes: { not: { contains: "Auto-published" } },
+        autoPublished: false,
       },
     }),
 
@@ -244,9 +244,9 @@ export default async function MonitoringPage() {
   }
 
   function confidenceColor(score: number): string {
-    if (score >= 0.9) return "text-green-600";
-    if (score >= 0.7) return "text-amber-600";
-    return "text-red-600";
+    if (score >= 0.9) return "text-green-600 dark:text-green-400";
+    if (score >= 0.7) return "text-amber-600 dark:text-amber-400";
+    return "text-destructive";
   }
 
   return (
@@ -287,10 +287,10 @@ export default async function MonitoringPage() {
           valueColor={
             overallSuccessRate != null
               ? overallSuccessRate >= 0.9
-                ? "text-green-600"
+                ? "text-green-600 dark:text-green-400"
                 : overallSuccessRate >= 0.7
-                  ? "text-amber-600"
-                  : "text-red-600"
+                  ? "text-amber-600 dark:text-amber-400"
+                  : "text-destructive"
               : undefined
           }
         />
@@ -392,9 +392,9 @@ export default async function MonitoringPage() {
                           variant="outline"
                           className={`text-[10px] ${
                             p === "high"
-                              ? "border-red-300 text-red-700"
+                              ? "border-destructive/40 text-destructive"
                               : p === "low"
-                                ? "border-gray-300 text-gray-500"
+                                ? "border-muted-foreground/30 text-muted-foreground"
                                 : ""
                           }`}
                         >
@@ -433,7 +433,7 @@ export default async function MonitoringPage() {
                     <div className="absolute bottom-0 w-full flex flex-col">
                       {day.failed > 0 && (
                         <div
-                          className="w-full bg-red-400 rounded-t-sm"
+                          className="w-full bg-red-400 dark:bg-red-500 rounded-t-sm"
                           style={{ height: `${(failedPct / 100) * (heightPct / 100) * 112}px` }}
                         />
                       )}
@@ -460,7 +460,7 @@ export default async function MonitoringPage() {
               <span>Completed</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-sm bg-red-400" />
+              <div className="w-2 h-2 rounded-sm bg-red-400 dark:bg-red-500" />
               <span>Failed</span>
             </div>
           </div>
@@ -520,7 +520,7 @@ export default async function MonitoringPage() {
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
                   Auto-Published
                 </p>
-                <p className="font-mono text-lg font-bold text-green-600">
+                <p className="font-mono text-lg font-bold text-green-600 dark:text-green-400">
                   {autoPublishedCount}
                 </p>
               </div>
@@ -528,7 +528,7 @@ export default async function MonitoringPage() {
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
                   Sent to Review
                 </p>
-                <p className="font-mono text-lg font-bold text-amber-600">
+                <p className="font-mono text-lg font-bold text-amber-600 dark:text-amber-400">
                   {reviewedCount}
                 </p>
               </div>

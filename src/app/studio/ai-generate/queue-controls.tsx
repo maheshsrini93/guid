@@ -65,6 +65,8 @@ export function ProcessAllButton({ queuedCount }: { queuedCount: number }) {
   const [progress, setProgress] = useState({ completed: 0, failed: 0 });
   const stopRef = useRef(false);
 
+  const MAX_ITERATIONS = 500;
+
   const handleStart = useCallback(async () => {
     setIsRunning(true);
     setProgress({ completed: 0, failed: 0 });
@@ -72,8 +74,10 @@ export function ProcessAllButton({ queuedCount }: { queuedCount: number }) {
 
     let completed = 0;
     let failed = 0;
+    let iterations = 0;
 
-    while (!stopRef.current) {
+    while (!stopRef.current && iterations < MAX_ITERATIONS) {
+      iterations++;
       try {
         const response = await fetch("/api/queue/process", {
           method: "POST",

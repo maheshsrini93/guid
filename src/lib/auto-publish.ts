@@ -83,6 +83,7 @@ export async function autoPublishOrRoute(
         data: {
           status: "approved",
           reviewNotes: "Auto-published (high confidence, passed quality gate)",
+          autoPublished: true,
           completedAt: new Date(),
         },
       }),

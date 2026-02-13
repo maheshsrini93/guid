@@ -112,7 +112,7 @@ export function ConfigForm({ config, onCancel }: ConfigFormProps) {
       </h3>
 
       {error && (
-        <div className="rounded-md bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-800">
+        <div className="rounded-md bg-destructive/10 border border-destructive/30 px-3 py-2 text-sm text-destructive">
           {error}
         </div>
       )}

@@ -234,6 +234,7 @@ model AIGenerationJob {
   attempts        Int         @default(0)
   maxAttempts     Int         @default(3)
   lastError       String?
+  autoPublished   Boolean     @default(false)
   startedAt       DateTime?
   createdAt       DateTime    @default(now())
   completedAt     DateTime?

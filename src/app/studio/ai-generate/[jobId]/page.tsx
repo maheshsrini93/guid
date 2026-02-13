@@ -130,10 +130,10 @@ export default async function AIGenerateReviewPage({
                 key={i}
                 className={`text-sm rounded-md px-3 py-2 ${
                   flag.severity === "error"
-                    ? "bg-red-50 text-red-800 border border-red-200"
+                    ? "bg-destructive/10 text-destructive border border-destructive/30"
                     : flag.severity === "warning"
-                      ? "bg-amber-50 text-amber-800 border border-amber-200"
-                      : "bg-blue-50 text-blue-800 border border-blue-200"
+                      ? "bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30"
+                      : "bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30"
                 }`}
               >
                 <span className="font-mono text-xs mr-2">[{flag.code}]</span>
@@ -232,11 +232,11 @@ export default async function AIGenerateReviewPage({
       {job.reviewNotes && (
         <>
           <Separator className="my-6" />
-          <div className="rounded-lg border p-4 bg-red-50">
-            <h2 className="text-sm font-semibold text-red-800 mb-1">
+          <div className="rounded-lg border p-4 bg-destructive/10">
+            <h2 className="text-sm font-semibold text-destructive mb-1">
               Review Notes
             </h2>
-            <p className="text-sm text-red-700 whitespace-pre-line">
+            <p className="text-sm text-destructive/80 whitespace-pre-line">
               {job.reviewNotes}
             </p>
           </div>

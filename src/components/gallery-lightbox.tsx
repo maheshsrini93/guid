@@ -17,6 +17,7 @@ export function GalleryLightbox({
 }: GalleryLightboxProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const touchStartX = useRef(0);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   const goNext = useCallback(() => {
     setCurrentIndex((i) => (i < images.length - 1 ? i + 1 : i));
@@ -26,18 +27,39 @@ export function GalleryLightbox({
     setCurrentIndex((i) => (i > 0 ? i - 1 : i));
   }, []);
 
-  // Keyboard navigation
+  // Keyboard navigation + focus trap + inert background
   useEffect(() => {
+    const mainContent = document.querySelector("main");
+    if (mainContent) mainContent.setAttribute("inert", "");
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
       else if (e.key === "ArrowRight") goNext();
       else if (e.key === "ArrowLeft") goPrev();
+      else if (e.key === "Tab") {
+        const dialog = dialogRef.current;
+        if (!dialog) return;
+        const focusable = dialog.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     };
     document.addEventListener("keydown", handleKeyDown);
     document.body.style.overflow = "hidden";
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
+      if (mainContent) mainContent.removeAttribute("inert");
     };
   }, [onClose, goNext, goPrev]);
 
@@ -62,6 +84,7 @@ export function GalleryLightbox({
 
   return (
     <div
+      ref={dialogRef}
       className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center"
       role="dialog"
       aria-modal="true"
@@ -81,6 +104,7 @@ export function GalleryLightbox({
         variant="ghost"
         size="icon"
         onClick={onClose}
+        autoFocus
         aria-label="Close lightbox"
         className="absolute right-4 top-4 z-20 text-white hover:bg-white/10 cursor-pointer"
       >

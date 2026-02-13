@@ -119,7 +119,7 @@ function RelatedProductsCarousel({ products }: { products: RelatedProduct[] }) {
             className="group flex-none snap-start rounded-lg border bg-card p-3 transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 w-[calc(66.67%-8px)] sm:w-[calc(50%-8px)] md:w-[calc(33.33%-11px)] lg:w-[calc(25%-12px)]"
             role="listitem"
           >
-            <div className="relative mb-3 aspect-square overflow-hidden rounded-md bg-gray-50">
+            <div className="relative mb-3 aspect-square overflow-hidden rounded-md bg-muted">
               {product.imageUrl ? (
                 <ImageWithFallback
                   src={product.imageUrl}
@@ -142,7 +142,7 @@ function RelatedProductsCarousel({ products }: { products: RelatedProduct[] }) {
               )}
               {product.guideComingSoon && (
                 <span className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-amber-500 px-2 py-0.5 text-xs font-medium text-white">
-                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <Loader2 className="h-3 w-3 motion-safe:animate-spin" />
                   Soon
                 </span>
               )}

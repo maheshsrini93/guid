@@ -86,7 +86,7 @@ export function AssemblyGuideViewer({
         <p className="text-sm whitespace-pre-line mb-4">{step.instruction}</p>
 
         {step.tip && (
-          <div className="text-sm text-blue-700 bg-blue-50 rounded-md p-3 mb-4">
+          <div className="text-sm text-blue-600 dark:text-blue-400 bg-blue-500/10 dark:bg-blue-500/20 rounded-md p-3 mb-4">
             <span className="font-medium">Tip:</span> {step.tip}
           </div>
         )}

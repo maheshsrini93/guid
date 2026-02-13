@@ -183,7 +183,7 @@ export default async function ProductsPage({
                       )}
                       {!product.assemblyGuide?.published && (product.guide_status === "queued" || product.guide_status === "generating") && (
                         <span className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-amber-500 px-2 py-0.5 text-xs font-medium text-white">
-                          <Loader2 className="h-3 w-3 animate-spin" />
+                          <Loader2 className="h-3 w-3 motion-safe:animate-spin" />
                           Coming Soon
                         </span>
                       )}
@@ -199,7 +199,7 @@ export default async function ProductsPage({
                       )}
                       {!product.assemblyGuide?.published && (product.guide_status === "queued" || product.guide_status === "generating") && (
                         <span className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-amber-500 px-2 py-0.5 text-xs font-medium text-white">
-                          <Loader2 className="h-3 w-3 animate-spin" />
+                          <Loader2 className="h-3 w-3 motion-safe:animate-spin" />
                           Coming Soon
                         </span>
                       )}
