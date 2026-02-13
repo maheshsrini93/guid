@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { SaveProductButton } from "@/components/save-product-button";
 import { BookmarkedStepsList } from "@/components/bookmarked-steps-list";
 import { isValidImageUrl } from "@/lib/image-utils";
+import { getChatUsage } from "@/lib/chat/chat-limits";
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -26,6 +27,8 @@ export default async function ProfilePage() {
       createdAt: true,
     },
   });
+
+  const chatUsage = await getChatUsage(session.user!.id ?? null);
 
   const savedProducts = await prisma.savedProduct.findMany({
     where: { userId: session.user!.id },
@@ -61,6 +64,47 @@ export default async function ProfilePage() {
             <Badge variant="secondary">{user?.role}</Badge>
             <p className="text-xs text-muted-foreground">
               Joined {user?.createdAt.toLocaleDateString()}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Chat Usage</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-baseline justify-between">
+              <span className="text-2xl font-bold">
+                {chatUsage.sessionsUsed}
+              </span>
+              <span className="text-sm text-muted-foreground">
+                of {chatUsage.sessionsLimit} chats this month
+              </span>
+            </div>
+            {/* Usage bar */}
+            <div
+              className="h-2 rounded-full bg-muted overflow-hidden"
+              role="progressbar"
+              aria-valuenow={chatUsage.sessionsUsed}
+              aria-valuemin={0}
+              aria-valuemax={chatUsage.sessionsLimit}
+              aria-label="Chat usage"
+            >
+              <div
+                className={`h-full rounded-full motion-safe:transition-all ${
+                  chatUsage.sessionsRemaining === 0
+                    ? "bg-destructive"
+                    : "bg-primary"
+                }`}
+                style={{
+                  width: `${Math.min(100, (chatUsage.sessionsUsed / chatUsage.sessionsLimit) * 100)}%`,
+                }}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {chatUsage.sessionsRemaining > 0
+                ? `${chatUsage.sessionsRemaining} troubleshooting chat${chatUsage.sessionsRemaining !== 1 ? "s" : ""} remaining`
+                : "Monthly limit reached. Resets next month."}
             </p>
           </CardContent>
         </Card>

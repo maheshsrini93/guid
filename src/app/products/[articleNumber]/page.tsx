@@ -19,6 +19,11 @@ import {
 import { AlertTriangle, PenLine, Users } from "lucide-react";
 
 // Dynamic imports for heavy client components — code-split into separate chunks
+const ProductChatWidget = dynamic(
+  () => import("@/components/chat").then((mod) => mod.ProductChatWidget),
+  { loading: () => null }
+);
+
 const GuideViewer = dynamic(
   () => import("@/components/guide-viewer").then((mod) => mod.GuideViewer),
   { loading: () => <div className="motion-safe:animate-pulse rounded-lg bg-muted h-96" /> }
@@ -314,6 +319,16 @@ export default async function ProductPage({
               dimensionLabel={dimensionEntry?.label}
             />
           }
+        />
+
+        {/* Chat widget (P3.3.6) */}
+        <ProductChatWidget
+          product={{
+            productId: product.id,
+            articleNumber: product.article_number,
+            productName: product.product_name || "Product",
+            imageUrl: product.images[0]?.url,
+          }}
         />
       </main>
     );
@@ -685,6 +700,16 @@ export default async function ProductPage({
           )}
         </div>
       </div>
+
+      {/* Chat widget (P3.3.6) */}
+      <ProductChatWidget
+        product={{
+          productId: product.id,
+          articleNumber: product.article_number,
+          productName: product.product_name || "Product",
+          imageUrl: product.images[0]?.url,
+        }}
+      />
     </main>
   );
 }

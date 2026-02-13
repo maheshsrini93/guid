@@ -102,7 +102,7 @@ export function trackSearchAutocomplete(
 
 /** Track the discovery method used (which type of search input triggered results) */
 export function trackSearchDiscovery(
-  method: "text" | "article_number" | "url" | "recent"
+  method: "text" | "article_number" | "url" | "recent" | "barcode" | "ocr"
 ) {
   track("search_discovery", { method });
 

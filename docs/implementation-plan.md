@@ -568,11 +568,15 @@ The assistant draws from multiple sources per product:
 - **Product metadata** — Materials, dimensions, care instructions, important notes (all in Product model)
 - **Common fixes database** (future) — Crowdsourced fixes and tips from the community
 
-### AI Model
+### AI Model (Decided: All-Gemini)
 
-- Same multi-model setup as guide generation
-- Conversational model (Claude or GPT-4o) for chat, with product context injected via system prompt
-- Vision capability: user can send a photo of the problem → AI diagnoses visually
+**Decision (2026-02-13):** Stay all-Gemini for chat, matching the guide generation pipeline strategy.
+
+- **Primary (default):** Gemini 2.5 Flash (`gemini-2.5-flash`) — fast, cost-efficient ($0.15/1M input), 1M context window (holds full product context + long conversation history), native SSE streaming via `streamGenerateContent` endpoint
+- **Escalation:** Gemini 2.5 Pro (`gemini-2.5-pro`) — for complex troubleshooting, photo diagnosis requiring deeper reasoning, or when Flash confidence is low
+- **Vision:** Same models support multimodal input — user photos sent as inline base64 images alongside text messages
+- **Streaming:** Gemini `streamGenerateContent` returns chunked JSON with `text` deltas — parse and forward to client as SSE events from `/api/chat`
+- **Rationale:** Avoids adding a second API provider (Claude/OpenAI). Reuses existing abstraction layer (`VisionProvider`), rate limiter, and cost tracker. Consistent escalation pattern (Flash → Pro) already proven in the guide pipeline.
 
 ### Key Features
 

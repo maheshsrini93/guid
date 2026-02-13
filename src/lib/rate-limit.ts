@@ -89,6 +89,8 @@ export const RATE_LIMITS = {
   api: { limit: 60, windowMs: 60 * 1000 },
   /** AI generation: 5 requests per minute per user */
   aiGeneration: { limit: 5, windowMs: 60 * 1000 },
+  /** Chat messages: 20 requests per minute per user/IP */
+  chat: { limit: 20, windowMs: 60 * 1000 },
 } as const;
 
 /**

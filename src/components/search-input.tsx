@@ -11,6 +11,8 @@ import {
   trackSearchDiscovery,
 } from "@/lib/search-tracking";
 import { isValidImageUrl } from "@/lib/image-utils";
+import { BarcodeScanner } from "@/components/barcode-scanner";
+import { OcrCapture } from "@/components/ocr-capture";
 
 interface SearchResult {
   articleNumber: string;
@@ -123,6 +125,37 @@ export function SearchInput() {
     return () => clearTimeout(timeout);
   }, [value]);
 
+  // Handle barcode scan result — only track discovery method, not query
+  // (the actual search happens server-side after redirect)
+  const handleBarcodeScan = useCallback(
+    (code: string) => {
+      setValue(code);
+      saveRecentSearch(code);
+      trackSearchDiscovery("barcode");
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("q", code);
+      params.delete("page");
+      router.push(`/products?${params.toString()}`);
+      setShowDropdown(false);
+    },
+    [router, searchParams]
+  );
+
+  // Handle OCR result — only track discovery method, not query
+  const handleOcrResult = useCallback(
+    (text: string) => {
+      setValue(text);
+      saveRecentSearch(text);
+      trackSearchDiscovery("ocr");
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("q", text);
+      params.delete("page");
+      router.push(`/products?${params.toString()}`);
+      setShowDropdown(false);
+    },
+    [router, searchParams]
+  );
+
   // Navigate on search submit
   const handleSearch = useCallback(
     (query: string, discoveryMethod?: "text" | "article_number" | "url" | "recent") => {
@@ -188,21 +221,25 @@ export function SearchInput() {
     showDropdown && value.length >= 2 && results.length === 0 && !loading;
 
   return (
-    <div ref={wrapperRef} className="relative w-full sm:w-80">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search products, article numbers, or paste URL..."
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onFocus={handleFocus}
-          onKeyDown={handleKeyDown}
-          className="pl-9"
-          aria-label="Search products"
-          aria-expanded={showDropdown}
-          role="combobox"
-          aria-autocomplete="list"
-        />
+    <div ref={wrapperRef} className="relative w-full sm:w-96">
+      <div className="relative flex items-center gap-1">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search products, article numbers, or paste URL..."
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onFocus={handleFocus}
+            onKeyDown={handleKeyDown}
+            className="pl-9"
+            aria-label="Search products"
+            aria-expanded={showDropdown}
+            role="combobox"
+            aria-autocomplete="list"
+          />
+        </div>
+        <BarcodeScanner onScanResult={handleBarcodeScan} />
+        <OcrCapture onOcrResult={handleOcrResult} />
       </div>
 
       {/* Dropdown */}

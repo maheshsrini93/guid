@@ -176,8 +176,8 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 | P2.3.3 | done | Add URL paste detection | If search input contains "http" or "ikea.com", extract article number from URL, redirect to product page. Show toast: "Detected IKEA product link — redirecting..." | — | — |
 | P2.3.4 | done | Add recent searches | Show user's last 5 searches when search input is focused. localStorage for anonymous users, database for signed-in users. | — | — |
 | P2.3.5 | done | Add zero-result handling | When no products match: "No products found for '[query]'" with suggestions: similar products (fuzzy match), category browsing links, "Request this product" link. | — | — |
-| P2.3.6 | todo | Add barcode/QR scanner | Camera button in search bar, scan barcode -> extract article number -> search (mobile only, requires camera permission) | — | — |
-| P2.3.7 | todo | Add photo-to-text OCR | Camera button: photograph product label -> OCR extracts name/number -> search | — | — |
+| P2.3.6 | done | Add barcode/QR scanner | Camera button in search bar, scan barcode -> extract article number -> search (mobile only, requires camera permission) | — | — |
+| P2.3.7 | done | Add photo-to-text OCR | Camera button: photograph product label -> OCR extracts name/number -> search | — | — |
 | P2.3.8 | done | Add search analytics | Track popular queries, zero-result queries, click-through rates. Identify content gaps for catalog expansion. | — | — |
 
 ### 2.4 Product Detail Layout (/products/[articleNumber]/details)
@@ -232,50 +232,50 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P3.1.1 | todo | Add ChatSession model | id, userId (optional), productId (optional), status (active/resolved/abandoned), resolution (solved/unsolved/escalated), timestamps | — | P3.1.3 |
-| P3.1.2 | todo | Add ChatMessage model | id, sessionId, role (user/assistant), content, imageUrl (optional), createdAt | — | P3.1.3 |
-| P3.1.3 | todo | Run migration | `npx prisma db push` after schema changes | P3.1.1, P3.1.2 | P3.1.4 |
-| P3.1.4 | todo | Build streaming chat API | `/api/chat` endpoint with Server-Sent Events for streaming AI responses | P3.1.3 | P3.2.1, P3.3.1 |
-| P3.1.5 | todo | Choose conversational AI model | Evaluate Claude vs GPT-4o for product-aware troubleshooting conversations | — | P3.1.4, P3.2.4 |
+| P3.1.1 | done | Add ChatSession model | id, userId (optional), productId (optional), status (active/resolved/abandoned), resolution (solved/unsolved/escalated), timestamps | — | P3.1.3 |
+| P3.1.2 | done | Add ChatMessage model | id, sessionId, role (user/assistant), content, imageUrl (optional), createdAt | — | P3.1.3 |
+| P3.1.3 | done | Run migration | `npx prisma db push` after schema changes | P3.1.1, P3.1.2 | P3.1.4 |
+| P3.1.4 | done | Build streaming chat API | `/api/chat` endpoint with Server-Sent Events for streaming AI responses | P3.1.3 | P3.2.1, P3.3.1 |
+| P3.1.5 | done | Choose conversational AI model | Decided: All-Gemini strategy. Gemini 2.5 Flash (primary, streaming chat) + Gemini 2.5 Pro (escalation for complex troubleshooting/photo diagnosis). Reuses existing abstraction layer, rate limiter, cost tracker. Streaming via `streamGenerateContent` SSE endpoint. Updated implementation-plan.md. | — | P3.1.4, P3.2.4 |
 
 ### 3.2 Product Context & RAG
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P3.2.1 | todo | Build product context assembler | Given a product ID, compile: product metadata, assembly guide steps, document summaries, care instructions, materials, key facts into a structured context block | P3.1.4 | P3.2.4 |
-| P3.2.2 | todo | Implement product identification from chat | Extract product name/article number from user's first message, match to database, confirm with user | P3.1.4 | P3.3.6 |
-| P3.2.3 | todo | Build document context extraction | Parse and chunk ProductDocument PDFs (parts lists, care guides) for retrieval | — | P3.2.1 |
-| P3.2.4 | todo | Create system prompt template | Product-specific system prompt with all context, troubleshooting persona, step-by-step guidance style | P3.1.5, P3.2.1 | P3.3.1 |
+| P3.2.1 | done | Build product context assembler | Given a product ID, compile: product metadata, assembly guide steps, document summaries, care instructions, materials, key facts into a structured context block | P3.1.4 | P3.2.4 |
+| P3.2.2 | done | Implement product identification from chat | Extract product name/article number from user's first message, match to database, confirm with user | P3.1.4 | P3.3.6 |
+| P3.2.3 | done | Build document context extraction | Parse and chunk ProductDocument PDFs (parts lists, care guides) for retrieval | — | P3.2.1 |
+| P3.2.4 | done | Create system prompt template | Product-specific system prompt with all context, troubleshooting persona, step-by-step guidance style | P3.1.5, P3.2.1 | P3.3.1 |
 
 ### 3.3 Chat UI
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P3.3.1 | todo | Build chat component | Message bubbles (user/assistant), text input, send button, streaming response display | P3.1.4, P3.2.4 | P3.3.2, P3.3.3, P3.3.4, P3.3.5, P3.3.6, P3.3.7, P3.3.8, P3.4.2, P3.4.3, P3.4.4, P3.5.1 |
-| P3.3.2 | todo | Build proactive greeting | Chat bubble that appears on product pages and homepage offering help: "Having trouble with your product? I can help you troubleshoot, find replacement parts, or walk you through a fix." | P3.3.1 | — |
-| P3.3.3 | todo | Build guided diagnostic intake | Structured starter questions on chat open to narrow down the problem before free-form conversation: product identification -> problem category (wobbling, missing part, broke, won't close, other) -> timing (just happened, gradual, after move) -> photo upload (optional). Collect enough context for a targeted first response. | P3.3.1 | — |
-| P3.3.4 | todo | Add image upload to chat | User can attach a photo of the broken part/problem for visual diagnosis | P3.3.1 | P3.4.1 |
-| P3.3.5 | todo | Build /chat page | Standalone chat: user describes product + problem from scratch, guided intake begins immediately | P3.3.1 | — |
-| P3.3.6 | todo | Build product page chat widget | Chat button on product detail page, product context pre-loaded, guided intake skips product identification | P3.3.1, P3.2.2 | — |
-| P3.3.7 | todo | Add conversation history | Show previous messages on scroll-up, persist for signed-in users | P3.3.1 | — |
-| P3.3.8 | todo | Add typing indicator | Show "Guid is thinking..." while AI generates response | P3.3.1 | — |
+| P3.3.1 | done | Build chat component | Message bubbles (user/assistant), text input, send button, streaming response display. 13 files: types.ts, message-bubble.tsx, chat-input.tsx, typing-indicator.tsx, greeting-bubble.tsx, intake-chips.tsx, diagnostic-intake.tsx, image-preview.tsx, chat-header.tsx, message-list.tsx, chat-panel.tsx, use-chat.ts, index.ts | P3.1.4, P3.2.4 | P3.3.2, P3.3.3, P3.3.4, P3.3.5, P3.3.6, P3.3.7, P3.3.8, P3.4.2, P3.4.3, P3.4.4, P3.5.1 |
+| P3.3.2 | done | Build proactive greeting | Floating chat bubble (z-chat layer) with 3s delay, localStorage dismissal, animated entrance (respects prefers-reduced-motion), contextual product greeting | P3.3.1 | — |
+| P3.3.3 | done | Build guided diagnostic intake | 4-phase intake flow: product ID -> problem category chips -> timing chips -> optional photo. State machine pattern with discriminated union IntakePhase type. | P3.3.1 | — |
+| P3.3.4 | done | Add image upload to chat | Camera capture, file input, drag-drop via ChatInput. ImagePreview component for thumbnail before send. Base64 encoding for API transmission. | P3.3.1 | P3.4.1 |
+| P3.3.5 | done | Build /chat page | Full-page chat at /chat with SEO metadata, ChatPageClient wrapper using useChat hook, centered max-w-2xl layout, guided intake starts immediately | P3.3.1 | — |
+| P3.3.6 | done | Build product page chat widget | ProductChatWidget component: FAB with GreetingBubble, fixed side panel (desktop) / bottom sheet (mobile), product context pre-loaded skipping product intake phase, backdrop overlay, dynamic import in product page (both guide-first and fallback branches) | P3.3.1, P3.2.2 | — |
+| P3.3.7 | done | Add conversation history | MessageList with scroll-to-top detection for infinite history loading, auto-scroll on new messages | P3.3.1 | — |
+| P3.3.8 | done | Add typing indicator | Three pulsing dots with chat-dot keyframe, motion-safe animation, aria-label for screen readers | P3.3.1 | — |
 
 ### 3.4 Smart Features
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P3.4.1 | todo | Part identification from photos | User uploads photo of a broken/missing part -> AI identifies the part name, number, and where to buy replacements | P3.3.4 | — |
-| P3.4.2 | todo | Intent detection | Detect if user wants assembly help (redirect to guide) vs troubleshooting (stay in chat) | P3.3.1 | — |
-| P3.4.3 | todo | Escalation flow | If AI can't resolve: generate a pre-filled issue summary for the user to send to manufacturer support | P3.3.1 | — |
-| P3.4.4 | todo | Maintenance reminders | After resolving a chat, offer to save the product and set periodic maintenance reminders | P3.3.1 | — |
+| P3.4.1 | done | Part identification from photos | User uploads photo of a broken/missing part -> AI identifies the part name, number, and where to buy replacements | P3.3.4 | — |
+| P3.4.2 | done | Intent detection | Detect if user wants assembly help (redirect to guide) vs troubleshooting (stay in chat) | P3.3.1 | — |
+| P3.4.3 | done | Escalation flow | If AI can't resolve: generate a pre-filled issue summary for the user to send to manufacturer support | P3.3.1 | — |
+| P3.4.4 | done | Maintenance reminders | After resolving a chat, offer to save the product and set periodic maintenance reminders | P3.3.1 | — |
 
 ### 3.5 Tiering & Limits
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P3.5.1 | todo | Implement free tier limit | 3 troubleshooting chats per month for free users | P3.3.1 | P3.5.2 |
-| P3.5.2 | todo | Track chat usage | Count chats per user per billing period | P3.5.1 | P3.5.3 |
-| P3.5.3 | todo | Build upgrade prompt | When free limit reached, show premium upgrade modal with chat-specific value prop | P3.5.2 | — |
+| P3.5.1 | done | Implement free tier limit | 3 troubleshooting chats per month for free users | P3.3.1 | P3.5.2 |
+| P3.5.2 | done | Track chat usage | Count chats per user per billing period | P3.5.1 | P3.5.3 |
+| P3.5.3 | done | Build upgrade prompt | When free limit reached, show premium upgrade modal with chat-specific value prop | P3.5.2 | — |
 
 ---
 

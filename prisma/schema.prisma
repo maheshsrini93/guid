@@ -85,6 +85,7 @@ model Product {
   assemblyGuide           AssemblyGuide?
   aiGenerationJobs        AIGenerationJob[]
   guideSubmissions        GuideSubmission[]
+  chatSessions            ChatSession[]
 
   @@index([article_number], map: "idx_products_article")
   @@index([source_retailer], map: "idx_products_retailer")
@@ -155,6 +156,7 @@ model User {
   sessions       Session[]
   savedProducts    SavedProduct[]
   guideSubmissions GuideSubmission[]
+  chatSessions     ChatSession[]
 
   @@map("users")
 }
@@ -350,4 +352,39 @@ model GuideSubmission {
   @@index([userId])
   @@index([status])
   @@map("guide_submissions")
+}
+
+// ─── Chat (Phase 3: AI Troubleshooting Assistant) ───
+
+model ChatSession {
+  id         String   @id @default(cuid())
+  userId     String?  @map("user_id")
+  productId  Int?     @map("product_id")
+  status     String   @default("active") // active, resolved, abandoned
+  resolution String?  // solved, unsolved, escalated
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  user     User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  product  Product?      @relation(fields: [productId], references: [id], onDelete: SetNull)
+  messages ChatMessage[]
+
+  @@index([userId])
+  @@index([productId])
+  @@index([status])
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  sessionId String   @map("session_id")
+  role      String   // user, assistant
+  content   String
+  imageUrl  String?  @map("image_url")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@map("chat_messages")
 }
