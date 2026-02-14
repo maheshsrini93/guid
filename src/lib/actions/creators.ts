@@ -12,7 +12,7 @@ async function requireAuth() {
 }
 
 const YOUTUBE_CHANNEL_PATTERN =
-  /^https?:\/\/(www\.)?youtube\.com\/(c\/|channel\/|@|user\/)?[\w\-%.]+\/?$/;
+  /^https:\/\/(www\.)?youtube\.com\/(c\/|channel\/|@|user\/)?[\w\-%.]+\/?$/;
 
 function extractChannelId(url: string): string | null {
   const match = url.match(/youtube\.com\/channel\/(UC[\w-]{22})/);
@@ -83,7 +83,7 @@ export async function registerCreator(
 // ─── Video Submission ───
 
 const YOUTUBE_VIDEO_PATTERN =
-  /^https?:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)[\w-]+/;
+  /^https:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)[\w-]+/;
 
 import { extractVideoId } from "@/lib/youtube-utils";
 

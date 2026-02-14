@@ -79,6 +79,14 @@ model Product {
   is_new                  Boolean           @default(false)
   discontinued            Boolean           @default(false)
 
+  // Phase 5: Multi-retailer fields
+  retailerId              String?
+  manufacturerSku         String?
+  upcEan                  String?
+  matchGroupId            String?
+  matchConfidence         Float?            @db.Real
+  retailer                Retailer?         @relation(fields: [retailerId], references: [id], onDelete: SetNull)
+
   documents               ProductDocument[]
   images                  ProductImage[]
   savedBy                 SavedProduct[]
@@ -94,6 +102,7 @@ model Product {
   @@index([avg_rating], map: "idx_products_rating")
   @@index([assembly_required], map: "idx_products_assembly")
   @@index([category_path], map: "idx_products_category")
+  @@index([retailerId], map: "idx_products_retailer_id")
   @@map("products")
 }
 
@@ -460,4 +469,25 @@ model VideoVote {
   @@index([videoSubmissionId])
   @@index([userId])
   @@map("video_votes")
+}
+
+// ─── Retailers (Phase 5: Multi-Retailer) ───
+
+model Retailer {
+  id              String    @id @default(cuid())
+  name            String
+  slug            String    @unique
+  logoUrl         String?
+  baseUrl         String
+  adapterType     String
+  isActive        Boolean   @default(true)
+  lastSyncAt      DateTime?
+  nextSyncAt      DateTime?
+  affiliateConfig Json?
+  rateLimitConfig Json?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  products        Product[]
+
+  @@map("retailers")
 }

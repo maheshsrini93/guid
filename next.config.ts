@@ -16,6 +16,38 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "img.youtube.com",
       },
+      // Wayfair
+      {
+        protocol: "https",
+        hostname: "**.wayfair.com",
+      },
+      {
+        protocol: "https",
+        hostname: "**.wfcdn.com",
+      },
+      // Home Depot
+      {
+        protocol: "https",
+        hostname: "**.homedepot.com",
+      },
+      {
+        protocol: "https",
+        hostname: "**.thdstatic.com",
+      },
+      // Amazon
+      {
+        protocol: "https",
+        hostname: "**.media-amazon.com",
+      },
+      // Target
+      {
+        protocol: "https",
+        hostname: "**.target.com",
+      },
+      {
+        protocol: "https",
+        hostname: "**.scene7.com",
+      },
     ],
   },
 };

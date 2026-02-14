@@ -331,10 +331,10 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P5.1.1 | todo | Design adapter interface | Create a `RetailerAdapter` interface with standard methods: `detectNewProducts()`, `scrapeProduct()`, `scrapeCategory()`, `extractDocuments()`, `extractImages()`, `getRateLimitConfig()`, `getRobotsRules()`. Document the interface contract. | — | P5.1.2, P5.1.5, P5.1.6, P5.1.7, P5.1.8, P5.3.1 |
-| P5.1.2 | todo | Refactor IKEA scraper into adapter | Extract the existing IKEA scraper logic into an `IkeaAdapter` class that implements `RetailerAdapter`. Validate that monthly sync still works with the adapter pattern. | P5.1.1 | P5.1.4, P5.1.9 |
-| P5.1.3 | todo | Add Retailer model | id, name, slug, logoUrl, baseUrl, adapterType, isActive, lastSyncAt, nextSyncAt, affiliateConfig (JSON), rateLimitConfig (JSON), timestamps. Run migration. | — | P5.1.4, P5.5.2, P5.5.5 |
-| P5.1.4 | todo | Build adapter registry | Central registry that maps retailer slugs to adapter implementations. Used by monthly sync to iterate all active retailers. | P5.1.2, P5.1.3 | P5.1.5, P5.1.6, P5.1.7, P5.1.8, P5.4.1, P5.5.1, P5.5.3, P5.5.4 |
+| P5.1.1 | done | Design adapter interface | Create a `RetailerAdapter` interface with standard methods: `detectNewProducts()`, `scrapeProduct()`, `scrapeCategory()`, `extractDocuments()`, `extractImages()`, `getRateLimitConfig()`, `getRobotsRules()`. Document the interface contract. | — | P5.1.2, P5.1.5, P5.1.6, P5.1.7, P5.1.8, P5.3.1 |
+| P5.1.2 | done | Refactor IKEA scraper into adapter | Extract the existing IKEA scraper logic into an `IkeaAdapter` class that implements `RetailerAdapter`. Validate that monthly sync still works with the adapter pattern. | P5.1.1 | P5.1.4, P5.1.9 |
+| P5.1.3 | done | Add Retailer model | id, name, slug, logoUrl, baseUrl, adapterType, isActive, lastSyncAt, nextSyncAt, affiliateConfig (JSON), rateLimitConfig (JSON), timestamps. Run migration. | — | P5.1.4, P5.5.2, P5.5.5 |
+| P5.1.4 | done | Build adapter registry | Central registry that maps retailer slugs to adapter implementations. Used by monthly sync to iterate all active retailers. | P5.1.2, P5.1.3 | P5.1.5, P5.1.6, P5.1.7, P5.1.8, P5.4.1, P5.5.1, P5.5.3, P5.5.4 |
 | P5.1.5 | todo | Build Wayfair adapter | Implement `RetailerAdapter` for Wayfair. Handle: product APIs, variant explosion (normalize to single product per unique assembly), brand extraction from multi-seller listings. | P5.1.1, P5.1.4 | P5.1.9, P5.6.2 |
 | P5.1.6 | todo | Build Home Depot adapter | Implement `RetailerAdapter` for Home Depot. Handle: multi-tab product pages (main -> specifications -> documents), nested spec extraction via Playwright. | P5.1.1, P5.1.4 | P5.1.9 |
 | P5.1.7 | todo | Build Amazon adapter | Implement `RetailerAdapter` using Amazon Product Advertising API (PA-API 5.0) instead of scraping. Handle: ASIN extraction, rate limits (1 req/sec), limited assembly PDF availability. | P5.1.1, P5.1.4 | P5.1.9, P5.6.1 |
@@ -345,7 +345,7 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P5.2.1 | todo | Add cross-retailer fields to Product | `manufacturerSku` (String?), `upcEan` (String?), `matchGroupId` (String?), `matchConfidence` (Float?). Run migration. | — | P5.2.2, P5.2.3 |
+| P5.2.1 | done | Add cross-retailer fields to Product | `manufacturerSku` (String?), `upcEan` (String?), `matchGroupId` (String?), `matchConfidence` (Float?). Run migration. | — | P5.2.2, P5.2.3 |
 | P5.2.2 | todo | Build exact matching | Match products across retailers by manufacturer SKU, UPC/EAN barcode, or article number. Highest confidence level. | P5.2.1 | P5.2.4 |
 | P5.2.3 | todo | Build fuzzy matching | Match by product name + brand + key dimensions similarity scoring. Threshold: >= 0.85 similarity score. Flag low-confidence matches (< 0.7) for admin review. | P5.2.1 | P5.2.4 |
 | P5.2.4 | todo | Build admin match management | Studio page: view auto-detected matches, confirm/reject fuzzy matches, manually link products across retailers. | P5.2.2, P5.2.3 | P5.2.5 |
@@ -355,7 +355,7 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P5.3.1 | todo | Build normalization layer | Each adapter's `scrapeProduct()` returns raw retailer data -> normalization layer maps to Prisma Product fields using retailer-specific rules (field name mapping, currency conversion, category mapping). | P5.1.1 | P5.3.2, P5.3.3 |
+| P5.3.1 | done | Build normalization layer | Each adapter's `scrapeProduct()` returns raw retailer data -> normalization layer maps to Prisma Product fields using retailer-specific rules (field name mapping, currency conversion, category mapping). | P5.1.1 | P5.3.2, P5.3.3 |
 | P5.3.2 | todo | Currency normalization | All prices stored in USD. Convert at scrape time using cached exchange rate (refresh daily). Store original price and currency for reference. | P5.3.1 | — |
 | P5.3.3 | todo | Category mapping | Map each retailer's category taxonomy to Guid's unified categories. Maintain a mapping table per retailer, editable in Studio. | P5.3.1 | — |
 
@@ -371,8 +371,8 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
 | P5.5.1 | todo | Add retailer filter | Filter products by retailer on `/products`. Show retailer logo pills for quick filtering. | P5.1.4 | — |
-| P5.5.2 | todo | Add retailer branding | Small retailer logo badge on product cards and detail pages. Non-intrusive, builds user trust. | P5.1.3 | — |
-| P5.5.3 | todo | Extend image config | Add `remotePatterns` in `next.config.ts` for each new retailer's image CDN domains (Wayfair, Amazon, Home Depot, Target). | P5.1.4 | — |
+| P5.5.2 | done | Add retailer branding | Small retailer logo badge on product cards and detail pages. Non-intrusive, builds user trust. | P5.1.3 | — |
+| P5.5.3 | done | Extend image config | Add `remotePatterns` in `next.config.ts` for each new retailer's image CDN domains (Wayfair, Amazon, Home Depot, Target). | P5.1.4 | — |
 | P5.5.4 | todo | Build retailer landing pages | `/retailers/wayfair`, `/retailers/amazon`, etc. Browse all products from a specific retailer. SEO value for "[Retailer] assembly guides" searches. | P5.1.4 | — |
 | P5.5.5 | todo | Build retailer management in Studio | Admin page: manage retailer adapters, enable/disable, configure scrape frequency, view health metrics per retailer, trigger manual sync. | P5.1.3 | — |
 | P5.5.6 | todo | Add price comparison section | On unified product pages with multiple retailers: side-by-side price comparison with direct buy links. | P5.2.5 | — |
@@ -488,48 +488,3 @@ Items flagged by the Critic agent during the parallel team session. Should be ad
 | P0.4.7 | done | Replace fragile autoPublished heuristic in monitoring | `studio/ai-generate/monitoring/page.tsx` uses `reviewNotes.contains("Auto-published")` to count auto-published vs reviewed guides. This couples to the exact string in `auto-publish.ts`. Consider adding a dedicated `autoPublished: Boolean` field to the AIGenerationJob model, or add a code comment linking these. | — | — |
 | P0.4.8 | done | Add label elements to login/register form inputs | `src/app/login/page.tsx` and `src/app/register/page.tsx` use `placeholder` text only — no associated `<label>` or `aria-label` on form inputs. Add proper `<Label htmlFor="...">` elements (can be `sr-only` if visual labels aren't desired) per WCAG form accessibility requirements. | — | — |
 
----
-
-## Phase 4: Premium Subscription
-
-### 4.1 Stripe Integration
-
-| ID | Status | Task | Description | Depends | Blocks |
-|----|--------|------|-------------|---------|--------|
-| P4.1.1 | done | Install Stripe SDK | Install `stripe` and `@stripe/stripe-js`, create `src/lib/stripe.ts` server singleton and `src/lib/stripe-client.ts` client helper, add Stripe env vars to `.env.example` | — | P4.1.2 |
-| P4.1.2 | todo | Create Stripe products/prices config | Define subscription tiers (free/premium/pro) as Stripe products/prices, create config file | P4.1.1 | P4.1.3 |
-| P4.1.3 | todo | Build Checkout endpoint | Create `/api/stripe/checkout` route that creates Stripe Checkout sessions | P4.1.2 | P4.1.4 |
-| P4.1.4 | todo | Build webhook handler | Create `/api/stripe/webhook` route to handle Stripe subscription lifecycle events | P4.1.3 | P4.1.5 |
-| P4.1.5 | todo | Add subscription fields to User model | Add `stripeCustomerId`, `subscriptionTier`, `subscriptionStatus`, `subscriptionId` fields to User | P4.1.4 | P4.1.6 |
-| P4.1.6 | todo | Build subscription middleware | Middleware to check subscription tier and gate premium features | P4.1.5 | P4.3.1, P4.3.2, P4.3.3, P4.4.3, P4.4.4, P4.4.5 |
-
-### 4.2 YouTube Creator Video Integration
-
-| ID | Status | Task | Description | Depends | Blocks |
-|----|--------|------|-------------|---------|--------|
-| P4.2.1 | done | Add CreatorProfile model | Prisma model for YouTube creator profiles with channel info, verification, stats | — | P4.2.3 |
-| P4.2.2 | done | Add VideoSubmission model | Prisma model for video submissions with review workflow, helpfulness voting | — | P4.2.4 |
-| P4.2.3 | done | Build creator registration flow | `/creators/register` page and server actions for creator signup | P4.2.1 | P4.2.4, P4.2.7 |
-| P4.2.4 | todo | Build video submission form | `/creators/submit` page for creators to submit YouTube video links for products | P4.2.2, P4.2.3 | P4.2.5 |
-| P4.2.5 | todo | Build video review queue in Studio | `/studio/videos` admin page for reviewing video submissions | P4.2.4 | P4.2.6 |
-| P4.2.6 | todo | Build video display on product detail | Show approved videos on product detail page in "Video Guides" tab | P4.2.5 | P4.2.8 |
-| P4.2.7 | todo | Build creator profile page | `/creators/[id]` public page showing channel info and submitted videos | P4.2.3 | — |
-| P4.2.8 | done | Add helpfulness voting | Thumbs up/down voting on video guides, sorted by helpfulness | P4.2.6 | — |
-
-### 4.3 Premium Features
-
-| ID | Status | Task | Description | Depends | Blocks |
-|----|--------|------|-------------|---------|--------|
-| P4.3.1 | done | Offline guide access (PWA) | Service worker caching for offline guide viewing | P4.1.6 | — |
-| P4.3.2 | done | Ad-free experience | Premium users get ad-free browsing | P4.1.6 | — |
-| P4.3.3 | done | Priority AI guides | Premium users can request priority AI guide generation | P4.1.6 | — |
-
-### 4.4 Pricing & Upgrade Flow
-
-| ID | Status | Task | Description | Depends | Blocks |
-|----|--------|------|-------------|---------|--------|
-| P4.4.1 | done | Build pricing page | `/pricing` page with plan comparison (Free/Premium/Pro) | — | P4.4.2 |
-| P4.4.2 | done | Build upgrade flow | `/subscribe` page that redirects to Stripe Checkout | P4.1.3, P4.4.1 | — |
-| P4.4.3 | done | Build billing management | `/account/billing` page for subscription management via Stripe Portal | P4.1.5 | — |
-| P4.4.4 | done | Add premium badges | Visual badges on user profiles and content for premium subscribers | P4.1.5 | — |
-| P4.4.5 | done | Add premium gate modals | Modal prompts when free users try to access premium features | P4.1.6 | — |

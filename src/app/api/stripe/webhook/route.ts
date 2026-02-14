@@ -3,6 +3,28 @@ import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import type Stripe from "stripe";
 
+// ── Idempotency Guard ─────────────────────────────────
+const processedEvents = new Map<string, number>();
+const IDEMPOTENCY_TTL_MS = 60 * 60 * 1000; // 1 hour
+const MAX_PROCESSED_EVENTS = 1000;
+
+function cleanupProcessedEvents() {
+  const now = Date.now();
+  for (const [id, timestamp] of processedEvents) {
+    if (now - timestamp > IDEMPOTENCY_TTL_MS) {
+      processedEvents.delete(id);
+    }
+  }
+  // Safety cap to prevent unbounded growth
+  if (processedEvents.size > MAX_PROCESSED_EVENTS) {
+    const entries = [...processedEvents.entries()].sort((a, b) => a[1] - b[1]);
+    const toRemove = entries.slice(0, entries.length - MAX_PROCESSED_EVENTS);
+    for (const [id] of toRemove) {
+      processedEvents.delete(id);
+    }
+  }
+}
+
 function getWebhookSecret(): string {
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!secret) {
@@ -38,6 +60,13 @@ export async function POST(request: NextRequest) {
       { status: 400 }
     );
   }
+
+  // Idempotency check — skip duplicate webhook deliveries
+  cleanupProcessedEvents();
+  if (processedEvents.has(event.id)) {
+    return NextResponse.json({ received: true, duplicate: true });
+  }
+  processedEvents.set(event.id, Date.now());
 
   switch (event.type) {
     case "checkout.session.completed": {

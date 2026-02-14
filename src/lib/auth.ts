@@ -33,6 +33,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           name: user.name,
           role: user.role,
           subscriptionTier: user.subscriptionTier,
+          subscriptionEndsAt: user.subscriptionEndsAt?.toISOString() ?? null,
         };
       },
     }),
@@ -43,15 +44,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.role = (user as unknown as { role: string }).role;
         token.subscriptionTier =
           (user as unknown as { subscriptionTier: string }).subscriptionTier ?? "free";
+        token.subscriptionEndsAt =
+          (user as unknown as { subscriptionEndsAt: string | null }).subscriptionEndsAt ?? null;
       }
       // Re-fetch subscription tier on session update to reflect webhook changes
       if (trigger === "update" && token.sub) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.sub },
-          select: { subscriptionTier: true },
+          select: { subscriptionTier: true, subscriptionEndsAt: true },
         });
         if (dbUser) {
           token.subscriptionTier = dbUser.subscriptionTier;
+          token.subscriptionEndsAt = dbUser.subscriptionEndsAt?.toISOString() ?? null;
         }
       }
       return token;
@@ -62,10 +66,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           id: string;
           role: string;
           subscriptionTier: string;
+          subscriptionEndsAt: string | null;
         };
         u.id = token.sub!;
         u.role = (token.role as string) ?? "user";
         u.subscriptionTier = (token.subscriptionTier as string) ?? "free";
+        u.subscriptionEndsAt = (token.subscriptionEndsAt as string) ?? null;
       }
       return session;
     },

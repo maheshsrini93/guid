@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import type { RetailerAdapter } from "@/lib/adapters/types";
 
 // ─── Types ───
 
@@ -311,7 +312,8 @@ export async function detectPdfUpdates(
  * Mark as discontinued but keep existing guides live.
  */
 export async function handleDelistedProducts(
-  errors: Array<{ articleNumber?: string; error: string }>
+  errors: Array<{ articleNumber?: string; error: string }>,
+  retailerSlug: string = "ikea"
 ): Promise<number> {
   // Get all article numbers from scrape_urls (the source catalog)
   const catalogArticles = await prisma.scrapeUrl.findMany({
@@ -334,7 +336,7 @@ export async function handleDelistedProducts(
   const allProducts = await prisma.product.findMany({
     where: {
       discontinued: false,
-      source_retailer: "ikea",
+      source_retailer: retailerSlug,
     },
     select: {
       id: true,
@@ -379,16 +381,20 @@ export async function handleDelistedProducts(
  * 6. Save sync log (if CatalogSyncLog model exists)
  */
 export async function runCatalogSync(
-  triggeredBy: "cron" | "manual" = "cron"
+  triggeredBy: "cron" | "manual" = "cron",
+  adapter?: RetailerAdapter
 ): Promise<SyncResult> {
+  // Future: iterate getActiveAdapters() for multi-retailer sync
+  // For now, single-retailer mode is preserved for backward compatibility
   const startTime = Date.now();
   const errors: Array<{ articleNumber?: string; error: string }> = [];
+  const retailerSlug = adapter?.info.slug ?? "ikea";
 
   // Step 1: Detect new products (P1.5.2)
   let detectedProducts: DetectedProduct[] = [];
   try {
     detectedProducts = await withRetry(
-      () => detectNewProducts(30),
+      () => adapter ? adapter.detectNewProducts(30) : detectNewProducts(30),
       "detect-new-products"
     );
   } catch (err) {
@@ -423,7 +429,7 @@ export async function runCatalogSync(
   // Step 4: Handle delisted products (P1.5.9)
   let delistedProducts = 0;
   try {
-    delistedProducts = await handleDelistedProducts(errors);
+    delistedProducts = await handleDelistedProducts(errors, retailerSlug);
   } catch (err) {
     errors.push({
       error: `handleDelistedProducts failed: ${err instanceof Error ? err.message : String(err)}`,
@@ -482,7 +488,7 @@ export async function runCatalogSync(
   try {
     await prisma.catalogSyncLog.create({
       data: {
-        retailer: "ikea",
+        retailer: retailerSlug,
         newProducts: result.newProducts,
         updatedProducts: result.updatedProducts,
         delistedProducts: result.delistedProducts,

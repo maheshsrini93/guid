@@ -7,6 +7,7 @@ interface UseSubscriptionResult {
   tier: SubscriptionTier;
   isPremium: boolean;
   isLoading: boolean;
+  subscriptionEndsAt: string | null;
 }
 
 /**
@@ -16,13 +17,19 @@ interface UseSubscriptionResult {
 export function useSubscription(): UseSubscriptionResult {
   const { data: session, status } = useSession();
 
-  const tier =
-    ((session?.user as unknown as { subscriptionTier?: string })
-      ?.subscriptionTier as SubscriptionTier) ?? "free";
+  const user = session?.user as unknown as {
+    subscriptionTier?: string;
+    subscriptionEndsAt?: string;
+  } | undefined;
+
+  const tier = (user?.subscriptionTier as SubscriptionTier) ?? "free";
+  const subscriptionEndsAt = user?.subscriptionEndsAt ?? null;
+  const isExpired = subscriptionEndsAt ? new Date(subscriptionEndsAt) < new Date() : false;
 
   return {
     tier,
-    isPremium: tier === "premium",
+    isPremium: tier === "premium" && !isExpired,
     isLoading: status === "loading",
+    subscriptionEndsAt,
   };
 }

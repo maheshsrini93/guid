@@ -5,6 +5,21 @@ const STATIC_CACHE = `guid-static-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `guid-runtime-${CACHE_VERSION}`;
 const GUIDE_CACHE = `guid-guides-${CACHE_VERSION}`;
 const MAX_CACHED_GUIDES = 20;
+const MAX_STATIC_ENTRIES = 200;
+const MAX_RUNTIME_ENTRIES = 100;
+
+// ── Cache Size Limiter ─────────────────────────────────
+async function trimCache(cacheName, maxEntries) {
+  const cache = await caches.open(cacheName);
+  const keys = await cache.keys();
+  if (keys.length > maxEntries) {
+    // FIFO eviction — delete oldest entries first
+    const excess = keys.length - maxEntries;
+    for (let i = 0; i < excess; i++) {
+      await cache.delete(keys[i]);
+    }
+  }
+}
 
 // Static assets to pre-cache on install
 const PRECACHE_ASSETS = [
@@ -103,6 +118,7 @@ async function networkFirst(request) {
     if (networkResponse.ok) {
       const cache = await caches.open(RUNTIME_CACHE);
       cache.put(request, networkResponse.clone());
+      trimCache(RUNTIME_CACHE, MAX_RUNTIME_ENTRIES);
     }
     return networkResponse;
   } catch {
@@ -129,6 +145,7 @@ async function cacheFirst(request) {
     if (networkResponse.ok) {
       const cache = await caches.open(STATIC_CACHE);
       cache.put(request, networkResponse.clone());
+      trimCache(STATIC_CACHE, MAX_STATIC_ENTRIES);
     }
     return networkResponse;
   } catch {

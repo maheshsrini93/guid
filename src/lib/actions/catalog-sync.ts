@@ -64,6 +64,7 @@ export async function manualProductScrape(articleNumber: string) {
   }
 
   // Product doesn't exist — queue for scraping
+  // TODO: P5.1.4 — use adapter registry to get retailer-specific URL
   const ikeaUrl = `https://www.ikea.com/us/en/p/-${cleaned}/`;
 
   // Check if already queued
