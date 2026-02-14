@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAMID.how.guid.app",
+        "paths": ["/products/*", "/chat", "/pricing"]
+      }
+    ]
+  }
+}

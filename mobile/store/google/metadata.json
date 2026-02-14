@@ -1,0 +1,70 @@
+{
+  "googlePlayConsole": {
+    "appName": "Guid – Product Guides",
+    "shortDescription": "Step-by-step assembly guides, AI troubleshooting, and barcode scanning for any product.",
+    "category": "Tools",
+    "contentRating": "Everyone",
+    "pricing": "Free",
+    "containsAds": true,
+    "inAppPurchases": true
+  },
+  "fullDescription": {
+    "en-US": "Guid provides clear, step-by-step assembly instructions, setup guides, and troubleshooting help for products from IKEA, Wayfair, Home Depot, Amazon, Target, and more.\n\nFEATURES\n\n★ ASSEMBLY GUIDES — Swipe through illustrated step-by-step instructions with pinch-to-zoom on every diagram. Track your progress and pick up where you left off.\n\n★ AI TROUBLESHOOTING — Get instant help from our AI assistant. Describe your problem in plain English or snap a photo of the issue for visual diagnosis.\n\n★ BARCODE SCANNER — Scan product barcodes or QR codes to instantly find the right guide. Works with EAN-13, UPC-A, Code128, and more.\n\n★ OCR LABEL READER — Photograph product labels and article numbers. Our OCR technology extracts text automatically to find your product.\n\n★ MULTI-RETAILER PRICE COMPARISON — See prices across multiple retailers and find the best deal with affiliate-tagged links.\n\n★ OFFLINE GUIDES (Premium) — Download guides for use without internet. Perfect for assembly in areas with poor connectivity.\n\n★ DARK MODE — Full dark mode support following your system preference for comfortable reading in any lighting.\n\n★ PUSH NOTIFICATIONS — Get notified about new guides, maintenance reminders, and AI chat responses.\n\nPREMIUM SUBSCRIPTION\n\nUpgrade to Guid Premium for $9.99/month or $99.99/year:\n• Unlimited AI chat sessions\n• Offline guide downloads\n• Priority AI processing\n• Ad-free experience\n• Photo diagnosis\n\nSubscription automatically renews. Cancel anytime from Google Play Store > Subscriptions.\n\nPrivacy Policy: https://guid.how/privacy\nTerms of Service: https://guid.how/terms"
+  },
+  "screenshots": {
+    "phone": {
+      "required": true,
+      "minResolution": "320x320",
+      "maxResolution": "3840x3840",
+      "count": "4-8",
+      "descriptions": [
+        "Home screen with popular guides and search",
+        "Product detail with image gallery and specs",
+        "Step-by-step guide viewer with pinch-to-zoom",
+        "AI troubleshooting chat with photo diagnosis",
+        "Barcode scanner identifying a product",
+        "Profile with saved products and offline guides"
+      ]
+    },
+    "tablet_7": {
+      "required": false,
+      "descriptions": "Same as phone, tablet layout"
+    },
+    "tablet_10": {
+      "required": false,
+      "descriptions": "Same as phone, tablet layout"
+    }
+  },
+  "storeListingExperiments": {
+    "shortDescriptionVariants": [
+      "Assembly guides + AI help for IKEA, Wayfair, and more. Scan barcodes to find guides instantly.",
+      "Build anything with confidence. Step-by-step guides, AI troubleshooting, and barcode scanning."
+    ]
+  },
+  "contentRatingQuestionnaire": {
+    "violence": "none",
+    "sexualContent": "none",
+    "language": "none",
+    "controlledSubstances": "none",
+    "userInteraction": "users can share content, unrestricted internet access",
+    "personalInfoCollection": "email address, device identifiers for push notifications",
+    "adsContain": "none (first-party ads only)"
+  },
+  "dataPrivacy": {
+    "dataCollected": [
+      { "type": "Email address", "purpose": "Account management", "required": true },
+      { "type": "Device identifiers", "purpose": "Push notifications", "required": false },
+      { "type": "App interactions", "purpose": "Analytics and search improvement", "required": false }
+    ],
+    "dataShared": false,
+    "dataEncrypted": true,
+    "dataDeleteRequest": "Contact support@guid.how"
+  },
+  "buildNotes": {
+    "targetSdkVersion": 35,
+    "minSdkVersion": 24,
+    "signingKey": "Upload key (via EAS Build, Google App Signing managed)",
+    "appBundle": true,
+    "64bitRequired": true
+  }
+}

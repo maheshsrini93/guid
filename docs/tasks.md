@@ -394,47 +394,47 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P6.1.1 | todo | Initialize Expo project | Create React Native app with Expo, TypeScript, and Expo Router | — | P6.1.2, P6.1.3, P6.1.4, P6.1.5, P6.2.1, P6.2.2, P6.2.3, P6.2.4, P6.4.2, P6.5.4 |
-| P6.1.2 | todo | Set up design system | Port Guid amber/technical design tokens (colors, typography, spacing) to React Native StyleSheet | P6.1.1 | P6.3.1, P6.3.2, P6.3.3 |
-| P6.1.3 | todo | Implement auth flow | JWT token storage via Expo SecureStore, login/register screens, shared auth with web backend | P6.1.1 | P6.3.5 |
-| P6.1.4 | todo | Build navigation structure | Tab navigator (Home, Search, Chat, Profile) + stack navigators for detail screens | P6.1.1 | P6.3.1 |
-| P6.1.5 | todo | Connect to existing API | Configure API client to call the same Next.js API routes as the web app | P6.1.1 | P6.3.1, P6.4.3 |
+| P6.1.1 | done | Initialize Expo project | Create React Native app with Expo, TypeScript, and Expo Router | — | P6.1.2, P6.1.3, P6.1.4, P6.1.5, P6.2.1, P6.2.2, P6.2.3, P6.2.4, P6.4.2, P6.5.4 |
+| P6.1.2 | done | Set up design system | Port Guid amber/technical design tokens (colors, typography, spacing) to React Native StyleSheet | P6.1.1 | P6.3.1, P6.3.2, P6.3.3 |
+| P6.1.3 | done | Implement auth flow | JWT token storage via Expo SecureStore, login/register screens, shared auth with web backend | P6.1.1 | P6.3.5 |
+| P6.1.4 | done | Build navigation structure | Tab navigator (Home, Search, Chat, Profile) + stack navigators for detail screens | P6.1.1 | P6.3.1 |
+| P6.1.5 | done | Connect to existing API | Configure API client to call the same Next.js API routes as the web app | P6.1.1 | P6.3.1, P6.4.3 |
 
 ### 6.2 Native Camera Features
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P6.2.1 | todo | Barcode/QR scanner | Native camera integration for scanning product barcodes and QR codes from box labels | P6.1.1 | P6.3.1 |
-| P6.2.2 | todo | Photo capture for OCR | Photograph product name/article number from labels -> OCR extraction -> product search | P6.1.1 | P6.3.1 |
-| P6.2.3 | todo | Photo capture for troubleshooting | In-chat photo capture -> send directly to AI assistant for visual diagnosis | P6.1.1 | P6.3.4 |
-| P6.2.4 | todo | Product recognition (future) | Photograph the assembled product itself -> AI identifies the product | P6.1.1 | — |
+| P6.2.1 | done | Barcode/QR scanner | Native camera integration for scanning product barcodes and QR codes from box labels | P6.1.1 | P6.3.1 |
+| P6.2.2 | done | Photo capture for OCR | Photograph product name/article number from labels -> OCR extraction -> product search | P6.1.1 | P6.3.1 |
+| P6.2.3 | done | Photo capture for troubleshooting | In-chat photo capture -> send directly to AI assistant for visual diagnosis | P6.1.1 | P6.3.4 |
+| P6.2.4 | done | Product recognition (future) | Photograph the assembled product itself -> AI identifies the product | P6.1.1 | — |
 
 ### 6.3 Core App Screens
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P6.3.1 | todo | Home screen | Search bar, popular guides, recent products, proactive chat prompt | P6.1.2, P6.1.4, P6.1.5 | P6.5.1, P6.5.2 |
-| P6.3.2 | todo | Product detail screen | Native version of product page with image gallery, guide launcher, chat button | P6.1.2 | — |
-| P6.3.3 | todo | Guide viewer screen | Full-screen step-by-step viewer optimized for mobile: swipe navigation, pinch-to-zoom illustrations | P6.1.2 | P6.4.1 |
-| P6.3.4 | todo | Chat screen | Native chat UI with guided diagnostic intake, image upload from camera roll or live capture | P6.2.3 | — |
-| P6.3.5 | todo | Profile screen | Saved products, completed guides, chat history, subscription management | P6.1.3 | — |
+| P6.3.1 | done | Home screen | Search bar, popular guides, recent products, proactive chat prompt | P6.1.2, P6.1.4, P6.1.5 | P6.5.1, P6.5.2 |
+| P6.3.2 | done | Product detail screen | Native version of product page with image gallery, guide launcher, chat button | P6.1.2 | — |
+| P6.3.3 | done | Guide viewer screen | Full-screen step-by-step viewer optimized for mobile: swipe navigation, pinch-to-zoom illustrations | P6.1.2 | P6.4.1 |
+| P6.3.4 | done | Chat screen | Native chat UI with guided diagnostic intake, image upload from camera roll or live capture | P6.2.3 | — |
+| P6.3.5 | done | Profile screen | Saved products, completed guides, chat history, subscription management | P6.1.3 | — |
 
 ### 6.4 Offline & Push
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P6.4.1 | todo | Offline guide caching | Download guide steps and illustrations for offline use (premium feature) | P6.3.3 | — |
-| P6.4.2 | todo | Push notification setup | Expo Notifications for maintenance reminders, new guide alerts, chat responses | P6.1.1 | — |
-| P6.4.3 | todo | Sync engine | Queue offline actions (guide progress, saved products) and sync when back online | P6.1.5 | — |
+| P6.4.1 | done | Offline guide caching | Download guide steps and illustrations for offline use (premium feature) | P6.3.3 | — |
+| P6.4.2 | done | Push notification setup | Expo Notifications for maintenance reminders, new guide alerts, chat responses | P6.1.1 | — |
+| P6.4.3 | done | Sync engine | Queue offline actions (guide progress, saved products) and sync when back online | P6.1.5 | — |
 
 ### 6.5 App Store Deployment
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P6.5.1 | todo | Apple App Store submission | App review, screenshots, description, keywords (ASO) | P6.3.1 | — |
-| P6.5.2 | todo | Google Play Store submission | Same preparation for Android | P6.3.1 | — |
-| P6.5.3 | todo | In-App Purchase integration | Apple/Google billing for premium subscription (required by store policies) | P4.1.5 | — |
-| P6.5.4 | todo | Deep linking | `guid.how/products/[id]` opens in app if installed, falls back to web | P6.1.1 | — |
+| P6.5.1 | done | Apple App Store submission | App review, screenshots, description, keywords (ASO) | P6.3.1 | — |
+| P6.5.2 | done | Google Play Store submission | Same preparation for Android | P6.3.1 | — |
+| P6.5.3 | done | In-App Purchase integration | Apple/Google billing for premium subscription (required by store policies) | P4.1.5 | — |
+| P6.5.4 | done | Deep linking | `guid.how/products/[id]` opens in app if installed, falls back to web | P6.1.1 | — |
 
 ---
 
