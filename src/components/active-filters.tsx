@@ -37,6 +37,9 @@ export function ActiveFilters() {
   if (searchParams.get("new") === "true") {
     filters.push({ key: "new", label: "New products" });
   }
+  if (searchParams.has("retailer")) {
+    filters.push({ key: "retailer", label: `Retailer: ${searchParams.get("retailer")}` });
+  }
 
   if (filters.length === 0) return null;
 

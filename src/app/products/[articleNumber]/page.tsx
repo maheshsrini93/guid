@@ -20,6 +20,8 @@ import { AlertTriangle, PenLine, Users } from "lucide-react";
 import { AdSlot } from "@/components/ad-slot";
 import { RequestGuideButton } from "@/components/request-guide-button";
 import { isPremiumUser } from "@/lib/subscription";
+import { CrossRetailerSection, type CrossRetailerMatch } from "@/components/cross-retailer-section";
+import { PriceComparisonSection } from "@/components/price-comparison-section";
 
 // Dynamic imports for heavy client components — code-split into separate chunks
 const ProductChatWidget = dynamic(
@@ -178,6 +180,18 @@ export default async function ProductPage({
       package_weight: true,
       guide_status: true,
       discontinued: true,
+      matchGroupId: true,
+      source_url: true,
+      source_retailer: true,
+      retailer: {
+        select: {
+          name: true,
+          slug: true,
+          logoUrl: true,
+          baseUrl: true,
+          affiliateConfig: true,
+        },
+      },
       images: { orderBy: { sort_order: "asc" }, select: { id: true, url: true, alt_text: true, sort_order: true } },
       documents: { select: { id: true, document_type: true, source_url: true } },
       assemblyGuide: {
@@ -212,6 +226,40 @@ export default async function ProductPage({
   });
 
   if (!product) return notFound();
+
+  // Cross-retailer matches: query products sharing the same matchGroupId
+  const crossRetailerMatches: CrossRetailerMatch[] = product.matchGroupId
+    ? await prisma.product.findMany({
+        where: {
+          matchGroupId: product.matchGroupId,
+          article_number: { not: product.article_number },
+        },
+        select: {
+          id: true,
+          article_number: true,
+          product_name: true,
+          price_current: true,
+          source_url: true,
+          source_retailer: true,
+          matchConfidence: true,
+          retailer: {
+            select: {
+              name: true,
+              slug: true,
+              logoUrl: true,
+              baseUrl: true,
+              affiliateConfig: true,
+            },
+          },
+          images: {
+            take: 1,
+            orderBy: { sort_order: "asc" },
+            select: { url: true },
+          },
+        },
+        orderBy: { price_current: "asc" },
+      })
+    : [];
 
   // Guide-first: render guide viewer when published
   const hasPublishedGuide =
@@ -313,14 +361,24 @@ export default async function ProductPage({
           articleNumber={product.article_number}
           productName={product.product_name}
           sidebarExtra={
-            <ProductInfoCard
-              articleNumber={product.article_number}
-              productName={product.product_name || "Unknown Product"}
-              imageUrl={product.images[0]?.url}
-              price={product.price_current}
-              dimension={dimensionEntry?.value}
-              dimensionLabel={dimensionEntry?.label}
-            />
+            <>
+              <ProductInfoCard
+                articleNumber={product.article_number}
+                productName={product.product_name || "Unknown Product"}
+                imageUrl={product.images[0]?.url}
+                price={product.price_current}
+                dimension={dimensionEntry?.value}
+                dimensionLabel={dimensionEntry?.label}
+              />
+              {crossRetailerMatches.length > 0 && (
+                <div className="mt-3">
+                  <CrossRetailerSection
+                    currentArticleNumber={product.article_number}
+                    matches={crossRetailerMatches}
+                  />
+                </div>
+              )}
+            </>
           }
         />
 
@@ -523,6 +581,23 @@ export default async function ProductPage({
               </Badge>
             )}
           </div>
+
+          {/* Price comparison across retailers (P5.5.6) */}
+          {crossRetailerMatches.length > 0 && (
+            <>
+              <Separator className="my-6" />
+              <PriceComparisonSection
+                currentProduct={{
+                  article_number: product.article_number,
+                  price_current: product.price_current,
+                  source_retailer: product.source_retailer,
+                  source_url: product.source_url,
+                  retailer: product.retailer,
+                }}
+                matches={crossRetailerMatches}
+              />
+            </>
+          )}
 
           {product.description && (
             <>

@@ -1,17 +1,26 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
-interface ProductFiltersProps {
-  categories: string[];
+export interface RetailerFilterOption {
+  name: string;
+  slug: string;
+  logoUrl: string | null;
+  _count: number;
 }
 
-export function ProductFilters({ categories }: ProductFiltersProps) {
+interface ProductFiltersProps {
+  categories: string[];
+  retailers?: RetailerFilterOption[];
+}
+
+export function ProductFilters({ categories, retailers = [] }: ProductFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -37,7 +46,8 @@ export function ProductFilters({ categories }: ProductFiltersProps) {
     searchParams.has("minRating") ||
     searchParams.has("assembly") ||
     searchParams.has("hasAssemblyDocs") ||
-    searchParams.has("new");
+    searchParams.has("new") ||
+    searchParams.has("retailer");
 
   return (
     <div className="space-y-6">
@@ -70,6 +80,51 @@ export function ProductFilters({ categories }: ProductFiltersProps) {
           </Label>
         </div>
       </div>
+
+      {/* Retailer */}
+      {retailers.length > 0 && (
+        <>
+          <Separator />
+          <div>
+            <h4 className="mb-2 text-sm font-medium">Retailer</h4>
+            <div className="flex flex-wrap gap-2">
+              {retailers.map((r) => {
+                const isActive = searchParams.get("retailer") === r.slug;
+                return (
+                  <button
+                    key={r.slug}
+                    type="button"
+                    onClick={() =>
+                      updateParam("retailer", isActive ? null : r.slug)
+                    }
+                    className={`inline-flex min-h-[44px] cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+                      isActive
+                        ? "border-primary bg-primary/10 text-foreground dark:bg-primary/20"
+                        : "border-border bg-muted text-muted-foreground hover:border-primary/30 hover:bg-accent/50"
+                    }`}
+                    aria-pressed={isActive}
+                  >
+                    {r.logoUrl ? (
+                      <Image
+                        src={r.logoUrl}
+                        alt=""
+                        width={48}
+                        height={16}
+                        className="h-4 w-auto object-contain"
+                        aria-hidden="true"
+                      />
+                    ) : null}
+                    <span>{r.name}</span>
+                    <span className="text-xs text-muted-foreground">
+                      ({r._count})
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
 
       <Separator />
 

@@ -1,10 +1,18 @@
 import { prisma } from "@/lib/prisma";
 import type { RetailerAdapter } from "./types";
 import { IkeaAdapter } from "./ikea-adapter";
+import { WayfairAdapter } from "./wayfair-adapter";
+import { HomeDepotAdapter } from "./homedepot-adapter";
+import { AmazonAdapter } from "./amazon-adapter";
+import { TargetAdapter } from "./target-adapter";
 
 // Internal registry mapping slugs to adapter constructors
 const adapterMap: Record<string, () => RetailerAdapter> = {
   ikea: () => new IkeaAdapter(),
+  wayfair: () => new WayfairAdapter(),
+  homedepot: () => new HomeDepotAdapter(),
+  amazon: () => new AmazonAdapter(),
+  target: () => new TargetAdapter(),
 };
 
 /** Get adapter for a specific retailer slug. Throws if unknown. */

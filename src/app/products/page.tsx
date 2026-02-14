@@ -20,6 +20,7 @@ import {
 } from "@/lib/product-filters";
 import { isValidImageUrl } from "@/lib/image-utils";
 import { AdSlot } from "@/components/ad-slot";
+import type { RetailerFilterOption } from "@/components/product-filters";
 
 export const metadata: Metadata = {
   title: "Browse Products",
@@ -59,6 +60,28 @@ async function getTopCategories(): Promise<string[]> {
     .filter((c): c is string => c !== null);
 }
 
+async function getActiveRetailers(): Promise<RetailerFilterOption[]> {
+  const retailers = await prisma.retailer.findMany({
+    where: { isActive: true },
+    select: {
+      name: true,
+      slug: true,
+      logoUrl: true,
+      _count: { select: { products: true } },
+    },
+    orderBy: { name: "asc" },
+  });
+
+  return retailers
+    .filter((r) => r._count.products > 0)
+    .map((r) => ({
+      name: r.name,
+      slug: r.slug,
+      logoUrl: r.logoUrl,
+      _count: r._count.products,
+    }));
+}
+
 export default async function ProductsPage({
   searchParams,
 }: {
@@ -70,7 +93,7 @@ export default async function ProductsPage({
   const where = buildProductWhere(params);
   const orderBy = getSortOrderBy(params.sort);
 
-  const [products, total, categories] = await Promise.all([
+  const [products, total, categories, retailers] = await Promise.all([
     prisma.product.findMany({
       where,
       select: {
@@ -91,6 +114,7 @@ export default async function ProductsPage({
     }),
     prisma.product.count({ where }),
     getTopCategories(),
+    getActiveRetailers(),
   ]);
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
@@ -128,7 +152,7 @@ export default async function ProductsPage({
             <MobileSortSheet />
           </Suspense>
           <Suspense>
-            <MobileFilterSheet categories={categories} />
+            <MobileFilterSheet categories={categories} retailers={retailers} />
           </Suspense>
         </div>
       </div>
@@ -142,7 +166,7 @@ export default async function ProductsPage({
         {/* Desktop sidebar */}
         <aside className="hidden w-56 shrink-0 lg:block">
           <Suspense>
-            <ProductFilters categories={categories} />
+            <ProductFilters categories={categories} retailers={retailers} />
           </Suspense>
         </aside>
 

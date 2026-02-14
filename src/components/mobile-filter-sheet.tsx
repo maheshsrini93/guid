@@ -9,13 +9,14 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { ProductFilters } from "@/components/product-filters";
+import { ProductFilters, type RetailerFilterOption } from "@/components/product-filters";
 
 interface MobileFilterSheetProps {
   categories: string[];
+  retailers?: RetailerFilterOption[];
 }
 
-export function MobileFilterSheet({ categories }: MobileFilterSheetProps) {
+export function MobileFilterSheet({ categories, retailers }: MobileFilterSheetProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -30,7 +31,7 @@ export function MobileFilterSheet({ categories }: MobileFilterSheetProps) {
           <SheetTitle>Filters</SheetTitle>
         </SheetHeader>
         <div className="mt-4">
-          <ProductFilters categories={categories} />
+          <ProductFilters categories={categories} retailers={retailers} />
         </div>
       </SheetContent>
     </Sheet>

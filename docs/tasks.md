@@ -335,56 +335,56 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 | P5.1.2 | done | Refactor IKEA scraper into adapter | Extract the existing IKEA scraper logic into an `IkeaAdapter` class that implements `RetailerAdapter`. Validate that monthly sync still works with the adapter pattern. | P5.1.1 | P5.1.4, P5.1.9 |
 | P5.1.3 | done | Add Retailer model | id, name, slug, logoUrl, baseUrl, adapterType, isActive, lastSyncAt, nextSyncAt, affiliateConfig (JSON), rateLimitConfig (JSON), timestamps. Run migration. | — | P5.1.4, P5.5.2, P5.5.5 |
 | P5.1.4 | done | Build adapter registry | Central registry that maps retailer slugs to adapter implementations. Used by monthly sync to iterate all active retailers. | P5.1.2, P5.1.3 | P5.1.5, P5.1.6, P5.1.7, P5.1.8, P5.4.1, P5.5.1, P5.5.3, P5.5.4 |
-| P5.1.5 | todo | Build Wayfair adapter | Implement `RetailerAdapter` for Wayfair. Handle: product APIs, variant explosion (normalize to single product per unique assembly), brand extraction from multi-seller listings. | P5.1.1, P5.1.4 | P5.1.9, P5.6.2 |
-| P5.1.6 | todo | Build Home Depot adapter | Implement `RetailerAdapter` for Home Depot. Handle: multi-tab product pages (main -> specifications -> documents), nested spec extraction via Playwright. | P5.1.1, P5.1.4 | P5.1.9 |
-| P5.1.7 | todo | Build Amazon adapter | Implement `RetailerAdapter` using Amazon Product Advertising API (PA-API 5.0) instead of scraping. Handle: ASIN extraction, rate limits (1 req/sec), limited assembly PDF availability. | P5.1.1, P5.1.4 | P5.1.9, P5.6.1 |
-| P5.1.8 | todo | Build Target adapter | Implement `RetailerAdapter` for Target. Handle: SPA rendering via Playwright, DPCI extraction, embedded JSON-LD data extraction. | P5.1.1, P5.1.4 | P5.1.9 |
-| P5.1.9 | todo | Adapter validation pipeline | For each new adapter: scrape 100 test products -> verify data quality (images load, prices parsed, categories mapped) -> full catalog scrape -> integrate into monthly sync. | P5.1.2, P5.1.5, P5.1.6, P5.1.7, P5.1.8 | — |
+| P5.1.5 | done | Build Wayfair adapter | Implement `RetailerAdapter` for Wayfair. Handle: product APIs, variant explosion (normalize to single product per unique assembly), brand extraction from multi-seller listings. | P5.1.1, P5.1.4 | P5.1.9, P5.6.2 |
+| P5.1.6 | done | Build Home Depot adapter | Implement `RetailerAdapter` for Home Depot. Handle: multi-tab product pages (main -> specifications -> documents), nested spec extraction via Playwright. | P5.1.1, P5.1.4 | P5.1.9 |
+| P5.1.7 | done | Build Amazon adapter | Implement `RetailerAdapter` using Amazon Product Advertising API (PA-API 5.0) instead of scraping. Handle: ASIN extraction, rate limits (1 req/sec), limited assembly PDF availability. | P5.1.1, P5.1.4 | P5.1.9, P5.6.1 |
+| P5.1.8 | done | Build Target adapter | Implement `RetailerAdapter` for Target. Handle: SPA rendering via Playwright, DPCI extraction, embedded JSON-LD data extraction. | P5.1.1, P5.1.4 | P5.1.9 |
+| P5.1.9 | done | Adapter validation pipeline | For each new adapter: scrape 100 test products -> verify data quality (images load, prices parsed, categories mapped) -> full catalog scrape -> integrate into monthly sync. | P5.1.2, P5.1.5, P5.1.6, P5.1.7, P5.1.8 | — |
 
 ### 5.2 Product Deduplication & Matching
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
 | P5.2.1 | done | Add cross-retailer fields to Product | `manufacturerSku` (String?), `upcEan` (String?), `matchGroupId` (String?), `matchConfidence` (Float?). Run migration. | — | P5.2.2, P5.2.3 |
-| P5.2.2 | todo | Build exact matching | Match products across retailers by manufacturer SKU, UPC/EAN barcode, or article number. Highest confidence level. | P5.2.1 | P5.2.4 |
-| P5.2.3 | todo | Build fuzzy matching | Match by product name + brand + key dimensions similarity scoring. Threshold: >= 0.85 similarity score. Flag low-confidence matches (< 0.7) for admin review. | P5.2.1 | P5.2.4 |
-| P5.2.4 | todo | Build admin match management | Studio page: view auto-detected matches, confirm/reject fuzzy matches, manually link products across retailers. | P5.2.2, P5.2.3 | P5.2.5 |
-| P5.2.5 | todo | Build unified product page | When a product is matched across retailers: single product page with aggregated images, "Available at" section with each retailer's price and buy link, shared assembly guide. | P5.2.4 | P5.5.6 |
+| P5.2.2 | done | Build exact matching | Match products across retailers by manufacturer SKU, UPC/EAN barcode, or article number. Highest confidence level. | P5.2.1 | P5.2.4 |
+| P5.2.3 | done | Build fuzzy matching | Match by product name + brand + key dimensions similarity scoring. Threshold: >= 0.85 similarity score. Flag low-confidence matches (< 0.7) for admin review. | P5.2.1 | P5.2.4 |
+| P5.2.4 | done | Build admin match management | Studio page: view auto-detected matches, confirm/reject fuzzy matches, manually link products across retailers. | P5.2.2, P5.2.3 | P5.2.5 |
+| P5.2.5 | done | Build unified product page | When a product is matched across retailers: single product page with aggregated images, "Available at" section with each retailer's price and buy link, shared assembly guide. | P5.2.4 | P5.5.6 |
 
 ### 5.3 Data Normalization
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
 | P5.3.1 | done | Build normalization layer | Each adapter's `scrapeProduct()` returns raw retailer data -> normalization layer maps to Prisma Product fields using retailer-specific rules (field name mapping, currency conversion, category mapping). | P5.1.1 | P5.3.2, P5.3.3 |
-| P5.3.2 | todo | Currency normalization | All prices stored in USD. Convert at scrape time using cached exchange rate (refresh daily). Store original price and currency for reference. | P5.3.1 | — |
-| P5.3.3 | todo | Category mapping | Map each retailer's category taxonomy to Guid's unified categories. Maintain a mapping table per retailer, editable in Studio. | P5.3.1 | — |
+| P5.3.2 | done | Currency normalization | All prices stored in USD. Convert at scrape time using cached exchange rate (refresh daily). Store original price and currency for reference. | P5.3.1 | — |
+| P5.3.3 | done | Category mapping | Map each retailer's category taxonomy to Guid's unified categories. Maintain a mapping table per retailer, editable in Studio. | P5.3.1 | — |
 
 ### 5.4 URL Detection & Routing
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P5.4.1 | todo | Build URL detection engine | When user pastes a URL in search: detect retailer from domain, extract product ID using retailer-specific regex patterns (IKEA article number, Amazon ASIN, Wayfair SKU, Home Depot product ID, Target DPCI). | P5.1.4 | P5.4.2 |
-| P5.4.2 | todo | URL-to-product routing | Detected retailer + product ID -> look up in DB -> if found, redirect to Guid product page -> if not found, offer to queue a scrape. | P5.4.1 | — |
+| P5.4.1 | done | Build URL detection engine | When user pastes a URL in search: detect retailer from domain, extract product ID using retailer-specific regex patterns (IKEA article number, Amazon ASIN, Wayfair SKU, Home Depot product ID, Target DPCI). | P5.1.4 | P5.4.2 |
+| P5.4.2 | done | URL-to-product routing | Detected retailer + product ID -> look up in DB -> if found, redirect to Guid product page -> if not found, offer to queue a scrape. | P5.4.1 | — |
 
 ### 5.5 Platform Changes
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P5.5.1 | todo | Add retailer filter | Filter products by retailer on `/products`. Show retailer logo pills for quick filtering. | P5.1.4 | — |
+| P5.5.1 | done | Add retailer filter | Filter products by retailer on `/products`. Show retailer logo pills for quick filtering. | P5.1.4 | — |
 | P5.5.2 | done | Add retailer branding | Small retailer logo badge on product cards and detail pages. Non-intrusive, builds user trust. | P5.1.3 | — |
 | P5.5.3 | done | Extend image config | Add `remotePatterns` in `next.config.ts` for each new retailer's image CDN domains (Wayfair, Amazon, Home Depot, Target). | P5.1.4 | — |
-| P5.5.4 | todo | Build retailer landing pages | `/retailers/wayfair`, `/retailers/amazon`, etc. Browse all products from a specific retailer. SEO value for "[Retailer] assembly guides" searches. | P5.1.4 | — |
-| P5.5.5 | todo | Build retailer management in Studio | Admin page: manage retailer adapters, enable/disable, configure scrape frequency, view health metrics per retailer, trigger manual sync. | P5.1.3 | — |
-| P5.5.6 | todo | Add price comparison section | On unified product pages with multiple retailers: side-by-side price comparison with direct buy links. | P5.2.5 | — |
+| P5.5.4 | done | Build retailer landing pages | `/retailers/wayfair`, `/retailers/amazon`, etc. Browse all products from a specific retailer. SEO value for "[Retailer] assembly guides" searches. | P5.1.4 | — |
+| P5.5.5 | done | Build retailer management in Studio | Admin page: manage retailer adapters, enable/disable, configure scrape frequency, view health metrics per retailer, trigger manual sync. | P5.1.3 | — |
+| P5.5.6 | done | Add price comparison section | On unified product pages with multiple retailers: side-by-side price comparison with direct buy links. | P5.2.5 | — |
 
 ### 5.6 Affiliate Revenue Setup
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P5.6.1 | todo | Integrate Amazon Associates | Add affiliate tracking parameters to Amazon buy links. Track clicks and conversions. | P5.1.7 | P5.6.3, P5.6.4 |
-| P5.6.2 | todo | Integrate Wayfair affiliate | Same for Wayfair affiliate program. | P5.1.5 | P5.6.3, P5.6.4 |
-| P5.6.3 | todo | Add affiliate disclosure | FTC-compliant disclosure on product pages: "As an Amazon Associate, Guid earns from qualifying purchases." | P5.6.1, P5.6.2 | — |
-| P5.6.4 | todo | Build affiliate analytics | Track clicks, conversions, and revenue per retailer, per product, per user source. Dashboard in Studio. | P5.6.1, P5.6.2 | — |
+| P5.6.1 | done | Integrate Amazon Associates | Add affiliate tracking parameters to Amazon buy links. Track clicks and conversions. | P5.1.7 | P5.6.3, P5.6.4 |
+| P5.6.2 | done | Integrate Wayfair affiliate | Same for Wayfair affiliate program. | P5.1.5 | P5.6.3, P5.6.4 |
+| P5.6.3 | done | Add affiliate disclosure | FTC-compliant disclosure on product pages: "As an Amazon Associate, Guid earns from qualifying purchases." | P5.6.1, P5.6.2 | — |
+| P5.6.4 | done | Build affiliate analytics | Track clicks, conversions, and revenue per retailer, per product, per user source. Dashboard in Studio. | P5.6.1, P5.6.2 | — |
 
 ---
 

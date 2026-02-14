@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
-import { Search, Clock, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Search, Clock, ExternalLink, Loader2, Plus } from "lucide-react";
 import {
   trackSearchQuery,
   trackSearchAutocomplete,
@@ -26,7 +27,17 @@ interface SearchResponse {
   results: SearchResult[];
   detectedType?: "article_number" | "url" | "text";
   extractedArticleNumber?: string;
+  detectedRetailer?: string;
+  notFound?: boolean;
 }
+
+const RETAILER_DISPLAY_NAMES: Record<string, string> = {
+  ikea: "IKEA",
+  amazon: "Amazon",
+  wayfair: "Wayfair",
+  homedepot: "Home Depot",
+  target: "Target",
+};
 
 const RECENT_SEARCHES_KEY = "guid-recent-searches";
 const MAX_RECENT = 5;
@@ -62,9 +73,13 @@ export function SearchInput() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [detectedType, setDetectedType] = useState<string | null>(null);
   const [extractedArticle, setExtractedArticle] = useState<string | null>(null);
+  const [detectedRetailer, setDetectedRetailer] = useState<string | null>(null);
+  const [urlNotFound, setUrlNotFound] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [queuePending, startQueueTransition] = useTransition();
+  const [queueMessage, setQueueMessage] = useState<string | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -94,6 +109,9 @@ export function SearchInput() {
       setResults([]);
       setDetectedType(null);
       setExtractedArticle(null);
+      setDetectedRetailer(null);
+      setUrlNotFound(false);
+      setQueueMessage(null);
       return;
     }
 
@@ -113,6 +131,9 @@ export function SearchInput() {
           setResults(data.results);
           setDetectedType(data.detectedType ?? null);
           setExtractedArticle(data.extractedArticleNumber ?? null);
+          setDetectedRetailer(data.detectedRetailer ?? null);
+          setUrlNotFound(data.notFound ?? false);
+          setQueueMessage(null);
           setShowDropdown(true);
         }
       } catch {
@@ -125,8 +146,7 @@ export function SearchInput() {
     return () => clearTimeout(timeout);
   }, [value]);
 
-  // Handle barcode scan result — only track discovery method, not query
-  // (the actual search happens server-side after redirect)
+  // Handle barcode scan result
   const handleBarcodeScan = useCallback(
     (code: string) => {
       setValue(code);
@@ -141,7 +161,7 @@ export function SearchInput() {
     [router, searchParams]
   );
 
-  // Handle OCR result — only track discovery method, not query
+  // Handle OCR result
   const handleOcrResult = useCallback(
     (text: string) => {
       setValue(text);
@@ -197,6 +217,24 @@ export function SearchInput() {
     [router, value, detectedType]
   );
 
+  // Queue scrape for unrecognized URL product
+  const handleQueueScrape = useCallback(() => {
+    if (!extractedArticle) return;
+    startQueueTransition(async () => {
+      try {
+        const { manualProductScrape } = await import("@/lib/actions/catalog-sync");
+        const result = await manualProductScrape(extractedArticle);
+        if (result.success) {
+          setQueueMessage(result.message ?? "Product queued for import.");
+        } else {
+          setQueueMessage(result.error ?? "Failed to queue product.");
+        }
+      } catch {
+        setQueueMessage("Failed to queue product. Please try again.");
+      }
+    });
+  }, [extractedArticle]);
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === "Enter") {
@@ -214,11 +252,16 @@ export function SearchInput() {
     [value, detectedType, results, handleSearch, handleSelectProduct]
   );
 
+  const retailerName = detectedRetailer
+    ? RETAILER_DISPLAY_NAMES[detectedRetailer] ?? detectedRetailer
+    : null;
+
   const showRecent =
     showDropdown && !value && recentSearches.length > 0;
   const showResults = showDropdown && value.length >= 2 && results.length > 0;
+  const showUrlNotFound = showDropdown && detectedType === "url" && urlNotFound;
   const showNoResults =
-    showDropdown && value.length >= 2 && results.length === 0 && !loading;
+    showDropdown && value.length >= 2 && results.length === 0 && !loading && !urlNotFound;
 
   return (
     <div ref={wrapperRef} className="relative w-full sm:w-96">
@@ -243,19 +286,56 @@ export function SearchInput() {
       </div>
 
       {/* Dropdown */}
-      {(showRecent || showResults || showNoResults) && (
+      {(showRecent || showResults || showNoResults || showUrlNotFound) && (
         <div className="absolute top-full left-0 right-0 z-50 mt-1 rounded-lg border bg-popover shadow-lg overflow-hidden max-h-[70vh] overflow-y-auto">
-          {/* URL detection banner */}
-          {detectedType === "url" && extractedArticle && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-primary/10 text-sm">
+          {/* URL detection banner — product found */}
+          {detectedType === "url" && extractedArticle && !urlNotFound && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-primary/10 dark:bg-primary/15 text-sm">
               <ExternalLink className="h-4 w-4 text-primary" />
-              <span>Detected product link — article {extractedArticle}</span>
+              <span>
+                Detected {retailerName} product — {extractedArticle}
+              </span>
+            </div>
+          )}
+
+          {/* URL detection banner — product NOT found */}
+          {showUrlNotFound && extractedArticle && (
+            <div className="px-3 py-3 space-y-2">
+              <div className="flex items-center gap-2 text-sm">
+                <ExternalLink className="h-4 w-4 text-primary" />
+                <span>
+                  Detected {retailerName} product — {extractedArticle}
+                </span>
+              </div>
+              {queueMessage ? (
+                <p className="text-xs text-muted-foreground">{queueMessage}</p>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <p className="text-xs text-muted-foreground flex-1">
+                    Product not in our catalog yet.
+                  </p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleQueueScrape}
+                    disabled={queuePending}
+                    className="cursor-pointer text-xs h-7"
+                  >
+                    {queuePending ? (
+                      <Loader2 className="h-3 w-3 mr-1 motion-safe:animate-spin" />
+                    ) : (
+                      <Plus className="h-3 w-3 mr-1" />
+                    )}
+                    Queue import
+                  </Button>
+                </div>
+              )}
             </div>
           )}
 
           {/* Article number detection banner */}
           {detectedType === "article_number" && results.length > 0 && (
-            <div className="px-3 py-2 bg-primary/10 text-sm">
+            <div className="px-3 py-2 bg-primary/10 dark:bg-primary/15 text-sm">
               Exact article number match
             </div>
           )}

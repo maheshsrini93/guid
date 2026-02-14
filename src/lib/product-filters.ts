@@ -9,6 +9,7 @@ export interface ProductFilterParams {
   assembly?: string; // "true" | "false"
   hasAssemblyDocs?: string; // "true"
   new?: string; // "true"
+  retailer?: string; // retailer slug
   sort?: string;
   page?: string;
 }
@@ -40,6 +41,12 @@ export function buildProductWhere(
   } else if (params.assembly === "false") {
     conditions.push({
       OR: [{ assembly_required: false }, { assembly_required: null }],
+    });
+  }
+
+  if (params.retailer) {
+    conditions.push({
+      retailer: { slug: params.retailer },
     });
   }
 

@@ -1,11 +1,27 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { rateLimit, RATE_LIMITS, getClientIp } from "@/lib/rate-limit";
+import { detectRetailerUrl } from "@/lib/url-detection";
+
+const PRODUCT_SELECT = {
+  id: true,
+  article_number: true,
+  product_name: true,
+  product_type: true,
+  price_current: true,
+  source_retailer: true,
+  images: { take: 1, orderBy: { sort_order: "asc" as const }, select: { url: true } },
+};
+
+const CACHE_HEADERS = {
+  "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+};
 
 /**
  * GET /api/search?q=<query>
  * Returns top 5 matching products for autocomplete.
- * Supports article number detection (numbers-only -> exact match first).
+ * Supports article number detection, multi-retailer URL detection,
+ * and general text search.
  */
 export async function GET(request: Request) {
   const ip = getClientIp(request);
@@ -28,92 +44,58 @@ export async function GET(request: Request) {
   const isArticleNumber = /^[\d.]+$/.test(q);
 
   if (isArticleNumber) {
-    // Exact article number match first
     const exactMatch = await prisma.product.findFirst({
       where: { article_number: q },
-      select: {
-        id: true,
-        article_number: true,
-        product_name: true,
-        product_type: true,
-        price_current: true,
-        images: { take: 1, orderBy: { sort_order: "asc" }, select: { url: true } },
-      },
+      select: PRODUCT_SELECT,
     });
 
     if (exactMatch) {
       return NextResponse.json(
         {
-          results: [
-            {
-              articleNumber: exactMatch.article_number,
-              name: exactMatch.product_name,
-              type: exactMatch.product_type,
-              price: exactMatch.price_current,
-              imageUrl: exactMatch.images[0]?.url ?? null,
-            },
-          ],
+          results: [formatProduct(exactMatch)],
           detectedType: "article_number",
         },
-        {
-          headers: {
-            "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
-          },
-        }
+        { headers: CACHE_HEADERS }
       );
     }
   }
 
-  // URL paste detection: extract article number from IKEA URL
-  if (q.includes("ikea.com") || q.startsWith("http")) {
-    // IKEA URLs contain article numbers in format: /12345678/ or S12345678 or with dots
-    const urlMatch = q.match(/(\d{3}\.\d{3}\.\d{2})|\/(\d{8})\/?|S(\d{8})/);
-    if (urlMatch) {
-      const extracted = urlMatch[1] || urlMatch[2] || urlMatch[3];
-      // Format as xxx.xxx.xx if it's 8 digits
-      const formatted =
-        extracted && extracted.length === 8
-          ? `${extracted.slice(0, 3)}.${extracted.slice(3, 6)}.${extracted.slice(6)}`
-          : extracted;
+  // Multi-retailer URL detection
+  const detected = detectRetailerUrl(q);
+  if (detected) {
+    // Look up by article_number (each retailer's product ID is stored there)
+    const product = await prisma.product.findFirst({
+      where: {
+        article_number: detected.productId,
+        source_retailer: detected.retailer,
+      },
+      select: PRODUCT_SELECT,
+    });
 
-      if (formatted) {
-        const product = await prisma.product.findFirst({
-          where: { article_number: formatted },
-          select: {
-            id: true,
-            article_number: true,
-            product_name: true,
-            product_type: true,
-            price_current: true,
-            images: { take: 1, orderBy: { sort_order: "asc" }, select: { url: true } },
-          },
-        });
-
-        if (product) {
-          return NextResponse.json(
-            {
-              results: [
-                {
-                  articleNumber: product.article_number,
-                  name: product.product_name,
-                  type: product.product_type,
-                  price: product.price_current,
-                  imageUrl: product.images[0]?.url ?? null,
-                },
-              ],
-              detectedType: "url",
-              extractedArticleNumber: formatted,
-            },
-            {
-              headers: {
-                "Cache-Control":
-                  "public, s-maxage=60, stale-while-revalidate=300",
-              },
-            }
-          );
-        }
-      }
+    if (product) {
+      return NextResponse.json(
+        {
+          results: [formatProduct(product)],
+          detectedType: "url",
+          extractedArticleNumber: detected.productId,
+          detectedRetailer: detected.retailer,
+        },
+        { headers: CACHE_HEADERS }
+      );
     }
+
+    // Product not in DB — return empty results with detection info
+    // so the client can offer to queue a scrape
+    return NextResponse.json(
+      {
+        results: [],
+        detectedType: "url",
+        extractedArticleNumber: detected.productId,
+        detectedRetailer: detected.retailer,
+        notFound: true,
+      },
+      { headers: CACHE_HEADERS }
+    );
   }
 
   // General text search: top 5 matches
@@ -125,33 +107,32 @@ export async function GET(request: Request) {
         { product_type: { contains: q, mode: "insensitive" } },
       ],
     },
-    select: {
-      id: true,
-      article_number: true,
-      product_name: true,
-      product_type: true,
-      price_current: true,
-      images: { take: 1, orderBy: { sort_order: "asc" }, select: { url: true } },
-    },
+    select: PRODUCT_SELECT,
     orderBy: { avg_rating: "desc" },
     take: 5,
   });
 
   return NextResponse.json(
     {
-      results: products.map((p) => ({
-        articleNumber: p.article_number,
-        name: p.product_name,
-        type: p.product_type,
-        price: p.price_current,
-        imageUrl: p.images[0]?.url ?? null,
-      })),
+      results: products.map(formatProduct),
       detectedType: "text",
     },
-    {
-      headers: {
-        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
-      },
-    }
+    { headers: CACHE_HEADERS }
   );
+}
+
+function formatProduct(p: {
+  article_number: string;
+  product_name: string | null;
+  product_type: string | null;
+  price_current: number | null;
+  images: { url: string }[];
+}) {
+  return {
+    articleNumber: p.article_number,
+    name: p.product_name,
+    type: p.product_type,
+    price: p.price_current,
+    imageUrl: p.images[0]?.url ?? null,
+  };
 }

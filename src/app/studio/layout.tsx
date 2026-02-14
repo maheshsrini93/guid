@@ -67,6 +67,18 @@ export default async function StudioLayout({
             AI Config
           </Link>
           <Link
+            href="/studio/retailers"
+            className="block rounded-md px-3 py-2 text-sm hover:bg-accent cursor-pointer"
+          >
+            Retailers
+          </Link>
+          <Link
+            href="/studio/matching"
+            className="block rounded-md px-3 py-2 text-sm hover:bg-accent cursor-pointer"
+          >
+            Matching
+          </Link>
+          <Link
             href="/studio/catalog-sync"
             className="block rounded-md px-3 py-2 text-sm hover:bg-accent cursor-pointer"
           >
@@ -77,6 +89,12 @@ export default async function StudioLayout({
             className="block rounded-md px-3 py-2 text-sm hover:bg-accent cursor-pointer"
           >
             Search Analytics
+          </Link>
+          <Link
+            href="/studio/analytics/affiliate"
+            className="block rounded-md px-3 py-2 text-sm hover:bg-accent cursor-pointer"
+          >
+            Affiliate Analytics
           </Link>
         </nav>
         <div className="mt-8 border-t pt-4">
