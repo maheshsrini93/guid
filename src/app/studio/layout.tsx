@@ -49,6 +49,12 @@ export default async function StudioLayout({
             Submissions
           </Link>
           <Link
+            href="/studio/videos"
+            className="block rounded-md px-3 py-2 text-sm hover:bg-accent cursor-pointer"
+          >
+            Videos
+          </Link>
+          <Link
             href="/studio/ai-generate"
             className="block rounded-md px-3 py-2 text-sm hover:bg-accent cursor-pointer"
           >

@@ -17,6 +17,9 @@ import {
   BreadcrumbJsonLd,
 } from "@/components/json-ld";
 import { AlertTriangle, PenLine, Users } from "lucide-react";
+import { AdSlot } from "@/components/ad-slot";
+import { RequestGuideButton } from "@/components/request-guide-button";
+import { isPremiumUser } from "@/lib/subscription";
 
 // Dynamic imports for heavy client components — code-split into separate chunks
 const ProductChatWidget = dynamic(
@@ -337,6 +340,10 @@ export default async function ProductPage({
   // Fallback: render product detail page (no published guide)
   const session = await auth();
   const saved = session ? await isProductSaved(product.id) : false;
+  const userId = session?.user
+    ? (session.user as unknown as { id: string }).id
+    : null;
+  const premium = userId ? await isPremiumUser(userId) : false;
 
   const assemblyDocs = product.documents.filter(
     (d) => d.document_type === "assembly"
@@ -529,7 +536,10 @@ export default async function ProductPage({
             </>
           )}
 
-          {/* Submit a Guide CTA (P1.5.14) — show when no guide pipeline is active */}
+          {/* Ad slot — hidden for premium users */}
+          <AdSlot size="inline" className="my-6" />
+
+          {/* Submit a Guide CTA + Request AI Guide (P1.5.14, P4.3.3) */}
           {(product.guide_status === "no_source_material" || product.guide_status === "none" || !product.guide_status) &&
             !product.assemblyGuide?.published &&
             !product.discontinued && (
@@ -542,11 +552,19 @@ export default async function ProductPage({
                     <p className="text-sm text-muted-foreground mt-1 mb-4">
                       Share your assembly knowledge to help others build this product.
                     </p>
-                    <Button asChild>
-                      <Link href={`/products/${product.article_number}/submit-guide`} className="cursor-pointer">
-                        Submit a Guide
-                      </Link>
-                    </Button>
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                      <Button asChild>
+                        <Link href={`/products/${product.article_number}/submit-guide`} className="cursor-pointer">
+                          Submit a Guide
+                        </Link>
+                      </Button>
+                      {assemblyDocs.length > 0 && (
+                        <RequestGuideButton
+                          productId={product.id}
+                          isPremium={premium}
+                        />
+                      )}
+                    </div>
                   </div>
                 ) : (
                   <div className="rounded-lg border-2 border-dashed border-muted-foreground/30 p-6 text-center">

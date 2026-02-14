@@ -19,6 +19,7 @@ import {
   getSortOrderBy,
 } from "@/lib/product-filters";
 import { isValidImageUrl } from "@/lib/image-utils";
+import { AdSlot } from "@/components/ad-slot";
 
 export const metadata: Metadata = {
   title: "Browse Products",
@@ -238,6 +239,9 @@ export default async function ProductsPage({
               ))}
             </div>
           )}
+
+          {/* Ad slot — hidden for premium users */}
+          <AdSlot size="banner" className="mt-8" />
 
           {/* Pagination */}
           {totalPages > 1 && (

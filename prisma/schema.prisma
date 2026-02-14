@@ -86,6 +86,7 @@ model Product {
   aiGenerationJobs        AIGenerationJob[]
   guideSubmissions        GuideSubmission[]
   chatSessions            ChatSession[]
+  videoSubmissions        VideoSubmission[]
 
   @@index([article_number], map: "idx_products_article")
   @@index([source_retailer], map: "idx_products_retailer")
@@ -146,17 +147,23 @@ model ScrapeUrl {
 // ─── Auth tables (NextAuth) ───
 
 model User {
-  id             String         @id @default(cuid())
-  name           String?
-  email          String         @unique
-  hashedPassword String?
-  role           String         @default("user")
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  sessions       Session[]
+  id                   String         @id @default(cuid())
+  name                 String?
+  email                String         @unique
+  hashedPassword       String?
+  role                 String         @default("user")
+  subscriptionTier     String         @default("free")
+  stripeCustomerId     String?        @unique
+  stripeSubscriptionId String?        @unique
+  subscriptionEndsAt   DateTime?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  sessions         Session[]
   savedProducts    SavedProduct[]
   guideSubmissions GuideSubmission[]
   chatSessions     ChatSession[]
+  creatorProfile   CreatorProfile?
+  videoVotes       VideoVote[]
 
   @@map("users")
 }
@@ -387,4 +394,70 @@ model ChatMessage {
 
   @@index([sessionId])
   @@map("chat_messages")
+}
+
+// ─── Creator Profiles & Video Submissions (Phase 4: Premium) ───
+
+model CreatorProfile {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  youtubeChannelUrl String
+  youtubeChannelId  String?
+  channelName       String
+  subscriberCount   Int?
+  isVerified        Boolean  @default(false)
+  totalVideos       Int      @default(0)
+  totalHelpfulVotes Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  videoSubmissions VideoSubmission[]
+
+  @@map("creator_profiles")
+}
+
+model VideoSubmission {
+  id             String    @id @default(cuid())
+  productId      Int
+  creatorId      String
+  youtubeUrl     String
+  youtubeVideoId String
+  title          String
+  description    String?
+  language       String    @default("en")
+  stepsCovered   Json?
+  status         String    @default("pending") // pending/approved/rejected
+  helpfulVotes   Int       @default(0)
+  unhelpfulVotes Int       @default(0)
+  reviewedBy     String?
+  reviewNotes    String?
+  reviewedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  product Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  creator CreatorProfile @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  votes   VideoVote[]
+
+  @@index([productId])
+  @@index([creatorId])
+  @@index([status])
+  @@map("video_submissions")
+}
+
+model VideoVote {
+  id                String   @id @default(cuid())
+  videoSubmissionId String
+  userId            String
+  vote              String   // "up" | "down"
+  createdAt         DateTime @default(now())
+
+  videoSubmission VideoSubmission @relation(fields: [videoSubmissionId], references: [id], onDelete: Cascade)
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([videoSubmissionId, userId])
+  @@index([videoSubmissionId])
+  @@index([userId])
+  @@map("video_votes")
 }

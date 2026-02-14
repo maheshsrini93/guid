@@ -2,10 +2,11 @@
 
 import { useRef, useCallback, useState, useEffect } from "react";
 import Link from "next/link";
-import { FileText, Package, Grid3X3, Check, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { FileText, Package, Grid3X3, Check, Loader2, ChevronLeft, ChevronRight, Video } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { ImageWithFallback } from "@/components/image-with-fallback";
+import { VideoVoteButtons } from "@/components/video-vote-buttons";
 
 interface ProductDocument {
   id: number;
@@ -29,6 +30,20 @@ interface RelatedProduct {
   isNew: boolean;
 }
 
+interface VideoGuide {
+  id: string;
+  youtubeVideoId: string;
+  title: string;
+  description: string | null;
+  helpfulVotes: number;
+  unhelpfulVotes: number;
+  language: string;
+  creatorId: string;
+  channelName: string;
+  channelUrl: string;
+  subscriberCount: number | null;
+}
+
 interface ProductDetailTabsProps {
   description: string | null;
   materials: string | null;
@@ -43,6 +58,8 @@ interface ProductDetailTabsProps {
   packageDims: Dimension[];
   assemblyDocs: ProductDocument[];
   careDocs: ProductDocument[];
+  videoGuides?: VideoGuide[];
+  userVideoVotes?: Record<string, "up" | "down">;
   relatedProducts: RelatedProduct[];
 }
 
@@ -225,9 +242,12 @@ export function ProductDetailTabs({
   packageDims,
   assemblyDocs,
   careDocs,
+  videoGuides = [],
+  userVideoVotes = {},
   relatedProducts,
 }: ProductDetailTabsProps) {
   const hasDocuments = assemblyDocs.length > 0 || careDocs.length > 0;
+  const hasVideos = videoGuides.length > 0;
 
   // Build spec rows from available product data
   const generalSpecs: SpecRow[] = [
@@ -280,6 +300,18 @@ export function ProductDetailTabs({
               </span>
             )}
           </TabsTrigger>
+          {hasVideos && (
+            <TabsTrigger
+              value="videos"
+              className="cursor-pointer gap-1.5 px-4 py-2.5"
+            >
+              <Video className="size-4" aria-hidden="true" />
+              Video Guides
+              <span className="ml-1 inline-flex size-5 items-center justify-center rounded-full bg-muted text-xs font-mono">
+                {videoGuides.length}
+              </span>
+            </TabsTrigger>
+          )}
           <TabsTrigger
             value="related"
             className="cursor-pointer gap-1.5 px-4 py-2.5"
@@ -416,6 +448,73 @@ export function ProductDetailTabs({
           </div>
         )}
       </TabsContent>
+
+      {/* Video Guides Tab */}
+      {hasVideos && (
+        <TabsContent value="videos" className="pt-6">
+          <div className="space-y-8">
+            {videoGuides.map((video) => (
+              <div key={video.id} className="space-y-3">
+                {/* Responsive YouTube embed */}
+                <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-muted">
+                  <iframe
+                    src={`https://www.youtube-nocookie.com/embed/${video.youtubeVideoId}`}
+                    title={video.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="absolute inset-0 h-full w-full"
+                    loading="lazy"
+                  />
+                </div>
+
+                {/* Video info */}
+                <div>
+                  <h3 className="font-semibold">{video.title}</h3>
+                  {video.description && (
+                    <p className="mt-1 text-sm text-muted-foreground line-clamp-3">
+                      {video.description}
+                    </p>
+                  )}
+                </div>
+
+                {/* Creator attribution */}
+                <div className="flex items-center justify-between gap-4">
+                  <a
+                    href={video.channelUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="cursor-pointer text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:text-primary"
+                  >
+                    {video.channelName}
+                    {video.subscriberCount != null && (
+                      <span className="ml-1.5 text-xs text-muted-foreground">
+                        {video.subscriberCount >= 1000
+                          ? `${(video.subscriberCount / 1000).toFixed(1)}K subscribers`
+                          : `${video.subscriberCount} subscribers`}
+                      </span>
+                    )}
+                  </a>
+
+                  {/* Helpfulness voting */}
+                  <VideoVoteButtons
+                    videoSubmissionId={video.id}
+                    initialHelpfulVotes={video.helpfulVotes}
+                    initialUnhelpfulVotes={video.unhelpfulVotes}
+                    initialUserVote={userVideoVotes[video.id] ?? null}
+                  />
+                </div>
+
+                {/* Language badge */}
+                {video.language !== "en" && (
+                  <span className="inline-block rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                    {video.language.toUpperCase()}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </TabsContent>
+      )}
 
       {/* Related Products Tab */}
       <TabsContent value="related" className="pt-6">

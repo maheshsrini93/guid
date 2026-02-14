@@ -3,6 +3,8 @@ import { IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { HeaderNav } from "@/components/header-nav";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ServiceWorkerRegister } from "@/components/service-worker-register";
+import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 import "./globals.css";
 
 const ibmPlexSans = IBM_Plex_Sans({
@@ -53,6 +55,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#e5932c" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+      </head>
       <body
         className={`${ibmPlexSans.variable} ${jetbrainsMono.variable} antialiased`}
       >
@@ -69,6 +78,8 @@ export default function RootLayout({
           <main id="main-content">
             {children}
           </main>
+          <ServiceWorkerRegister />
+          <PwaInstallPrompt />
           <Analytics />
         </ThemeProvider>
       </body>

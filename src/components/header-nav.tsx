@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { auth, signOut } from "@/lib/auth";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { PremiumBadge } from "@/components/premium-badge";
 
 export async function HeaderNav() {
   const session = await auth();
@@ -22,8 +23,11 @@ export async function HeaderNav() {
                   Studio
                 </Link>
               )}
-              <Link href="/profile" className="inline-flex min-h-[44px] items-center px-2 cursor-pointer transition-colors duration-200 ease-out hover:text-primary">
+              <Link href="/profile" className="inline-flex min-h-[44px] items-center gap-1.5 px-2 cursor-pointer transition-colors duration-200 ease-out hover:text-primary">
                 Profile
+                {(session.user as unknown as { subscriptionTier?: string }).subscriptionTier === "premium" && (
+                  <PremiumBadge size="sm" />
+                )}
               </Link>
               <form
                 action={async () => {

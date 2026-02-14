@@ -27,22 +27,45 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         if (!isValid) return null;
 
-        return { id: user.id, email: user.email, name: user.name, role: user.role };
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          subscriptionTier: user.subscriptionTier,
+        };
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.role = (user as unknown as { role: string }).role;
+        token.subscriptionTier =
+          (user as unknown as { subscriptionTier: string }).subscriptionTier ?? "free";
+      }
+      // Re-fetch subscription tier on session update to reflect webhook changes
+      if (trigger === "update" && token.sub) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: { subscriptionTier: true },
+        });
+        if (dbUser) {
+          token.subscriptionTier = dbUser.subscriptionTier;
+        }
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        (session.user as unknown as { id: string; role: string }).id = token.sub!;
-        (session.user as unknown as { id: string; role: string }).role =
-          (token.role as string) ?? "user";
+        const u = session.user as unknown as {
+          id: string;
+          role: string;
+          subscriptionTier: string;
+        };
+        u.id = token.sub!;
+        u.role = (token.role as string) ?? "user";
+        u.subscriptionTier = (token.subscriptionTier as string) ?? "free";
       }
       return session;
     },

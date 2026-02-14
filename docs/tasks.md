@@ -285,43 +285,43 @@ Auto-derived from master-plan.md, implementation-plan.md, design-guidelines.md, 
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P4.1.1 | todo | Install Stripe SDK | `npm install stripe @stripe/stripe-js` | — | P4.1.2 |
-| P4.1.2 | todo | Create Stripe products/prices | Free, Premium ($X/mo), Premium Annual ($Y/yr) | P4.1.1 | P4.1.3 |
-| P4.1.3 | todo | Build Checkout endpoint | API route that creates Stripe Checkout session | P4.1.2 | P4.1.4, P4.4.2 |
-| P4.1.4 | todo | Build webhook handler | Handle `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted` | P4.1.3 | P4.1.5 |
-| P4.1.5 | todo | Add subscription field to User | `subscriptionTier` (free/premium), `stripeCustomerId`, `subscriptionEndsAt` | P4.1.4 | P4.1.6, P4.4.3, P4.4.4, P6.5.3 |
-| P4.1.6 | todo | Build middleware | Check subscription status for premium-gated features | P4.1.5 | P4.3.1, P4.3.2, P4.3.3, P4.4.5 |
+| P4.1.1 | done | Install Stripe SDK | `npm install stripe @stripe/stripe-js` | — | P4.1.2 |
+| P4.1.2 | done | Create Stripe products/prices | Free, Premium ($X/mo), Premium Annual ($Y/yr) | P4.1.1 | P4.1.3 |
+| P4.1.3 | done | Build Checkout endpoint | API route that creates Stripe Checkout session | P4.1.2 | P4.1.4, P4.4.2 |
+| P4.1.4 | done | Build webhook handler | Handle `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted` | P4.1.3 | P4.1.5 |
+| P4.1.5 | done | Add subscription field to User | `subscriptionTier` (free/premium), `stripeCustomerId`, `subscriptionEndsAt` | P4.1.4 | P4.1.6, P4.4.3, P4.4.4, P6.5.3 |
+| P4.1.6 | done | Build middleware | Check subscription status for premium-gated features | P4.1.5 | P4.3.1, P4.3.2, P4.3.3, P4.4.5 |
 
 ### 4.2 YouTube Creator Video Integration
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P4.2.1 | todo | Add CreatorProfile model | id, userId, youtubeChannelUrl, youtubeChannelId, channelName, subscriberCount (cached), isVerified, totalVideos, totalHelpfulVotes, timestamps. Run migration. | — | P4.2.3 |
-| P4.2.2 | todo | Add VideoSubmission model | id, productId, creatorId, youtubeUrl, youtubeVideoId, title, description, language, stepsCovered (JSON), status (pending/approved/rejected), helpfulVotes, unhelpfulVotes, reviewedBy, reviewNotes, timestamps. Run migration. | — | P4.2.4 |
-| P4.2.3 | todo | Build creator registration flow | `/creators/register` page: sign up as creator, link YouTube channel (URL input + manual verification or OAuth), create CreatorProfile. | P4.2.1 | P4.2.4, P4.2.7 |
-| P4.2.4 | todo | Build video submission form | `/creators/submit` page: select product (search), paste YouTube URL (auto-extract video ID and thumbnail), add title, description, language. One product can have multiple videos. | P4.2.2, P4.2.3 | P4.2.5 |
-| P4.2.5 | todo | Build video review queue in Studio | `/studio/videos` page: list pending video submissions with product name, creator info, YouTube thumbnail preview. Admin approve/reject with notes. | P4.2.4 | P4.2.6 |
-| P4.2.6 | todo | Build video display on product detail | Embedded YouTube player on product page (in "Video Guides" tab). Creator attribution strip: channel name, subscriber count, "Was this helpful?" thumbs up/down. | P4.2.5 | P4.2.8 |
-| P4.2.7 | todo | Build creator profile page | `/creators/[id]` page: channel info, subscriber count, all submitted and approved videos, total helpfulness score. | P4.2.3 | — |
-| P4.2.8 | todo | Add helpfulness voting | Thumbs up/down on video cards. Sort videos by helpfulness rating. Track votes per user to prevent abuse. | P4.2.6 | — |
+| P4.2.1 | done | Add CreatorProfile model | id, userId, youtubeChannelUrl, youtubeChannelId, channelName, subscriberCount (cached), isVerified, totalVideos, totalHelpfulVotes, timestamps. Run migration. | — | P4.2.3 |
+| P4.2.2 | done | Add VideoSubmission model | id, productId, creatorId, youtubeUrl, youtubeVideoId, title, description, language, stepsCovered (JSON), status (pending/approved/rejected), helpfulVotes, unhelpfulVotes, reviewedBy, reviewNotes, timestamps. Run migration. | — | P4.2.4 |
+| P4.2.3 | done | Build creator registration flow | `/creators/register` page: sign up as creator, link YouTube channel (URL input + manual verification or OAuth), create CreatorProfile. | P4.2.1 | P4.2.4, P4.2.7 |
+| P4.2.4 | done | Build video submission form | `/creators/submit` page: select product (search), paste YouTube URL (auto-extract video ID and thumbnail), add title, description, language. One product can have multiple videos. | P4.2.2, P4.2.3 | P4.2.5 |
+| P4.2.5 | done | Build video review queue in Studio | `/studio/videos` page: list pending video submissions with product name, creator info, YouTube thumbnail preview. Admin approve/reject with notes. | P4.2.4 | P4.2.6 |
+| P4.2.6 | done | Build video display on product detail | Embedded YouTube player on product page (in "Video Guides" tab). Creator attribution strip: channel name, subscriber count, "Was this helpful?" thumbs up/down. | P4.2.5 | P4.2.8 |
+| P4.2.7 | done | Build creator profile page | `/creators/[id]` page: channel info, subscriber count, all submitted and approved videos, total helpfulness score. | P4.2.3 | — |
+| P4.2.8 | done | Add helpfulness voting | Thumbs up/down on video cards. Sort videos by helpfulness rating. Track votes per user to prevent abuse. | P4.2.6 | — |
 
 ### 4.3 Other Premium Features
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P4.3.1 | todo | Offline guide access (PWA) | Service worker caching for saved guides (PWA) | P4.1.6 | — |
-| P4.3.2 | todo | Ad-free experience | Conditional ad rendering based on subscription | P4.1.6 | — |
-| P4.3.3 | todo | Priority AI guides | "Request a guide" button: premium users' requests are prioritized in the AI queue | P4.1.6 | — |
+| P4.3.1 | done | Offline guide access (PWA) | Service worker caching for saved guides (PWA) | P4.1.6 | — |
+| P4.3.2 | done | Ad-free experience | Conditional ad rendering based on subscription | P4.1.6 | — |
+| P4.3.3 | done | Priority AI guides | "Request a guide" button: premium users' requests are prioritized in the AI queue | P4.1.6 | — |
 
 ### 4.4 Premium UI
 
 | ID | Status | Task | Description | Depends | Blocks |
 |----|--------|------|-------------|---------|--------|
-| P4.4.1 | todo | Build pricing page | `/pricing` with plan comparison table | — | P4.4.2 |
-| P4.4.2 | todo | Build upgrade flow | "Upgrade" button -> Stripe Checkout -> success redirect | P4.1.3, P4.4.1 | — |
-| P4.4.3 | todo | Build billing management | `/account/billing` with Stripe Customer Portal link | P4.1.5 | — |
-| P4.4.4 | todo | Add premium badges | Show premium badge on profile and in navigation | P4.1.5 | — |
-| P4.4.5 | todo | Add premium gate modals | Tasteful modals when free users hit premium features | P4.1.6 | — |
+| P4.4.1 | done | Build pricing page | `/pricing` with plan comparison table | — | P4.4.2 |
+| P4.4.2 | done | Build upgrade flow | "Upgrade" button -> Stripe Checkout -> success redirect | P4.1.3, P4.4.1 | — |
+| P4.4.3 | done | Build billing management | `/account/billing` with Stripe Customer Portal link | P4.1.5 | — |
+| P4.4.4 | done | Add premium badges | Show premium badge on profile and in navigation | P4.1.5 | — |
+| P4.4.5 | done | Add premium gate modals | Tasteful modals when free users hit premium features | P4.1.6 | — |
 
 ---
 
@@ -487,3 +487,49 @@ Items flagged by the Critic agent during the parallel team session. Should be ad
 | P0.4.6 | done | Replace animate-spin with motion-safe:animate-spin | Tailwind's `animate-spin` does not respect `prefers-reduced-motion`. Replace with `motion-safe:animate-spin` in 2 files: `src/components/pull-to-refresh.tsx` (RefreshCw icon) and `src/components/product-detail-tabs.tsx` (carousel "Coming Soon" Loader2 badge). | — | — |
 | P0.4.7 | done | Replace fragile autoPublished heuristic in monitoring | `studio/ai-generate/monitoring/page.tsx` uses `reviewNotes.contains("Auto-published")` to count auto-published vs reviewed guides. This couples to the exact string in `auto-publish.ts`. Consider adding a dedicated `autoPublished: Boolean` field to the AIGenerationJob model, or add a code comment linking these. | — | — |
 | P0.4.8 | done | Add label elements to login/register form inputs | `src/app/login/page.tsx` and `src/app/register/page.tsx` use `placeholder` text only — no associated `<label>` or `aria-label` on form inputs. Add proper `<Label htmlFor="...">` elements (can be `sr-only` if visual labels aren't desired) per WCAG form accessibility requirements. | — | — |
+
+---
+
+## Phase 4: Premium Subscription
+
+### 4.1 Stripe Integration
+
+| ID | Status | Task | Description | Depends | Blocks |
+|----|--------|------|-------------|---------|--------|
+| P4.1.1 | done | Install Stripe SDK | Install `stripe` and `@stripe/stripe-js`, create `src/lib/stripe.ts` server singleton and `src/lib/stripe-client.ts` client helper, add Stripe env vars to `.env.example` | — | P4.1.2 |
+| P4.1.2 | todo | Create Stripe products/prices config | Define subscription tiers (free/premium/pro) as Stripe products/prices, create config file | P4.1.1 | P4.1.3 |
+| P4.1.3 | todo | Build Checkout endpoint | Create `/api/stripe/checkout` route that creates Stripe Checkout sessions | P4.1.2 | P4.1.4 |
+| P4.1.4 | todo | Build webhook handler | Create `/api/stripe/webhook` route to handle Stripe subscription lifecycle events | P4.1.3 | P4.1.5 |
+| P4.1.5 | todo | Add subscription fields to User model | Add `stripeCustomerId`, `subscriptionTier`, `subscriptionStatus`, `subscriptionId` fields to User | P4.1.4 | P4.1.6 |
+| P4.1.6 | todo | Build subscription middleware | Middleware to check subscription tier and gate premium features | P4.1.5 | P4.3.1, P4.3.2, P4.3.3, P4.4.3, P4.4.4, P4.4.5 |
+
+### 4.2 YouTube Creator Video Integration
+
+| ID | Status | Task | Description | Depends | Blocks |
+|----|--------|------|-------------|---------|--------|
+| P4.2.1 | done | Add CreatorProfile model | Prisma model for YouTube creator profiles with channel info, verification, stats | — | P4.2.3 |
+| P4.2.2 | done | Add VideoSubmission model | Prisma model for video submissions with review workflow, helpfulness voting | — | P4.2.4 |
+| P4.2.3 | done | Build creator registration flow | `/creators/register` page and server actions for creator signup | P4.2.1 | P4.2.4, P4.2.7 |
+| P4.2.4 | todo | Build video submission form | `/creators/submit` page for creators to submit YouTube video links for products | P4.2.2, P4.2.3 | P4.2.5 |
+| P4.2.5 | todo | Build video review queue in Studio | `/studio/videos` admin page for reviewing video submissions | P4.2.4 | P4.2.6 |
+| P4.2.6 | todo | Build video display on product detail | Show approved videos on product detail page in "Video Guides" tab | P4.2.5 | P4.2.8 |
+| P4.2.7 | todo | Build creator profile page | `/creators/[id]` public page showing channel info and submitted videos | P4.2.3 | — |
+| P4.2.8 | done | Add helpfulness voting | Thumbs up/down voting on video guides, sorted by helpfulness | P4.2.6 | — |
+
+### 4.3 Premium Features
+
+| ID | Status | Task | Description | Depends | Blocks |
+|----|--------|------|-------------|---------|--------|
+| P4.3.1 | done | Offline guide access (PWA) | Service worker caching for offline guide viewing | P4.1.6 | — |
+| P4.3.2 | done | Ad-free experience | Premium users get ad-free browsing | P4.1.6 | — |
+| P4.3.3 | done | Priority AI guides | Premium users can request priority AI guide generation | P4.1.6 | — |
+
+### 4.4 Pricing & Upgrade Flow
+
+| ID | Status | Task | Description | Depends | Blocks |
+|----|--------|------|-------------|---------|--------|
+| P4.4.1 | done | Build pricing page | `/pricing` page with plan comparison (Free/Premium/Pro) | — | P4.4.2 |
+| P4.4.2 | done | Build upgrade flow | `/subscribe` page that redirects to Stripe Checkout | P4.1.3, P4.4.1 | — |
+| P4.4.3 | done | Build billing management | `/account/billing` page for subscription management via Stripe Portal | P4.1.5 | — |
+| P4.4.4 | done | Add premium badges | Visual badges on user profiles and content for premium subscribers | P4.1.5 | — |
+| P4.4.5 | done | Add premium gate modals | Modal prompts when free users try to access premium features | P4.1.6 | — |

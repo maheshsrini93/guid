@@ -10,6 +10,7 @@ import { SaveProductButton } from "@/components/save-product-button";
 import { BookmarkedStepsList } from "@/components/bookmarked-steps-list";
 import { isValidImageUrl } from "@/lib/image-utils";
 import { getChatUsage } from "@/lib/chat/chat-limits";
+import { PremiumBadge } from "@/components/premium-badge";
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -24,6 +25,7 @@ export default async function ProfilePage() {
       name: true,
       email: true,
       role: true,
+      subscriptionTier: true,
       createdAt: true,
     },
   });
@@ -61,7 +63,10 @@ export default async function ProfilePage() {
           <CardContent className="space-y-2 text-sm">
             {user?.name && <p className="font-medium">{user.name}</p>}
             <p className="text-muted-foreground">{user?.email}</p>
-            <Badge variant="secondary">{user?.role}</Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary">{user?.role}</Badge>
+              {user?.subscriptionTier === "premium" && <PremiumBadge />}
+            </div>
             <p className="text-xs text-muted-foreground">
               Joined {user?.createdAt.toLocaleDateString()}
             </p>

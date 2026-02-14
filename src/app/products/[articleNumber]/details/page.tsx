@@ -4,6 +4,7 @@ import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isProductSaved } from "@/lib/actions/saved-products";
+import { getUserVideoVotes } from "@/lib/actions/video-votes";
 import { Badge } from "@/components/ui/badge";
 import { ProductImageGallery } from "@/components/product-image-gallery";
 import { SaveProductButton } from "@/components/save-product-button";
@@ -105,6 +106,33 @@ export default async function ProductDetailsPage({
 
   if (!product) return notFound();
 
+  // Fetch approved video guides for this product
+  const videoGuides = await prisma.videoSubmission.findMany({
+    where: {
+      productId: product.id,
+      status: "approved",
+    },
+    orderBy: [{ helpfulVotes: "desc" }, { createdAt: "desc" }],
+    select: {
+      id: true,
+      youtubeVideoId: true,
+      title: true,
+      description: true,
+      helpfulVotes: true,
+      unhelpfulVotes: true,
+      language: true,
+      creator: {
+        select: {
+          id: true,
+          channelName: true,
+          youtubeChannelUrl: true,
+          subscriberCount: true,
+        },
+      },
+    },
+    take: 20,
+  });
+
   // Fetch related products: same category, exclude current, limit 8
   const relatedProducts = product.category_path
     ? await prisma.product.findMany({
@@ -128,7 +156,12 @@ export default async function ProductDetailsPage({
     : [];
 
   const session = await auth();
-  const saved = session ? await isProductSaved(product.id) : false;
+  const [saved, userVideoVotes] = await Promise.all([
+    session ? isProductSaved(product.id) : Promise.resolve(false),
+    videoGuides.length > 0
+      ? getUserVideoVotes(videoGuides.map((v) => v.id))
+      : Promise.resolve({} as Record<string, "up" | "down">),
+  ]);
 
   const assemblyDocs = product.documents.filter(
     (d) => d.document_type === "assembly"
@@ -355,6 +388,20 @@ export default async function ProductDetailsPage({
         packageDims={packageDims}
         assemblyDocs={assemblyDocs}
         careDocs={careDocs}
+        videoGuides={videoGuides.map((v) => ({
+          id: v.id,
+          youtubeVideoId: v.youtubeVideoId,
+          title: v.title,
+          description: v.description,
+          helpfulVotes: v.helpfulVotes,
+          unhelpfulVotes: v.unhelpfulVotes,
+          language: v.language,
+          creatorId: v.creator.id,
+          channelName: v.creator.channelName,
+          channelUrl: v.creator.youtubeChannelUrl,
+          subscriberCount: v.creator.subscriberCount,
+        }))}
+        userVideoVotes={userVideoVotes}
         relatedProducts={relatedProducts.map((p) => ({
           articleNumber: p.article_number,
           name: p.product_name,
