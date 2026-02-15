@@ -488,3 +488,12 @@ Items flagged by the Critic agent during the parallel team session. Should be ad
 | P0.4.7 | done | Replace fragile autoPublished heuristic in monitoring | `studio/ai-generate/monitoring/page.tsx` uses `reviewNotes.contains("Auto-published")` to count auto-published vs reviewed guides. This couples to the exact string in `auto-publish.ts`. Consider adding a dedicated `autoPublished: Boolean` field to the AIGenerationJob model, or add a code comment linking these. | — | — |
 | P0.4.8 | done | Add label elements to login/register form inputs | `src/app/login/page.tsx` and `src/app/register/page.tsx` use `placeholder` text only — no associated `<label>` or `aria-label` on form inputs. Add proper `<Label htmlFor="...">` elements (can be `sr-only` if visual labels aren't desired) per WCAG form accessibility requirements. | — | — |
 
+### E2E Testing
+
+| ID | Status | Task | Description | Depends | Blocks |
+|----|--------|------|-------------|---------|--------|
+| P0.5.1 | done | Set up Playwright E2E framework | Install `@playwright/test`, create `playwright.config.ts` (single worker, auth setup project, chromium + mobile safari), add npm scripts (`test:e2e`, `test:e2e:ui`, `test:e2e:headed`), update `.gitignore` | — | P0.5.2, P0.5.3 |
+| P0.5.2 | done | Create auth fixtures and test data helpers | `e2e/fixtures/auth.setup.ts` (pre-login admin + test user, save storageState), `e2e/fixtures/auth.ts` (custom fixtures: adminPage, userPage), `e2e/fixtures/test-data.ts` (findProductWithGuide, findAnyProduct, searchAndWait) | P0.5.1 | P0.5.3 |
+| P0.5.3 | done | Write 10 E2E test suites (74 tests) | 01-homepage (8), 02-search (10), 03-product-detail (9), 04-auth (10), 05-saved-products (7), 06-guide-progress (5), 07-chat (6), 08-pricing (7), 09-studio-admin (8), 10-retailers (5). Covers all critical user flows. | P0.5.1, P0.5.2 | P0.5.4 |
+| P0.5.4 | done | Add E2E job to CI pipeline | Add `e2e` job to `.github/workflows/ci.yml` (depends on build, installs Playwright browsers, runs tests against Supabase via secrets, uploads report/results artifacts) | P0.5.3 | — |
+
